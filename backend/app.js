@@ -7,6 +7,8 @@ const cors = require("cors")
 const helmet = require("helmet")
 const mongoose = require('mongoose');
 
+//import routes
+const userRoutes = require('./routes/userRoutes')
 // const logger = require("@util/logger");
 
 const app = express();
@@ -18,6 +20,7 @@ app.use(morgan('dev'));
 // app.use(cookieParser());
 app.use(cors());
 app.use(helmet());
+
 // Configure custom logger middleware
 // app.use(logger.dev, logger.combined);
 
@@ -41,7 +44,11 @@ mongoose.connect(process.env.MONGODB_URL, {
 // app.use(errorHandler());
 
 // Routes
-
+app.use('/', (req, res, next) => {
+    console.log("the url: "+ req.url+ " the body"+req.body);
+    next()
+});
+app.use('/user/',userRoutes);
 
 // Handle not valid route
 app.use('*', (req, res) => {
