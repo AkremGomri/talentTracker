@@ -21,7 +21,8 @@
     "logger": "^0.0.1",
     "mongoose": "^6.9.2",
     "mongoose-unique-validator": "^3.1.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "validator": "^13.9.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"

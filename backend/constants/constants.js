@@ -1,0 +1,9 @@
+const CAPABILITY_ADD_USER = 'CAPABILITY_ADD_USER';
+const SECOND_CONSTANT = 'value2';
+const THIRD_CONSTANT = 'value3';
+
+module.exports = {
+    CAPABILITY_ADD_USER,
+    SECOND_CONSTANT,
+    THIRD_CONSTANT
+};

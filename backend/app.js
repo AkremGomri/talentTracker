@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 
 //import routes
 const userRoutes = require('./routes/userRoutes')
+const adminRoutes = require('./routes/adminRoutes')
 // const logger = require("@util/logger");
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/', (req, res, next) => {
     next()
 });
 app.use('/user/',userRoutes);
+app.use('/admin/',adminRoutes);
 
 // Handle not valid route
 app.use('*', (req, res) => {

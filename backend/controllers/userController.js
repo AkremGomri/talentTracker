@@ -4,30 +4,50 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 // const { Validator } = require('node-input-validator');
 const fs = require('fs');
+const roleModel = require('../models/roleModel');
 
-exports.signup = (req, res, next) => {
-    console.log("req.body.email: " + req.body.email);
-    bcrypt.hash(req.body.password, 10) 
+exports.signup = async(req, res, next) => {
+  let newUser = {...req.body};
+    if(!newUser.password || !newUser.email){
+      console.log("field missing");
+      return res.status(400).json({ error: "missing fields" });
+    }
+
+    if(newUser.role){
+      try{
+        console.log("newUser.role: " + newUser.role);
+        let role;
+        if (typeof newUser.role === "string") {
+          role = await roleModel.findOne({ "name": newUser.role });
+        } else {
+          role = await roleModel.findOne({ "_id": newUser.role });
+        }
+        console.log("heree: ",newUser);
+        newUser.role = role._id;
+      } catch(error){
+        console.log("error extracting role: ",error);
+        return res.status(500).json(error)
+      }
+    }
+
+    console.log("newUser.email: " + newUser.email);
+
+    bcrypt.hash(newUser.password, 10) 
       .then((hash) => {
         me = {
-            email: req.body.email,
+            email: newUser.email,
             password : hash,
-            Photo: req.body.Photo,
-            name: req.body.name,
-            lastName: req.body.lastName,
-            date_of_birth: req.body.dateOfBirth,
-            city: req.body.city,
-            gender: req.body.gender,
-            bio: req.body.bio,
           //photo: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         }
+        console.log("here we go");
         const user = new User(me);
-        // user.joiValidate(me);
+        user.joiValidate(me);
         user.save()
           .then(() => {
-            res.status(201).json({ message: "utilisateur crée!" })})
+            return res.status(201).json({ message: "utilisateur crée!" })})
           .catch(error => {
-            res.status(500).json({ error })
+            console.log("error signing up: ",error);
+            return res.status(500).json(error)
           });
   
       })
@@ -35,13 +55,7 @@ exports.signup = (req, res, next) => {
 
 exports.login = (req, res, next) => {
     console.log(req.body);
-    User.findOne({
-      $or: [{
-        "email": req.body.email
-      }, {
-        "pseudo": req.body.email
-      }]
-    })
+    User.findOne({"email": req.body.email})
       .then(
         user => {
           if (!user) {
@@ -67,9 +81,26 @@ exports.login = (req, res, next) => {
             })
             .catch(error => {
               console.log("error");
-              res.status(500).json({ error })
+              res.status(500).json( error )
             });
         })
       .catch(error => {      
-        res.status(500).json({ error })});
+        res.status(500).json( error )});
   };
+
+/*           missing something            */
+exports.delete = async (req, res, next) => {
+  try{
+    let result = await User.deleteOne({"email": req.body.email})
+    if(result.deletedCount <= 0) throw "user not found";
+    res.status(200).json({message:"deleted successfully"});
+  } catch (error) {
+    console.log("error deleting user: ",error);
+    res.status(500).json( error )
+  }
+}
+
+/*           test            */
+exports.test = (req, res, next) => {
+  res.status(200).json({message:"successful"});
+}
