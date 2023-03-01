@@ -13,10 +13,10 @@ exports.signup = async(req, res, next) => {
       return res.status(400).json({ error: "missing fields" });
     }
 
+    let role;
     if(newUser.role){
       try{
         console.log("newUser.role: " + newUser.role);
-        let role;
         if (typeof newUser.role === "string") {
           role = await roleModel.findOne({ "name": newUser.role });
         } else {
@@ -26,31 +26,31 @@ exports.signup = async(req, res, next) => {
         newUser.role = role._id;
       } catch(error){
         console.log("error extracting role: ",error);
-        return res.status(500).json(error)
+        return res.status(500).json("wrong data provided !")
       }
+    } else {
+      console.log("ma3andouch role");
+      role = await roleModel.findOne({ name: 'default' })
+      console.log("role: ",role);
+      newUser.role = role._id;
     }
 
     console.log("newUser.email: " + newUser.email);
 
-    bcrypt.hash(newUser.password, 10) 
-      .then((hash) => {
-        me = {
-            email: newUser.email,
-            password : hash,
-          //photo: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-        }
-        console.log("here we go");
-        const user = new User(me);
-        user.joiValidate(me);
-        user.save()
-          .then(() => {
-            return res.status(201).json({ message: "utilisateur crée!" })})
-          .catch(error => {
-            console.log("error signing up: ",error);
-            return res.status(500).json(error)
-          });
-  
-      })
+    const user = new User({
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+      role: newUser.role         
+    });
+    user.joiValidate(req.body);
+    user.save()
+      .then(() => {
+        return res.status(201).json({ message: "utilisateur crée!" })})
+      .catch(error => {
+        console.log("error signing up: ",error);
+        return res.status(500).json(error)
+      });
   };
 
 exports.login = (req, res, next) => {
@@ -70,10 +70,10 @@ exports.login = (req, res, next) => {
               }
               const token=jwt.sign(
                 { userId: user._id },
-                'RANDOM_TOKEN_SECRET',
-                { expiresIn: '24h' }
+                  process.env.JWT_SECRET,
+                { expiresIn: process.env.JWT_EXPIRES }
               )
-              res.status(200)
+              return res.status(200)
               .json({
                 userId: user._id,
                 token: token
@@ -81,11 +81,11 @@ exports.login = (req, res, next) => {
             })
             .catch(error => {
               console.log("error");
-              res.status(500).json( error )
+              return res.status(500).json( error )
             });
         })
       .catch(error => {      
-        res.status(500).json( error )});
+        return res.status(500).json( error )});
   };
 
 /*           missing something            */
@@ -93,14 +93,97 @@ exports.delete = async (req, res, next) => {
   try{
     let result = await User.deleteOne({"email": req.body.email})
     if(result.deletedCount <= 0) throw "user not found";
-    res.status(200).json({message:"deleted successfully"});
+    return res.status(200).json({message:"deleted successfully"});
   } catch (error) {
     console.log("error deleting user: ",error);
-    res.status(500).json( error )
+    return res.status(500).json( error )
   }
 }
 
 /*           test            */
 exports.test = (req, res, next) => {
-  res.status(200).json({message:"successful"});
+  return res.status(200).json({message:"successful"});
 }
+
+/*          Dabatabase easy manipulation            */
+exports.createManyUsers = async (req, res, next) => {
+  if(!req.body.users){
+    console.log("req.body.users missing");
+    return res.status(400).json({ error: "missing field" });
+  }
+
+  console.log("req.body.users: " + req.body.users);
+
+  let newUsers;
+  try{
+    newUsers = await User.insertMany(req.body.users);
+  } catch(error){
+    console.log("error adding many new user: ",error);
+    return res.status(500).json(error)
+  }
+
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          newUsers
+      }
+  });
+}
+
+exports.updateManyUsers = async (req, res, next) => {
+  if(!req.body.users){
+    console.log("req.body.users missing");
+    return res.status(400).json({ error: "missing field" });
+  }
+
+  console.log("req.body.users: " + req.body.users);
+
+  let updatedUsers;
+  try{
+    updatedUsers = await User.updateMany(req.body.users);
+  } catch(error){
+    console.log("error updating many users: ",error);
+    return res.status(500).json(error)
+  }
+
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          updatedUsers
+      }
+  });
+}
+
+exports.getAllUsers = async (req, res, next) => {
+  let users;
+  try{
+    users = await User.find().populate('role');
+  } catch(error){
+    console.log("error getting all users: ",error);
+    return res.status(500).json(error)
+  }
+  
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          users
+      }
+  });
+}
+
+exports.deleteAllUsers = async (req, res, next) => {
+  let result;
+  try{
+    result = await User.deleteMany();
+  } catch(error){
+    console.log("error deleting many users: ",error);
+    return res.status(500).json(error)
+  }
+  
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          result
+      }
+  });
+};

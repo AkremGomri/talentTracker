@@ -1,26 +1,33 @@
 const Role = require('../models/roleModel');
 
+
 exports.createNewRole = async (req, res, next) => {
-  if(!req.body.name){
-    console.log("req.body.name missing");
+  const data = req.body;
+  console.log("data: " + data);
+  if(!data?.name){
+    console.log("data missing");
     return res.status(400).json({ error: "missing field" });
   }
 
-  console.log("req.body.name: " + req.body.name);
+  console.log("data.name: " + data.name);
 
-  let newRole;
+  let newRole = {
+    name: data.name,
+    abilities: {
+      can: data.abilities?.can,
+      cannot: data.abilities?.cannot
+    }
+  };
   try{
-    newRole = await Role.create(req.body);
+    newRole = await Role.create(newRole);
   } catch(error){
     console.log("error adding new role: ",error);
-    res.status(500).json(error)
+    return res.status(500).json(error)
   }
   
-  res.status(201).json({
+  return res.status(201).json({
       status: 'success',
-      data: {
-          newRole
-      }
+      data: newRole
   });
 };
 
@@ -41,10 +48,17 @@ exports.getRole = async (req, res, next) => {
     }
   } catch(error){
     console.log("error adding new role: ",error);
-    res.status(500).json(error)
+    return res.status(500).json(error)
+  }
+
+  if(!role){
+    return res.status(404).json({
+      status: 'fail',
+      message: 'No role found'
+    });
   }
   
-  res.status(201).json({
+  return res.status(201).json({
       status: 'success',
       data: {
           role
@@ -53,29 +67,37 @@ exports.getRole = async (req, res, next) => {
 };
 
 exports.updateRole = async (req, res, next) => {
-  if(!req.body.name && !req.params.id){
-    console.log("req.body.name and req.params.id missing");
+  const data = req.body;
+  if(!data.name && !req.params.id){
+    console.log("data.name and req.params.id missing");
     return res.status(400).json({ error: "missing fields" });
   }
 
-  console.log("req.body.name: " + req.body.name);
+  console.log("data.name: " + data.name);
 
-  let updatedRole
+  let updates = {
+    name: data.name,
+    abilities: {
+      can: data.abilities?.can,
+      cannot: data.abilities?.cannot
+    }
+  };
+
   try{
-    if (typeof req.body.name === "string") {
-      updatedRole = await Role.findOneAndUpdate({ "name": req.body.name }, req.body);
+    if (typeof data.name === "string") {
+      updatedRole = await Role.findOneAndUpdate({ "name": data.name }, updates);
     } else {
-      updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, req.body);
+      updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, updates);
     }
   } catch(error){
     console.log("error adding new role: ",error);
-    res.status(500).json(error)
+    return res.status(500).json(error)
   }
-  
-  res.status(201).json({
+
+  return res.status(201).json({
       status: 'success',
       data: {
-          updatedRole
+          updatedRole,
       }
   });
 };
@@ -100,6 +122,91 @@ exports.deleteRole = async (req, res, next) => {
     }
   } catch(error){
     console.log("error deleting role: ",error);
+    return res.status(500).json(error)
+  }
+  
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          result
+      }
+  });
+};
+
+/*          Dabatabase easy manipulation            */
+exports.createManyRoles = async (req, res, next) => {
+  const data  = req.body.roles;
+  if(!data){
+    console.log("data missing");
+    return res.status(400).json({ error: "missing field" });
+  }
+
+  console.log("data: " + data);
+
+  let newRoles;
+  try{
+    newRoles = await Role.insertMany(data);
+  } catch(error){
+    console.log("error creating many new data: ",error);
+    res.status(500).json(error)
+  }
+
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          newRoles
+      }
+  });
+}
+
+exports.updateManyRoles = async (req, res, next) => {
+  const data = req.body.roles;
+  if(!data){
+    console.log("data missing");
+    return res.status(400).json({ error: "missing field" });
+  }
+
+  console.log("data: " + data);
+
+  let updatedRoles;
+  try{
+    updatedRoles = await Role.updateMany(data);
+  } catch(error){
+    console.log("error updating many data: ",error);
+    return res.status(500).json(error)
+  }
+
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          updatedRoles
+      }
+  });
+}
+
+exports.getAllRoles = async (req, res, next) => {
+  let roles;
+  try{
+    roles = await Role.find();
+  } catch(error){
+    console.log("error getting all roles: ",error);
+    return res.status(500).json(error)
+  }
+  
+  return res.status(201).json({
+      status: 'success',
+      data: {
+          roles
+      }
+  });
+}
+
+exports.deleteAllRoles = async (req, res, next) => {
+  let result;
+  try{
+    result = await Role.deleteMany();
+  } catch(error){
+    console.log("error deleting many roles: ",error);
     return res.status(500).json(error)
   }
   

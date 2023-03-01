@@ -4,10 +4,20 @@ const Joi = require('joi');
 const { joiPasswordExtendCore } = require('joi-password');
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 const validator = require('validator');
+const bcrypt = require('bcrypt');
 
 const userSchema= mongoose.Schema({
     email: {type: String ,required:[true, "please write a valid email"] ,unique:true, validate: [validator.isEmail, "please write a valid email"]},
     password : {type:String ,required:[true, "please write a valid password"]},
+    passwordConfirm: {
+        type:String ,required:[true, "please confirm your password"],
+        validate: {
+            validator: function(el) {
+                return el === this.password;
+            },
+            message: 'Passwords are not the same!'
+            }
+    },
     role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
     manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
     Manages: [
@@ -16,6 +26,16 @@ const userSchema= mongoose.Schema({
     Skills: [
         { type: mongoose.Schema.ObjectId, ref: 'Skill' }
     ],
+});
+
+userSchema.pre('save', function(next) {
+    if (!this.isModified('password')) return next();
+    this.password = bcrypt.hash(this.password, 12, (err, hash) => {
+        if (err) return next(err);
+        this.password = hash;
+        next();
+    });
+    this.passwordConfirm = undefined;
 });
 
 userSchema.methods.joiValidate = function(obj) {

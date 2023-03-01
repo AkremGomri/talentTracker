@@ -4,16 +4,12 @@ const Joi = require('joi');
 
 const RoleSchema= mongoose.Schema({
     name:{type: String ,required:true,unique:true},
-    capabilities: [
-        { type: mongoose.Schema.ObjectId, ref: 'Capability' }
-    ],
-    Users: [
-        { type: mongoose.Schema.ObjectId, ref: 'User' }
-    ],
+    abilities: 
+        { type: Object, required:true}
 });
 
 // RoleSchema.pre('save', function (next) {
-//     this.capabilities = _.uniq(this.capabilities);
+//     this.abilities = _.uniq(this.abilities);
 //     this.Users = _.uniq(this.Users);
 //     next();
 //   });
@@ -21,8 +17,7 @@ const RoleSchema= mongoose.Schema({
 RoleSchema.methods.joiValidate = function(obj) {
 	const schema =  Joi.object({
         name: Joi.string().required(),
-        capabilities: Joi.array().items(Joi.object()),
-        Users: Joi.array().items(Joi.object()),
+        abilities: Joi.array().items(Joi.object()),
 	});
 	const validation = schema.validate(obj);
     return validation;

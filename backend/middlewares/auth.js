@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 module.exports= async (req,res ,next)=> {
     try {
         const token = req.headers.authorization.split(' ')[1];
-        const decodedToken=jwt.verify(token,'RANDOM_TOKEN_SECRET');
+        const decodedToken=jwt.verify(token, process.env.JWT_SECRET);
         const userId=decodedToken.userId;
         // console.log("user idddd: ",userId);
         const user=await User.findOne({_id:userId});
@@ -17,6 +17,7 @@ module.exports= async (req,res ,next)=> {
             next();
         }
     } catch (error) {
-        res.status(401).json({error :error | 'Requete non authentifiée !'})
+        console.log("auth middleware error: ",error);
+        res.status(401).json({error : "auth error: " + error | 'Requete non authentifiée !'})
     }
 };

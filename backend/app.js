@@ -9,9 +9,10 @@ const mongoose = require('mongoose');
 
 //import routes
 const userRoutes = require('./routes/userRoutes')
-const adminRoutes = require('./routes/adminRoutes')
+const roleRoutes = require('./routes/roleRoutes')
 // const logger = require("@util/logger");
-
+const seedBD = require('./utils/seedDB');
+const multer = require('multer');
 const app = express();
 
 // Configure Express App Instance
@@ -36,11 +37,13 @@ app.use('*', (req, res, next) => {
 mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-}).then(() => console.log('DB Connected'))
+}).then(() => {
+    console.log('DB Connected')
+    seedBD();
+})
 .catch(err => {
     console.log(`DB Connection Error: ${err.message}`);
 });
-
 // Handle errors
 // app.use(errorHandler());
 
@@ -49,8 +52,25 @@ app.use('/', (req, res, next) => {
     console.log("the url: "+ req.url+ " the body"+req.body);
     next()
 });
+/*                           */
+const User = require('./models/userModel');
+const xlsx = require('xlsx');
+const upload = multer({ dest: 'uploads/' });
+app.post('/upload-excel', upload.single('file'), (req, res) => {
+    const workbook = xlsx.readFile(req.file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const usersData = xlsx.utils.sheet_to_json(worksheet);
+    User.insertMany(usersData, (error, docs) => {
+      if (error) {
+        console.error(error);
+        res.status(500).send('Internal server error');
+      } else {
+        res.json({ message: 'Data inserted successfully!' });
+      }
+    });
+  });
 app.use('/user/',userRoutes);
-app.use('/admin/',adminRoutes);
+app.use('/admin/',roleRoutes);
 
 // Handle not valid route
 app.use('*', (req, res) => {

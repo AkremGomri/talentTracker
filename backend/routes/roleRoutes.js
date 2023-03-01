@@ -12,6 +12,14 @@ router
     .put(roleCtrl.updateRole)
     .delete(roleCtrl.deleteRole)
 
+
+/*          Dabatabase easy manipulation            */
+router
+    .route('/roles')
+    .post(roleCtrl.createManyRoles)
+    .get(roleCtrl.getAllRoles)
+    .put(roleCtrl.updateManyRoles)
+    .delete(roleCtrl.deleteAllRoles)
     // .get(roleCtrl.login)
     // .delete(roleCtrl.login)
     // .update(roleCtrl.login)
