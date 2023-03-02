@@ -4,8 +4,8 @@ const Joi = require('joi');
 
 const RoleSchema= mongoose.Schema({
     name:{type: String ,required:true,unique:true},
-    abilities: 
-        { type: Object, required:true}
+    permissions: 
+        [{ type: Object, required:true}]
 });
 
 // RoleSchema.pre('save', function (next) {
@@ -17,7 +17,7 @@ const RoleSchema= mongoose.Schema({
 RoleSchema.methods.joiValidate = function(obj) {
 	const schema =  Joi.object({
         name: Joi.string().required(),
-        abilities: Joi.array().items(Joi.object()),
+        permissions : Joi.array().items(Joi.object()),
 	});
 	const validation = schema.validate(obj);
     return validation;

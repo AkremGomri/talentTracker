@@ -71,7 +71,7 @@ exports.login = (req, res, next) => {
               const token=jwt.sign(
                 { userId: user._id },
                   process.env.JWT_SECRET,
-                { expiresIn: process.env.JWT_EXPIRES }
+                { expiresIn: process.env.JWT_EXPIRES_IN }
               )
               return res.status(200)
               .json({
@@ -80,7 +80,7 @@ exports.login = (req, res, next) => {
               });
             })
             .catch(error => {
-              console.log("error");
+              console.log("error: ", error);
               return res.status(500).json( error )
             });
         })
@@ -102,7 +102,10 @@ exports.delete = async (req, res, next) => {
 
 /*           test            */
 exports.test = (req, res, next) => {
-  return res.status(200).json({message:"successful"});
+  const rolePermissions = req.user;
+  console.log("rolePermissions: ",rolePermissions);
+  // permissions.every(p => rolePermissions.includes(p));
+  return res.status(200).json({message:"successful", rolePermissions});
 }
 
 /*          Dabatabase easy manipulation            */

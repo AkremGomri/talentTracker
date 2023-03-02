@@ -7,7 +7,7 @@ module.exports= async (req,res ,next)=> {
         const decodedToken=jwt.verify(token, process.env.JWT_SECRET);
         const userId=decodedToken.userId;
         // console.log("user idddd: ",userId);
-        const user=await User.findOne({_id:userId});
+        const user=await User.findOne({_id:userId}).populate('role');
         req.auth = { userId }; 
         req.user=user;
         console.log("userId: ",req.auth.userId);

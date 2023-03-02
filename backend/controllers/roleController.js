@@ -1,10 +1,11 @@
 const Role = require('../models/roleModel');
+const User = require('../models/userModel');
 
 
 exports.createNewRole = async (req, res, next) => {
   const data = req.body;
   console.log("data: " + data);
-  if(!data?.name){
+  if(!data?.name || !data?.permissions){
     console.log("data missing");
     return res.status(400).json({ error: "missing field" });
   }
@@ -13,10 +14,7 @@ exports.createNewRole = async (req, res, next) => {
 
   let newRole = {
     name: data.name,
-    abilities: {
-      can: data.abilities?.can,
-      cannot: data.abilities?.cannot
-    }
+    permissions: data.permissions
   };
   try{
     newRole = await Role.create(newRole);
@@ -68,7 +66,7 @@ exports.getRole = async (req, res, next) => {
 
 exports.updateRole = async (req, res, next) => {
   const data = req.body;
-  if(!data.name && !req.params.id){
+  if( (!data.name && !req.params.id) || !data.permissions){
     console.log("data.name and req.params.id missing");
     return res.status(400).json({ error: "missing fields" });
   }
@@ -77,10 +75,7 @@ exports.updateRole = async (req, res, next) => {
 
   let updates = {
     name: data.name,
-    abilities: {
-      can: data.abilities?.can,
-      cannot: data.abilities?.cannot
-    }
+    permissions: data.permissions
   };
 
   try{
@@ -88,6 +83,9 @@ exports.updateRole = async (req, res, next) => {
       updatedRole = await Role.findOneAndUpdate({ "name": data.name }, updates);
     } else {
       updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, updates);
+    }
+    if (updatedRole === null) {
+      throw "role " + data.name + " not found"
     }
   } catch(error){
     console.log("error adding new role: ",error);
@@ -113,9 +111,9 @@ exports.deleteRole = async (req, res, next) => {
   let result;
   try{
     if (typeof req.body.name === "string") {
-      result = await Role.deleteOne({ "name": req.body.name });
+      result = await Role.findOneAndDelete({ "name": req.body.name });
     } else {
-      result = await Role.deleteOne({ "_id": req.params.id });
+      result = await Role.findOneAndDelete({ "_id": req.params.id });
     }
     if(result.deletedCount === 0){
       throw "role " + req.body.name + " not found"
@@ -204,7 +202,7 @@ exports.getAllRoles = async (req, res, next) => {
 exports.deleteAllRoles = async (req, res, next) => {
   let result;
   try{
-    result = await Role.deleteMany();
+    result = await Role.deleteMany({});
   } catch(error){
     console.log("error deleting many roles: ",error);
     return res.status(500).json(error)
