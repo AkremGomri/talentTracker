@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 // const { Validator } = require('node-input-validator');
 const fs = require('fs');
 const roleModel = require('../models/roleModel');
+const  constants  = require('../utils/constants/users_abilities');
 
 exports.signup = async(req, res, next) => {
   let newUser = {...req.body};
@@ -102,10 +103,17 @@ exports.delete = async (req, res, next) => {
 
 /*           test            */
 exports.test = (req, res, next) => {
-  const rolePermissions = req.user;
-  console.log("rolePermissions: ",rolePermissions);
-  // permissions.every(p => rolePermissions.includes(p));
-  return res.status(200).json({message:"successful", rolePermissions});
+  const permissions = req.user.role.permissions;
+  console.log("permissions: ",permissions);
+  permissions.every(p => {
+    if(p.actions.includes(constants.UPDATE)){
+      console.log("p: ",p);
+    } else {
+      console.log("not included ",p);
+    }
+    
+  });
+  return res.status(200).json({message:"successful", permissions});
 }
 
 /*          Dabatabase easy manipulation            */

@@ -7,7 +7,7 @@ const validator = require('validator');
 const bcrypt = require('bcrypt');
 
 const userSchema= mongoose.Schema({
-    email: {type: String ,required:[true, "please write a valid email"] ,unique:true, validate: [validator.isEmail, "please write a valid email"]},
+    email: {type: String, required:[true, "please write a valid email"] ,unique:true, validate: [validator.isEmail, "please write a valid email"]},
     password : {type:String ,required:[true, "please write a valid password"]},
     passwordConfirm: {
         type:String ,required:[true, "please confirm your password"],

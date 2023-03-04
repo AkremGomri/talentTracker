@@ -17,6 +17,11 @@ exports.createNewRole = async (req, res, next) => {
     permissions: data.permissions
   };
   try{
+    const validationResult = await Role.prototype.joiValidate(newRole);
+    if (validationResult.error) {
+      console.log("validation error:", validationResult.error);
+      return res.status(400).json({ error: validationResult.error.details[0].message });
+    }
     newRole = await Role.create(newRole);
   } catch(error){
     console.log("error adding new role: ",error);
@@ -111,7 +116,7 @@ exports.deleteRole = async (req, res, next) => {
   let result;
   try{
     if (typeof req.body.name === "string") {
-      result = await Role.findOneAndDelete({ "name": req.body.name });
+      result = await Role.findOneAndDelete({ "name": req.body.name } );
     } else {
       result = await Role.findOneAndDelete({ "_id": req.params.id });
     }

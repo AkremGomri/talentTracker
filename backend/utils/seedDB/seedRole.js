@@ -6,10 +6,12 @@ module.exports = seedRoles = async () => {
     if(!role){
         const defaultRole = new Role({
             name: 'default',
-            abilities: {
-                can: [READ, CREATE, UPDATE],
-                cannot: [DELETE]
-            }
+            permissions: [
+                {
+                    "subject": "",
+                    "actions": []
+                }
+            ]
         });
         defaultRole.save();
     }
@@ -19,9 +21,17 @@ module.exports = seedRoles = async () => {
         console.log("seeding database with roles");
         const defaultRole = new Role({
             name: 'admin',
-            abilities: {
-                can: [MANAGE],
-            }
+            permissions:[
+                {
+                    "subject": "User",
+                    "actions": [
+                        "create",
+                        "read",
+                        "update",
+                        "delete"
+                    ]
+                }
+            ]
         });
         defaultRole.save();
     }
