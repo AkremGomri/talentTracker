@@ -66,7 +66,7 @@ app.post('/upload-excel', upload.single('file'), (req, res) => {
         console.error(error);
         res.status(500).send('Internal server error');
       } else {
-        res.json({ message: 'Data inserted successfully!' });
+        res.status(201).json({ message: 'Data inserted successfully!' });
       }
     });
   });

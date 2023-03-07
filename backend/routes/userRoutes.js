@@ -7,19 +7,23 @@ router
     .post('/signUp', userCtrl.signup)
     .post('/logIn', userCtrl.login)
 
-/*          Dabatabase easy manipulation            */
+/*          Many Users            */
 router
-    .route('/users')
+    .route('/all')
     .post(userCtrl.createManyUsers)
     .get(userCtrl.getAllUsers)
     .put(userCtrl.updateManyUsers)
     .delete(userCtrl.deleteAllUsers)
 
-
-
+router
+    .route('/many')
+    .post(userCtrl.createManyUsers)
+    .get(userCtrl.getManyUsers)
+    .put(userCtrl.updateManyUsers)
+    .delete(userCtrl.deleteManyUsers)
 /*           missing something            */
 router
-    .delete('/delete', userCtrl.delete)
+    .delete('/', userCtrl.delete)
 
 /*           test            */
 router.use('/test', auth, userCtrl.test)
