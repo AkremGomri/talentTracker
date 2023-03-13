@@ -1,5 +1,6 @@
 const Role = require('../../models/roleModel');
 const { READ, CREATE, UPDATE, DELETE, MANAGE} = require('../constants/users_abilities');
+const { subjects, actions } = require('../constants/users_abilities');
 
 module.exports = seedRoles = async () => {
     let role = await Role.findOne({ "name": "default" });
@@ -23,12 +24,10 @@ module.exports = seedRoles = async () => {
             name: 'admin',
             permissions:[
                 {
-                    "subject": "User",
+                    "subject": subjects.ROLE,
                     "actions": [
-                        "create",
-                        "read",
-                        "update",
-                        "delete"
+                        actions.MANAGE,
+                        actions.CREATE,
                     ]
                 }
             ]

@@ -1,11 +1,12 @@
 const express=require('express');
 const router =express.Router();
 const userCtrl=require('../controllers/userController');
-const auth = require('../middlewares/auth');
+const authController=require('../controllers/authController');
+const { protect } = require('../middlewares/auth');
 
 router
-    .post('/signUp', userCtrl.signup)
-    .post('/logIn', userCtrl.login)
+    .post('/signUp', authController.signup)
+    .post('/logIn', authController.login)
 
 /*          Many Users            */
 router
@@ -26,7 +27,8 @@ router
     .delete('/', userCtrl.delete)
 
 /*           test            */
-router.use('/test', auth, userCtrl.test)
+router.use('/test', protect, userCtrl.test)
+router.use('/testWithRole', protect, userCtrl.testWithRole)
 
 //************************************//
 

@@ -18,14 +18,11 @@ const userSchema= mongoose.Schema({
             message: 'Passwords are not the same!'
             }
     },
+    passwordChangedAt: Date,
     role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
     manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
-    Manages: [
-        { type: mongoose.Schema.ObjectId, ref: 'User' }
-    ],
-    Skills: [
-        { type: mongoose.Schema.ObjectId, ref: 'Skill' }
-    ],
+    Manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
+    Skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
 });
 
 userSchema.pre('save', function(next) {
@@ -37,6 +34,18 @@ userSchema.pre('save', function(next) {
     });
     this.passwordConfirm = undefined;
 });
+
+userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+    return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.hasPasswordChangedAfter = function(JWTTimestamp) {
+    if (this.passwordChangedAt) {
+        const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        return JWTTimestamp < changedTimestamp;
+    }
+    return false;
+};
 
 userSchema.methods.joiValidate = function(obj) {
 	const schema =  Joi.object({

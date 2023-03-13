@@ -1,7 +1,7 @@
 const express=require('express');
 const router =express.Router();
 const roleCtrl=require('../controllers/roleController');
-const auth = require('../middlewares/auth');
+const auth = require('../middlewares/auth.js');
 
 
 

@@ -1,9 +1,16 @@
+process.on('uncaughtException', err => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  console.log("Server closed");
+  process.exit(1);
+});
 const http = require('http');
 const app = require('./app');
 
+
 const normalizePort = val => {
   const port = parseInt(val, 10);
-
+  
   if (isNaN(port)) {
     return val;
   }
@@ -26,13 +33,13 @@ const errorHandler = error => {
       console.error(bind + ' requires elevated privileges.');
       process.exit(1);
       break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use.');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
+      case 'EADDRINUSE':
+        console.error(bind + ' is already in use.');
+        process.exit(1);
+        break;
+        default:
+          throw error;
+    }
 };
 
 const server = http.createServer(app);
@@ -42,6 +49,15 @@ server.on('listening', () => {
   const address = server.address();
   const bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + port;
   console.log('Listening on ' + bind);
+});
+
+process.on('unhandledRejection', err => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(1);
+  });
 });
 
 server.listen(port);

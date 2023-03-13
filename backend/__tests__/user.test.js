@@ -7,8 +7,8 @@ let token; // store the JWT token for authentication
 let users;
 // connect to the database before running tests
 beforeAll(async () => {
-    console.log("process.env.MONGODB_URL: ",process.env.MONGODB_URL);
-    await mongoose.connect(process.env.MONGODB_URL, {
+    const DB = process.env.MONGODB_URL.replace('<PASSWORD>', process.env.MONGODB_PASSWORD);
+    await mongoose.connect(DB, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

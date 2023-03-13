@@ -1,36 +1,47 @@
-const jwt=require('jsonwebtoken');
-const Role = require('../models/roleModel');
-const User = require('../models/userModel');
-const seedBD = require('../utils/seedDB');
 
-module.exports= async (req,res ,next)=> {
-    try {
+const User = require('../models/userModel'); // User model
+const Role = require('../models/roleModel'); // Role model
+const seedBD = require('../utils/seedDB');
+const jwt=require('jsonwebtoken'); // Encrypting token
+const AppError = require('../utils/appError');
+const { promisify } = require('util');
+const catchAsync = require('../utils/catchAsync');
+
+
+const verifyJwt = promisify(jwt.verify);
+
+exports.protect = catchAsync(async(req,res ,next)=> {
+        if(!req.headers?.authorization?.startsWith('Bearer')) return next(new AppError('you are not logged in, please log in to get access', 401));
+
         const token = req.headers.authorization.split(' ')[1];
-        const decodedToken=jwt.verify(token, process.env.JWT_SECRET);
+
+        const decodedToken = await verifyJwt(token, process.env.JWT_SECRET);
+
         const userId=decodedToken.userId;
         // console.log("user idddd: ",userId);
-        const user=await User.findOne({_id:userId}).populate('role');
-        // if the user doesn't have a role we set it to default, save it, and then populate it
-        if (!user.role) {
+        const freshUser=await User.findOne({_id:userId}).populate('role');
+
+        if(!freshUser) return next(new AppError('the user belonging to this token does no longer exist', 401));
+        if(freshUser.hasPasswordChangedAfter(decodedToken.iat)) return next(new AppError('user recently changed password, please log in again', 401))
+        
+        // if the freshUser doesn't have a role we set it to default, save it, and then populate it
+        if (!freshUser.role) {
           const role = await Role.findOne({ name: 'default' });
           if(!role) seedBD();
 
-          user.role = role._id;
-          user.passwordConfirm = user.password;
-          await user.save();
+          freshUser.role = role._id;
+          freshUser.passwordConfirm = freshUser.password;
+          await freshUser.save();
 
-          user.role = role; // populate the role
+          freshUser.role = role; // populate the role
         }
-
+        
         req.auth = { userId }; 
-        req.user=user;
-        if(req.body.userId && req.body.userId !== userId || !user || user._id != userId){
-            throw 'Invalid user ID';
+        req.user = freshUser;
+
+        if(req.body.userId && req.body.userId !== userId || !freshUser || freshUser._id != userId){
+            return next(new AppError('you are not logged in, please log in to get access', 401))
         }else {
             next();
         }
-    } catch (error) {
-        console.log("auth middleware error: ",error);
-        res.status(401).json({error : "auth error: " + error | 'Requete non authentifiée !'})
-    }
-};
+    });

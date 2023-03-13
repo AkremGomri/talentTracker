@@ -11,8 +11,8 @@ const RoleSchema= mongoose.Schema({
   });
 
   const permissionSchema = Joi.object({
-    subject: Joi.string().required(),
-    actions: Joi.array().items(Joi.string().valid(...Object.values(constants))).required(),
+    subject: Joi.string().valid(...Object.values(constants.subjects)).required(),
+    actions: Joi.array().items(Joi.string().valid(...Object.values(constants.actions))).required(),
   });
 
   RoleSchema.methods.joiValidate = function (obj) {

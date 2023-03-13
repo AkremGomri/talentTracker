@@ -1,105 +1,17 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+
 // const cookieParser = require('cookie-parser');
 const User = require('../models/userModel');
 // const { Validator } = require('node-input-validator');
-const fs = require('fs');
-const roleModel = require('../models/roleModel');
 const  constants  = require('../utils/constants/users_abilities');
-
-exports.signup = async(req, res, next) => {
-let newUser = {...req.body};
-  if(!newUser.password || !newUser.email){
-    console.log("field missing");
-    return res.status(400).json({ error: "missing fields" });
-  }
-
-  let role;
-  if(newUser.role){
-    try{
-      console.log("newUser.role: " + newUser.role);
-      if (typeof newUser.role === "string") {
-        role = await roleModel.findOne({ "name": newUser.role });
-      } else {
-        role = await roleModel.findOne({ "_id": newUser.role });
-      }
-      console.log("heree: ",newUser);
-      newUser.role = role._id;
-    } catch(error){
-      console.log("error extracting role: ",error);
-      return res.status(500).json("wrong data provided !")
-    }
-  } else {
-    console.log("ma3andouch role");
-    role = await roleModel.findOne({ name: 'default' })
-    console.log("role: ",role);
-    newUser.role = role._id;
-  }
-
-  console.log("newUser.email: " + newUser.email);
-
-  const user = new User({
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    role: newUser.role         
-  });
-  user.joiValidate(req.body);
-  user.save()
-    .then(() => {
-      return res.status(201).json({ message: "utilisateur crée!" })})
-    .catch(error => {
-      console.log("error signing up: ",error);
-      return res.status(500).json(error)
-    });
-};
-
-exports.login = (req, res, next) => {
-  console.log(req.body);
-  User.findOne({"email": req.body.email})
-    .then(
-      user => {
-        if (!user) {
-          console.log("mal9inech user ", req.body.email);
-          return res.status(401).json({ error: 'Utilisateur non trouvé !' });
-        }
-        bcrypt.compare(req.body.password, user.password)
-          .then(valid => {
-            if (!valid) {
-              console.log("invalid");
-              return res.status(401).json({ error: 'Mot de passe incorrect !' });
-            }
-            const token=jwt.sign(
-              { userId: user._id },
-                process.env.JWT_SECRET,
-              { expiresIn: process.env.JWT_EXPIRES_IN }
-            )
-            return res.status(200)
-            .json({
-              userId: user._id,
-              token: token
-            });
-          })
-          .catch(error => {
-            console.log("error: ", error);
-            return res.status(500).json( error )
-          });
-      })
-    .catch(error => {      
-      return res.status(500).json( error )});
-};
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 /*           one user            */
-exports.delete = async (req, res, next) => {
-  try{
-    let result = await User.deleteOne({"email": req.body.email})
-    if(result.deletedCount <= 0) throw "user not found";
-    return res.status(200).json({message:"deleted successfully", result});
-  } catch (error) {
-    console.log("error deleting user: ",error);
-    return res.status(500).json( error )
-  }
-}
+exports.delete = catchAsync(async (req, res, next) => {
+  const result = await User.deleteOne({"email": req.body.email})
+  if(result.deletedCount <= 0) next(new AppError('User not found', 404));
+  return res.status(200).json({message:"deleted successfully", result});
+});
 
 /*           test            */
 exports.test = (req, res, next) => {
@@ -116,22 +28,38 @@ exports.test = (req, res, next) => {
   return res.status(200).json({message:"successful", permissions});
 }
 
+exports.testWithRole = (req, res, next) => {
+  const userRole = req.user.role;
+
+  const userPermissions = userRole.permissions;
+  
+  // const addRoleCapability = constants.ADD_USER;
+
+  const hasAddRoleCapability = userPermissions.some((permission) => {
+    console.log("known that required subject is: ", constants.subjects.ROLE, " and required action is: ", constants.actions.CREATE);
+    console.log(permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.CREATE));
+    return permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.CREATE);
+    // return permission.actions.includes(addRoleCapability);
+  });
+
+  if (!hasAddRoleCapability) {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+
+  // Rest of the code goes here if the user has the "add user" capability
+
+  return res.status(200).json({ message: "successful", userPermissions });
+};
+
 /*          Many users            */
-exports.createManyUsers = async (req, res, next) => {
+exports.createManyUsers = catchAsync(async (req, res, next) => {
   if(!req.body){
     console.log("req.body.users missing");
-    return res.status(400).json({ error: "missing field" });
+    return next(new AppError('missing field', 400));
   }
-
-  console.log("req.body.users: " + req.body);
 
   let newUsers;
-  try{
-    newUsers = await User.insertMany(req.body);
-  } catch(error){
-    console.log("error adding many new user: ",error);
-    return res.status(500).json(error)
-  }
+  newUsers = await User.insertMany(req.body);
 
   return res.status(201).json({
       status: 'success',
@@ -139,21 +67,16 @@ exports.createManyUsers = async (req, res, next) => {
           newUsers
       }
   });
-}
+});
 
-exports.updateManyUsers = async (req, res, next) => {
+exports.updateManyUsers = catchAsync(async (req, res, next) => {
   if(!req.body.users){
     console.log("req.body.users missing");
-    return res.status(400).json({ error: "missing field" });
+    return next(new AppError('missing field', 400));
   }
 
   let updatedUsers;
-  try{
-    updatedUsers = await User.updateMany(req.body.users);
-  } catch(error){
-    console.log("error updating many users: ",error);
-    return res.status(500).json(error)
-  }
+  updatedUsers = await User.updateMany(req.body.users);
 
   return res.status(201).json({
       status: 'success',
@@ -161,52 +84,37 @@ exports.updateManyUsers = async (req, res, next) => {
           updatedUsers
       }
   });
-}
+});
 
-exports.getManyUsers = async (req, res, next) => {
+exports.getManyUsers = catchAsync(async (req, res, next) => {
   let users;
-  try{
-    users = await User.find({ emails: { $elemMatch: { email: { $in: req.body } } } }).populate('role');
-  } catch(error){
-    console.log("error getting all users: ",error);
-    return res.status(500).json(error)
-  }
-  
+
+  users = await User.find({ emails: { $elemMatch: { email: { $in: req.body } } } }).populate('role');
+
   return res.status(201).json({
       status: 'success',
       data: {
           users
       }
   });
-}
+});
 
-exports.deleteManyUsers = async (req, res, next) => {
+exports.deleteManyUsers = catchAsync(async (req, res, next) => {
   let result;
-  try{
-    result = await User.deleteMany({ email: { $in: req.body }});
-    console.log("result: ",result);
+  result = await User.deleteMany({ email: { $in: req.body }});
+  console.log("result: ",result);
     // await User.deleteMany({ email: { $in: req.body.emails } });
-  } catch(error){
-    console.log("error deleting many users: ",error);
-    return res.status(500).json(error)
-  }
   
   return res.status(201).json({
       status: 'success',
       result
   });
-};
+});
 
 /* All users */
 
-exports.getAllUsers = async (req, res, next) => {
-  let users;
-  try{
-    users = await User.find().populate('role');
-  } catch(error){
-    console.log("error getting all users: ",error);
-    return res.status(500).json(error)
-  }
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find().populate('role');
   
   return res.status(201).json({
       status: 'success',
@@ -214,16 +122,10 @@ exports.getAllUsers = async (req, res, next) => {
           users
       }
   });
-}
+});
 
 exports.deleteAllUsers = async (req, res, next) => {
-  let result;
-  try{
-    result = await User.deleteMany();
-  } catch(error){
-    console.log("error deleting many users: ",error);
-    return res.status(500).json(error)
-  }
+  const result = await User.deleteMany();
   
   return res.status(201).json({
       status: 'success',

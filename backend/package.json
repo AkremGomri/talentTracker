@@ -6,7 +6,11 @@
   "author": "Akrem Gomri \"gomriakrem1@gmail.com\"",
   "license": "MIT",
   "scripts": {
-    "test": "jest --coverage"
+    "start": "nodemon server.js",
+    "test": "jest --coverage",
+    "start:prod": "set NODE_ENV=production&& nodemon server.js",
+    "start:dev": "set NODE_ENV=development&& nodemon server.js",
+    "debug": "ndb server.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -23,12 +27,13 @@
     "mongoose-unique-validator": "^3.1.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "supertest": "^6.3.3",
     "validator": "^13.9.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "nodemon": "^2.0.20"
+    "ndb": "^1.1.5",
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.3"
   }
 }
