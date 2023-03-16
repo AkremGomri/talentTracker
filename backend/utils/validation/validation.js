@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const constants = require('./constants/users_abilities');
+const constants = require('../constants/users_abilities');
 
 const permissionSchema = Joi.object({
   subject: Joi.string().required(),

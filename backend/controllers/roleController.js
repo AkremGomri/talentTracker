@@ -48,9 +48,7 @@ exports.getRole = catchAsync(async (req, res, next) => {
 
   return res.status(201).json({
       status: 'success',
-      data: {
-          role
-      }
+      data: role
   });
 });
 
@@ -67,18 +65,16 @@ exports.updateRole = catchAsync(async (req, res, next) => {
   };
 
   if (typeof data.name === "string") {
-    updatedRole = await Role.findOneAndUpdate({ "name": data.name }, updates);
+    updatedRole = await Role.findOneAndUpdate({ "name": data.name }, updates, { new: true });
   } else {
-    updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, updates);
+    updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, updates, { new: true });
   }
   if (updatedRole === null) {
     throw "role " + data.name + " not found"
   }
   return res.status(201).json({
       status: 'success',
-      data: {
-          updatedRole,
-      }
+      data: updatedRole
   });
 });
 
@@ -141,9 +137,7 @@ exports.updateManyRoles = catchAsync(async (req, res, next) => {
 
   return res.status(201).json({
       status: 'success',
-      data: {
-          updatedRoles
-      }
+      data: updatedRoles
   });
 });
 

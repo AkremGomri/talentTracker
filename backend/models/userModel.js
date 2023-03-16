@@ -6,25 +6,33 @@ const joiPassword = Joi.extend(joiPasswordExtendCore);
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 
-const userSchema= mongoose.Schema({
-    email: {type: String, required:[true, "please write a valid email"] ,unique:true, validate: [validator.isEmail, "please write a valid email"]},
-    password : {type:String ,required:[true, "please write a valid password"]},
-    passwordConfirm: {
-        type:String ,required:[true, "please confirm your password"],
-        validate: {
-            validator: function(el) {
-                return el === this.password;
-            },
-            message: 'Passwords are not the same!'
-            }
+// mongoose schema
+const userSchema = mongoose.Schema({
+  email: {
+    type: String,
+    required: [true, 'Please write a valid email'],
+    unique: true,
+    validate: [validator.isEmail, 'Please write a valid email'],
+  },
+  password: { type: String, required: [true, 'Please write a valid password'] },
+  passwordConfirm: {
+    type: String,
+    required: [true, 'Please confirm your password'],
+    validate: {
+      validator: function (el) {
+        return el === this.password;
+      },
+      message: 'Passwords are not the same!',
     },
-    passwordChangedAt: Date,
-    role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
-    manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
-    Manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-    Skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
+  },
+  passwordChangedAt: Date,
+  role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
+  manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
+  Manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
+  Skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
 });
 
+//hashing password
 userSchema.pre('save', function(next) {
     if (!this.isModified('password')) return next();
     this.password = bcrypt.hash(this.password, 12, (err, hash) => {
@@ -35,10 +43,12 @@ userSchema.pre('save', function(next) {
     this.passwordConfirm = undefined;
 });
 
-userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+// chechk if the password is correct
+userSchema.methods.isPasswordCorrect = async function(candidatePassword, userPassword) {
     return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+// check if the password is changed after the token was issued
 userSchema.methods.hasPasswordChangedAfter = function(JWTTimestamp) {
     if (this.passwordChangedAt) {
         const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
@@ -47,6 +57,7 @@ userSchema.methods.hasPasswordChangedAfter = function(JWTTimestamp) {
     return false;
 };
 
+// joi validation
 userSchema.methods.joiValidate = function(obj) {
 	const schema =  Joi.object({
         email: Joi.string().email().required(),
@@ -66,10 +77,6 @@ userSchema.methods.joiValidate = function(obj) {
     return validation;
     
 }
-/* chatGPT solution to make sure that the user has at least one role */
-// userSchema.path('role').validate(function(value) {
-//     return value.length >= 1;
-//   }, 'User must have at least one role.');
 
 userSchema.plugin(uniqueValidator); 
 

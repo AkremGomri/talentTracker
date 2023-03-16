@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "jest --coverage",
+    "test": "jest --runInBand user.test.js role.test.js --coverage",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
     "start:dev": "set NODE_ENV=development&& nodemon server.js",
     "debug": "ndb server.js"

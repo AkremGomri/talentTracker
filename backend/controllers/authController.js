@@ -7,6 +7,7 @@ const AppError = require('../utils/appError');
 
 exports.signup = catchAsync(async(req, res, next) => {
     let reqUser = {...req.body};
+    
     if(!reqUser.password || !reqUser.email) return next(new AppError('Please provide an email and a password', 400));
     else if(!reqUser.passwordConfirm) return next(new AppError('Please confirm your password !', 400));
 
@@ -42,7 +43,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
     const freshUser = await User.findOne({"email": email}).select('+password');
 
-    if (!freshUser || !await freshUser.correctPassword(password, freshUser.password)) return next(new AppError('Incorrect email or password !', 401));
+    if (!freshUser || !await freshUser.isPasswordCorrect(password, freshUser.password)) return next(new AppError('Incorrect email or password !', 401));
 
     const token=jwt.sign(
         { userId: freshUser._id },

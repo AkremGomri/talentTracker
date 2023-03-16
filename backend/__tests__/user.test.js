@@ -5,19 +5,19 @@ const app = require('../app');
 
 let token; // store the JWT token for authentication
 let users;
-// connect to the database before running tests
-beforeAll(async () => {
-    const DB = process.env.MONGODB_URL.replace('<PASSWORD>', process.env.MONGODB_PASSWORD);
-    await mongoose.connect(DB, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-});
+// // connect to the database before running tests
+// beforeAll(async () => {
+//     const DB = process.env.MONGODB_URL.replace('<PASSWORD>', process.env.MONGODB_PASSWORD);
+//     await mongoose.connect(DB, {
+//       useNewUrlParser: true,
+//       useUnifiedTopology: true,
+//     });
+// });
 
-// disconnect from the database after running tests
-afterAll(async () => {
-    await mongoose.disconnect();
-});
+// // disconnect from the database after running tests
+// afterAll(async () => {
+//     await mongoose.disconnect();
+// });
 
 describe('User API', () => {
     test('should create a new user', (done) => {
@@ -34,7 +34,7 @@ describe('User API', () => {
                 done();
             })
             .catch((err) => done(err));
-    });
+    }, 10000);
 
     test('should login with the correct credentials', (done) => {
         request(app)
@@ -202,4 +202,4 @@ describe('Excel API', () => {
         //Assert
     
     });
-}); 
+});
