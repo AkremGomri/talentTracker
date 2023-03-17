@@ -1,12 +1,18 @@
 import logo from './logo.svg';
 import './App.css';
-import UploadExcel from './test/UploadExcel';
+import Router from './Router';
+import React, { createContext } from 'react'
+import { BrowserRouter } from 'react-router-dom';
+
+export const UserContext = React.createContext();
 
 function App() {
   return (
-    <div className="App">
-      <UploadExcel />
-    </div>
+    <UserContext.Provider value="Reed">
+      <BrowserRouter>
+        <Router />
+      </BrowserRouter>
+    </UserContext.Provider>
   );
 }
 
