@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import localforage from 'localforage';
+
 // @mui
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -11,21 +14,38 @@ import Iconify from '../../../components/iconify';
 export default function LoginForm() {
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleClick = () => {
-    navigate('/dashboard', { replace: true });
+  const [error, setError] = useState(null);
+  
+  const handleClick = async () => {
+    
+    const data = { email, password };
+    try{
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/user/login`, data);
+      localforage.setItem('token', response.data.token);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      console.log("errro: ",error);
+      if (error.response?.data) {
+        setError(error.response.data.message);
+      } else {
+        setError("Check your internet connection");
+      }
+    }
   };
 
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="email" label="Email address" />
+        <TextField name="email" type="email" label="Email address" onClick={(e) => setEmail(e.target.value)} />
 
         <TextField
           name="password"
           label="Password"
           type={showPassword ? 'text' : 'password'}
+          onClick={(e) => setPassword(e.target.value)}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -36,6 +56,7 @@ export default function LoginForm() {
             ),
           }}
         />
+      {error && <div style={{ color: 'red' }}>{error}</div>}
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
