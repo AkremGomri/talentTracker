@@ -11,7 +11,7 @@ function UploadExcel() {
     event.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
-    fetch('http://localhost:5000/upload-excel', {
+    fetch('http://localhost:5000/api/user/upload-excel', {
       method: 'POST',
       body: formData
     })

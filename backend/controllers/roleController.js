@@ -12,7 +12,7 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
   
   let newRole = {
     name: data.name,
-    permissions: data.permissions
+    permissions: data.permissions,
   };
   const validationResult = await Role.prototype.joiValidate(newRole);
   if (validationResult.error) {
@@ -20,7 +20,12 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
     return next(new AppError(validationResult.error.details[0].message, 400));
   }
 
-   newRole = await Role.create(newRole);
+  try{
+    newRole = await Role.create(newRole);
+  } catch(err){
+    console.log("error:", err);
+    return next(new AppError(err, 400));
+  }
   
   return res.status(201).json({
       status: 'success',
@@ -45,6 +50,11 @@ exports.getRole = catchAsync(async (req, res, next) => {
   if(!role){
     return next(new AppError(`No role ${role} found`, 404));
   }
+
+  /* get all users with that role */
+  const users = await User.find({ "role": role._id });
+  role.nbUsers = users.length;
+  /********************************/
 
   return res.status(201).json({
       status: 'success',
@@ -142,8 +152,17 @@ exports.updateManyRoles = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllRoles = catchAsync(async (req, res, next) => {
-  const roles = await Role.find();
   
+  let roles = await Role.find();
+  const users = await User.find();
+
+  roles = roles.map(role => {
+    console.log("users: ",users);
+    let nbUsers = users.filter(user => user.role?.toString() === role._id.toString()).length;
+    role.nbUsers = nbUsers;
+    return role;
+  })
+
   return res.status(201).json({
       status: 'success',
       data: {

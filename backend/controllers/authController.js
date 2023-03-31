@@ -50,6 +50,8 @@ exports.login = catchAsync(async (req, res, next) => {
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
     )
+    res.cookie('jwt', token, { httpOnly: true });
+    
     return res.status(200)
     .json({
         userId: freshUser._id,

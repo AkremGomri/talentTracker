@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const  constants  = require('../utils/constants/users_abilities');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const xlsx = require('xlsx');
 
 /*           one user            */
 exports.delete = catchAsync(async (req, res, next) => {
@@ -134,3 +135,19 @@ exports.deleteAllUsers = async (req, res, next) => {
       }
   });
 };
+
+
+/*          Excel            */
+exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
+    const workbook = xlsx.readFile(req.file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const usersData = xlsx.utils.sheet_to_json(worksheet);
+    User.insertMany(usersData, (error, docs) => {
+      if (error) {
+        console.error(error);
+        res.status(500).send('Internal server error');
+      } else {
+        res.status(201).json({ message: 'Data inserted successfully!' });
+      }
+    });
+});

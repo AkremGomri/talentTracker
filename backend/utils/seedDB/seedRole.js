@@ -3,9 +3,11 @@ const { READ, CREATE, UPDATE, DELETE, MANAGE} = require('../constants/users_abil
 const { subjects, actions } = require('../constants/users_abilities');
 
 module.exports = seedRoles = async () => {
-    let role = await Role.findOne({ "name": "default" });
-    if(!role){
-        const defaultRole = new Role({
+
+    let [defaultRole, adminRole] = await Promise.all([Role.findOne({ "name": "default" }), Role.findOne({ "name": "admin" })]);
+    
+    if(!defaultRole){
+        defaultRole = new Role({
             name: 'default',
             permissions: [
                 {
@@ -14,13 +16,11 @@ module.exports = seedRoles = async () => {
                 }
             ]
         });
-        defaultRole.save();
+        await defaultRole.save();
     }
 
-    role = await Role.findOne({ "name": "admin" });
-    if(!role){
-        console.log("seeding database with roles");
-        const defaultRole = new Role({
+    if(!adminRole){
+        adminRole = new Role({
             name: 'admin',
             permissions:[
                 {
@@ -32,6 +32,8 @@ module.exports = seedRoles = async () => {
                 }
             ]
         });
-        defaultRole.save();
+        await adminRole.save();
     }
+
+    await Promise.all([defaultRole.save(), adminRole.save()]);
 }

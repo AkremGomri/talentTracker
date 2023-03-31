@@ -1,10 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 // @mui
 import {
   Card,
+  Modal,
   Table,
   Stack,
   Paper,
@@ -21,54 +23,28 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Box,
 } from '@mui/material';
 // components
+import axios from 'axios';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+import { UserListHead, RoleListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
+import roles from '../_mock/user';
+import RoleModal from '../components/modal/RoleModal';
+import { addManyRoles, deleteOneRoleById, setSelectedRole } from '../redux/features/role';
 
-const ROLESLIST = [
-  {
-    name: "test",
-    permissions: [
-      {
-        subject: "ROLE_SUBJECT",
-        actions: ["CREATE_ACTION"],
-      },
-    ],
-  },
-  {
-    name: "admin",
-    permissions: [
-      {
-        subject: "ROLE_SUBJECT",
-        actions: ["MANAGE_ACTION"],
-      },      
-      {
-        subject: "USER_SUBJECT",
-        actions: ["MANAGE_ACTION"],
-      },
-    ],
-  },
-]; 
-
-// -------------------  react router loader ---------------------------------------------------
-// export async function loader() {
-//   const contacts = await getContacts();
-//   return { contacts };
-// }
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'nbUsers', label: 'Number Of Users', alignRight: false },
+  { id: 'lastUpdated', label: 'Last Updated', alignRight: false },
+  { id: 'permissions', label: 'Permissions', alignRight: false },
+  // { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
 
@@ -104,10 +80,13 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function PermissionsPage() {
-  const [selectedRole, setSelectedRole] = useState(null);
-  const handleEditClick = (role) => {
-    setSelectedRole(role);
-  };
+
+  const currentRole = useRef();
+
+  const dispatch = useDispatch();
+  const roles = useSelector((state) => state.roles.all);
+
+  // const [ roles, setRoles ] = useState([]);
 
   const [open, setOpen] = useState(null);
 
@@ -123,8 +102,10 @@ export default function PermissionsPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const handleOpenMenu = (event) => {
+  const handleOpenMenu = (event, data) => {
     setOpen(event.currentTarget);
+    currentRole.current = data._id;
+    dispatch(setSelectedRole(data));
   };
 
   const handleCloseMenu = () => {
@@ -139,7 +120,7 @@ export default function PermissionsPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = roles.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -148,16 +129,23 @@ export default function PermissionsPage() {
 
   const handleClick = (event, name) => {
     const selectedIndex = selected.indexOf(name);
+    console.log("name: ",name);
+    console.log("selected: ",selected);
     let newSelected = [];
     if (selectedIndex === -1) {
+      console.log("lenna wa7di == -1");
       newSelected = newSelected.concat(selected, name);
     } else if (selectedIndex === 0) {
+      console.log("lenna wa7di == 0");
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
+      console.log("lenna wa7di == selected.length - 1");
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
+      console.log("lenna wa7di > 0");
       newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
+    console.log("selected: ",selected);
     setSelected(newSelected);
   };
 
@@ -175,11 +163,42 @@ export default function PermissionsPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const handleOpen = () => {
+    setOpenModel(true);
+  };
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const handleClose = () => {
+    setOpenModel(false);
+  };
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const deleteRole = (roleId) => {
+    setOpen(false);
+    dispatch(deleteOneRoleById(roleId));
+    // setRoles(roles.filter((role) => role._id !== roleId));
+  };
+
+  const [openModel, setOpenModel] = useState(false);
+
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - roles.length) : 0;
+
+  const filteredRoles = applySortFilter(roles, getComparator(order, orderBy), filterName);
+
+  const isNotFound = !filteredRoles.length && !!filterName;
+
+  useEffect(() => {
+    async function getRoles() {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/roles`);
+      let ROLESLIST = response.data.data.roles;
+      ROLESLIST = ROLESLIST.map((role) => ({
+          ...role,
+          updatedAt: transformDate(role.updatedAt),
+        })
+      );
+      dispatch(addManyRoles(ROLESLIST))
+      // setRoles(ROLESLIST);
+    }
+    getRoles()
+  }, [])
 
   return (
     <>
@@ -198,7 +217,7 @@ export default function PermissionsPage() {
         </Stack>
 
         <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <RoleListToolbar selectedRoles={selected} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -207,44 +226,46 @@ export default function PermissionsPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={roles.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
+                  {filteredRoles.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((role) => {
+                    const { _id: id, name, permissions, updatedAt, nbUsers } = role;
+                    const selectedRole = selected.indexOf(name) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedRole}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedRole} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
+                            {/* <Avatar alt={name} src={null} /> */}
+                            <Typography variant="subtitle2" noWrap sx={{ ml: 2 }}>
                               {name}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
-
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
-
                         <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Typography variant="subtitle2" noWrap sx={{ pl: 2 }}>
+                            {nbUsers}
+                          </Typography>
                         </TableCell>
 
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap sx={{ pl: 2 }}>
+                            {updatedAt}
+                          </Typography>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, role)}>
+                            <Iconify icon={'eva:more-vertical-fill'}/>
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -287,7 +308,7 @@ export default function PermissionsPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={roles.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -295,6 +316,8 @@ export default function PermissionsPage() {
           />
         </Card>
       </Container>
+
+      <RoleModal open={openModel} handleClose={handleClose} />
 
       <Popover
         open={Boolean(open)}
@@ -314,12 +337,12 @@ export default function PermissionsPage() {
           },
         }}
       >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
+        <MenuItem onClick={handleOpen}>
+          <Iconify  icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => deleteRole(currentRole.current)} sx={{ color: 'error.main' }}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
@@ -327,3 +350,19 @@ export default function PermissionsPage() {
     </>
   );
 }
+
+function transformDate(d) {
+  const date = new Date(d);
+  const options = {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false
+  };
+  return date.toLocaleString('en-GB', options);
+}
+
+transformDate("2023-03-29T17:36:08.597Z")

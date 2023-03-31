@@ -1,8 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
-import languageReducer from './reducers/language';
+
+import roleReducer from './features/role';
+// import languageReducer from './reducers/language';
  
 export default configureStore({
     reducer: {
-        language: languageReducer
+        // language: languageReducer
+        roles: roleReducer
     },
 })

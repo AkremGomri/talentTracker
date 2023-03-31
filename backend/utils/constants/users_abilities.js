@@ -1,13 +1,13 @@
-const USER = 'USER_SUBJECT';
-const ROLE = 'ROLE_SUBJECT';
-const THIRD_CONSTANT = 'THIRD_CONSTANT_SUBJECT';
+const USER = 'USER';
+const ROLE = 'ROLE';
+const THIRD_CONSTANT = 'THIRD_CONSTANT';
 
 const ALL = 'ALL_ACTIONS';
-const MANAGE = 'MANAGE_ACTION';
-const CREATE = 'CREATE_ACTION';
-const READ = 'READ_ACTION';
-const UPDATE = 'UPDATE_ACTION';
-const DELETE = 'DELETE_ACTION';
+const MANAGE = 'MANAGE';
+const CREATE = 'CREATE';
+const READ = 'READ';
+const UPDATE = 'UPDATE';
+const DELETE = 'DELETE';
 
 exports.subjects = {
     USER,
