@@ -19,8 +19,22 @@ RoleSchema.pre(['save', 'create', 'update'], function(next) {
 });
 
 const permissionSchema = Joi.object({
-  subject: Joi.string().valid(...Object.values(constants.subjects)).required(),
-  actions: Joi.array().items(Joi.string().valid(...Object.values(constants.actions))).required(),
+  subject: Joi.string().valid(
+    ...Object.entries(constants.permissions).map(([key, value]) => {
+      return value.name;
+    })
+  ).required(),
+  actions: Joi.object().pattern(
+      Joi.string().valid(...Object.values(constants.actions)).required(),
+      Joi.array().items(
+        Joi.string().valid(
+          ...Object.entries(constants.permissions).map(([key, value]) => {
+            return value.fields;
+          }).flat(Infinity)
+        ).required()
+      ).required()
+    )
+    // actions: Joi.array().items(Joi.string().valid(...Object.values(constants.actions))).required(),
 });
 
 RoleSchema.methods.joiValidate = function (obj) {

@@ -1,6 +1,6 @@
 const Role = require('../../models/roleModel');
 const { READ, CREATE, UPDATE, DELETE, MANAGE} = require('../constants/users_abilities');
-const { subjects, actions } = require('../constants/users_abilities');
+const { permissions, actions } = require('../constants/users_abilities');
 
 module.exports = seedRoles = async () => {
 
@@ -12,7 +12,7 @@ module.exports = seedRoles = async () => {
             permissions: [
                 {
                     "subject": "",
-                    "actions": []
+                    "actions": {}
                 }
             ]
         });
@@ -24,12 +24,21 @@ module.exports = seedRoles = async () => {
             name: 'admin',
             permissions:[
                 {
-                    "subject": subjects.ROLE,
-                    "actions": [
-                        actions.MANAGE,
-                        actions.CREATE,
-                    ]
-                }
+                    "subject": permissions.ROLE.name,
+                    "actions": {
+                        [actions.MANAGE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[1]],
+                        [actions.CREATE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[2]]
+
+                    },
+                },
+                {
+                    "subject": permissions.USERS.name,
+                    "actions":{
+                        [actions.MANAGE] : [...permissions.ROLE.fields],
+                        [actions.CREATE] : [...permissions.ROLE.fields]
+
+                    },
+                },
             ]
         });
         await adminRole.save();

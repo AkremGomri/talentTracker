@@ -16,7 +16,7 @@ module.exports = seedAdmin = async () => {
     
     if(!admin_user){
         const defaultAdmin = new User({
-            email: 'admin@gmail.com',
+            email: 'admin@gmail.com', 
             password: 'admin',
             passwordConfirm: 'admin',
             role: role._id

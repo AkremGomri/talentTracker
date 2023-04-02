@@ -157,7 +157,6 @@ exports.getAllRoles = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
   roles = roles.map(role => {
-    console.log("users: ",users);
     let nbUsers = users.filter(user => user.role?.toString() === role._id.toString()).length;
     role.nbUsers = nbUsers;
     return role;

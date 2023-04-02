@@ -25,7 +25,7 @@ const ROLE = {
 };
 
 /* actions */
-const MANAGE = "All";
+// const MANAGE = "All";
 const CREATE = "Create";
 const READ = "Read";
 const UPDATE = "Update";

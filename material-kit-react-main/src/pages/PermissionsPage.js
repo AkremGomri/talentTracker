@@ -36,6 +36,7 @@ import { UserListHead, RoleListToolbar } from '../sections/@dashboard/user';
 import roles from '../_mock/user';
 import RoleModal from '../components/modal/RoleModal';
 import { addManyRoles, deleteOneRoleById, setSelectedRole } from '../redux/features/role';
+import AddPermission from '../components/modal/AddPermission';
 
 // ----------------------------------------------------------------------
 
@@ -163,12 +164,21 @@ export default function PermissionsPage() {
     setFilterName(event.target.value);
   };
 
-  const handleOpen = () => {
-    setOpenModel(true);
+  const handleOpenEditRoleModal = () => {
+    setOpenEditRoleModel(true);
   };
 
-  const handleClose = () => {
-    setOpenModel(false);
+  const handleCloseEditRoleModal = () => {
+    setOpenEditRoleModel(false);
+  };
+
+  const handleOpenAddRoleModal = () => {
+    console.log("handleOpenAddRoleModal", openAddRoleModel);
+    setOpenAddRoleModel(true);
+  };
+
+  const handleCloseAddRoleModal = () => {
+    setOpenAddRoleModel(false);
   };
 
   const deleteRole = (roleId) => {
@@ -177,7 +187,8 @@ export default function PermissionsPage() {
     // setRoles(roles.filter((role) => role._id !== roleId));
   };
 
-  const [openModel, setOpenModel] = useState(false);
+  const [openEditRoleModel, setOpenEditRoleModel] = useState(false);
+  const [openAddRoleModel, setOpenAddRoleModel] = useState(false);
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - roles.length) : 0;
 
@@ -211,7 +222,7 @@ export default function PermissionsPage() {
           <Typography variant="h4" gutterBottom>
             Permissions
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenAddRoleModal}>
             New Permission
           </Button>
         </Stack>
@@ -317,7 +328,8 @@ export default function PermissionsPage() {
         </Card>
       </Container>
 
-      <RoleModal open={openModel} handleClose={handleClose} />
+      <RoleModal open={openEditRoleModel} handleClose={handleCloseEditRoleModal} />
+      <AddPermission open={openAddRoleModel} handleClose={handleCloseAddRoleModal} />
 
       <Popover
         open={Boolean(open)}
@@ -337,7 +349,7 @@ export default function PermissionsPage() {
           },
         }}
       >
-        <MenuItem onClick={handleOpen}>
+        <MenuItem onClick={handleOpenEditRoleModal}>
           <Iconify  icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
