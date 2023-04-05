@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
+
+import localforage from 'localforage';
 // mock
 import account from '../../../_mock/account';
 // hooks
@@ -13,8 +15,8 @@ import Logo from '../../../components/logo';
 import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
-import navConfig from './config';
-
+import { navSections, navPermission } from './config';
+import { permissions, actions } from '../../../utils/constants/permissions';
 // ----------------------------------------------------------------------
 
 const NAV_WIDTH = 280;
@@ -37,9 +39,20 @@ Nav.propTypes = {
 export default function Nav({ openNav, onCloseNav }) {
   const { pathname } = useLocation();
 
+  const [navConfig, setNavConfig] = useState([...navSections]);
   const isDesktop = useResponsive('up', 'lg');
-
+  console.log("trying: ", navConfig);
   useEffect(() => {
+    localforage.getItem('myRole').then((myRole) => {
+      console.log(navSections);
+      myRole.permissions?.forEach((permission) => {
+        if (permission.subject === permissions.ROLE.name && !navConfig.some(el => el.title === 'permissions')) {
+          setNavConfig([navPermission, ...navConfig]);
+        }
+      });
+      console.log('myRole: ', myRole);
+      console.log("navConfig: ", navConfig);
+    });
     if (openNav) {
       onCloseNav();
     }

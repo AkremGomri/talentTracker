@@ -26,17 +26,16 @@ import {
   Box,
 } from '@mui/material';
 // components
-import axios from 'axios';
-import Label from '../components/label';
-import Iconify from '../components/iconify';
+import { transformDate } from '../services/date';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, RoleListToolbar } from '../sections/@dashboard/user';
 // mock
-import roles from '../_mock/user';
 import RoleModal from '../components/modal/RoleModal';
-import { addManyRoles, deleteOneRoleById, setSelectedRole } from '../redux/features/role';
+import { deleteOneRoleById, setRoles, setSelectedRole } from '../redux/features/role';
 import AddPermission from '../components/modal/AddPermission';
+import request from '../services/request';
+import Iconify from '../components/iconify/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -181,9 +180,19 @@ export default function PermissionsPage() {
     setOpenAddRoleModel(false);
   };
 
-  const deleteRole = (roleId) => {
+  const deleteRole = async (roleId) => {
+    console.log(roleId);
     setOpen(false);
-    dispatch(deleteOneRoleById(roleId));
+      // axios POST request
+
+      try{
+        await request.send('DELETE', `/api/admin/role/${roleId}`);
+        dispatch(deleteOneRoleById(roleId));
+      } catch (error) {
+        console.log("error: ", error);
+        alert(error.code)
+      }
+
     // setRoles(roles.filter((role) => role._id !== roleId));
   };
 
@@ -198,14 +207,14 @@ export default function PermissionsPage() {
 
   useEffect(() => {
     async function getRoles() {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/roles`);
-      let ROLESLIST = response.data.data.roles;
+      const response = await request.get(`/api/admin/roles`);
+      let ROLESLIST = response.data.roles;
       ROLESLIST = ROLESLIST.map((role) => ({
           ...role,
           updatedAt: transformDate(role.updatedAt),
         })
       );
-      dispatch(addManyRoles(ROLESLIST))
+      dispatch(setRoles(ROLESLIST))
       // setRoles(ROLESLIST);
     }
     getRoles()
@@ -362,19 +371,3 @@ export default function PermissionsPage() {
     </>
   );
 }
-
-function transformDate(d) {
-  const date = new Date(d);
-  const options = {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: false
-  };
-  return date.toLocaleString('en-GB', options);
-}
-
-transformDate("2023-03-29T17:36:08.597Z")

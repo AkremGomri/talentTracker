@@ -1,7 +1,7 @@
 const express=require('express');
 const router =express.Router();
 const roleCtrl=require('../controllers/roleController');
-const auth = require('../middlewares/auth.js');
+// const auth = require('../middlewares/auth.js');
 
 
 
@@ -12,10 +12,15 @@ router
     .put(roleCtrl.updateRole)
     .delete(roleCtrl.deleteRole)
 
-
+router    
+    .route('/roles')
+    .post(roleCtrl.createManyRoles)
+    .get(roleCtrl.getAllRoles)
+    .put(roleCtrl.updateManyRoles)
+    .delete(roleCtrl.deleteManyRoles)
 /*          Dabatabase easy manipulation            */
 router
-    .route('/roles')
+    .route('/roles/all')
     .post(roleCtrl.createManyRoles)
     .get(roleCtrl.getAllRoles)
     .put(roleCtrl.updateManyRoles)

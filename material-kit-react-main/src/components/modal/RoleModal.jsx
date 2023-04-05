@@ -1,6 +1,6 @@
 import { Modal, Typography, Table, TableBody, TableRow, TableCell, Checkbox, FormControl, FormLabel, FormGroup, FormControlLabel, FormHelperText, TabScrollButton } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useTheme } from '@mui/material/styles';
 import { selectRoleToModify } from '../../redux/utils/role';
@@ -51,6 +51,10 @@ export default function RoleModal({ open, handleClose}) {
 
     const selectedRole = useSelector(selectRoleToModify);
 
+    useEffect(() => {
+      console.log("selectedRole: ", selectedRole);
+    }, [selectedRole])
+
       const [state, setState] = useState({
         gilad: true,
         jason: false,
@@ -84,7 +88,7 @@ export default function RoleModal({ open, handleClose}) {
                             permission.subject && 
                             <>
                               <FormLabel component="legend" key={`${permission.subject} - ${index}`}>{permission.subject}: </FormLabel>
-                              <FormGroup row sx={{ mt: 3 }}>
+                              {/* <FormGroup row sx={{ mt: 3 }}>
                                 {
                                   permission.actions.map((action, index) => (
                                     <>
@@ -98,7 +102,7 @@ export default function RoleModal({ open, handleClose}) {
                                     </>
                                       ))
                                 }
-                              </FormGroup>
+                              </FormGroup> */}
                               <FormHelperText sx={{ mb: 3, ml: 3 }}>Be careful</FormHelperText>
                             </>
                           }                     

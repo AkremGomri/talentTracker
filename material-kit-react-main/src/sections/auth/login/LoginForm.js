@@ -7,11 +7,14 @@ import localforage from 'localforage';
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
+import { useDispatch } from 'react-redux';
 import Iconify from '../../../components/iconify';
+import { selectMyRole } from '../../../redux/utils/myProfile';
 
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -25,6 +28,7 @@ export default function LoginForm() {
     try{
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/user/login`, data);
       localforage.setItem('token', response.data.token);
+      localforage.setItem('myRole', response.data.role);
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.log("errro: ",error);

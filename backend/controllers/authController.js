@@ -18,7 +18,8 @@ exports.signup = catchAsync(async(req, res, next) => {
         } else {
         role = await Role.findOne({ "_id": reqUser.role });
         }
-        reqUser.role = role._id;
+        if(role?.id) reqUser.role = role._id;
+        else res.status(400).json({ message: "Cannot sign up because the role is not found" });
     } else {
         console.log("he doesn't have a role");
         role = await Role.findOne({ name: 'default' })
@@ -41,9 +42,9 @@ exports.login = catchAsync(async (req, res, next) => {
     
     if(!email || !password) return next(new AppError('Please provide an email and a password', 400));
 
-    const freshUser = await User.findOne({"email": email}).select('+password');
+    const freshUser = await User.findOne({"email": email}).select('+password').populate('role');
 
-    if (!freshUser || !await freshUser.isPasswordCorrect(password, freshUser.password)) return next(new AppError('Incorrect email or password !', 401));
+    if (!freshUser || !await freshUser.isPasswordCorrect(password, freshUser.password)) return res.status(401).json({status: 'fail', message: 'Incorrect email or password !'})
 
     const token=jwt.sign(
         { userId: freshUser._id },
@@ -55,7 +56,8 @@ exports.login = catchAsync(async (req, res, next) => {
     return res.status(200)
     .json({
         userId: freshUser._id,
-        token: token
+        token: token,
+        role: freshUser.role
     });
 });
 

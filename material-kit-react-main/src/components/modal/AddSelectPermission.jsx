@@ -129,7 +129,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
 
   return (
     <div>
-      <FormControl sx={{ mx: 1, width: ["30%", "30%", "30%"], mb: 2 }}>
+      <FormControl sx={{ mx: 1, width: ["30%", "30%", "30%"], mt: 2 }}>
         <InputLabel id="permission-name-label">access to</InputLabel>
         <Select
           labelId="permission-name-label"
@@ -151,7 +151,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
 
       {
         permissionSelected?.name && 
-        <FormControl sx={{ mx: 2, width: ["60%", "60%", "60%"], mb: 2  }}>
+        <FormControl sx={{ mx: 2, width: ["60%", "60%", "60%"], mt: 2  }}>
           <InputLabel id="action-type-label">permission type</InputLabel>
           <Select
             labelId="action-type-label"
@@ -164,7 +164,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
             onChange={null}
             input={
               <OutlinedInput
-                sx={{ width: ["60%", "60%", "60%"] }}
+                // sx={{ width: ["70%", "70%", "70%"] }}
                 label="permission type"
               />
             }

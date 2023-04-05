@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Alert } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import axios from 'axios';
 // component
 import { deleteManyRolesByName } from '../../../redux/features/role';
 import Iconify from '../../../components/iconify';
+import request from '../../../services/request';
 
 // ----------------------------------------------------------------------
 
@@ -72,7 +74,7 @@ export default function RoleListToolbar({ selectedRoles, filterName, onFilterNam
 
       {selectedRoles.length > 0 ? ( // akrem badel lenna
         <Tooltip title="Delete">
-          <IconButton onClick={() => dispatch(deleteManyRolesByName(selectedRoles))}>
+          <IconButton onClick={() => dispatch(deleteAllSelectedRoles)}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -85,4 +87,14 @@ export default function RoleListToolbar({ selectedRoles, filterName, onFilterNam
       )}
     </StyledRoot>
   );
+
+  async function deleteAllSelectedRoles() {
+    try{
+      const response = await request.send('delete', '/api/admin/roles', selectedRoles);
+      dispatch(deleteManyRolesByName(selectedRoles));
+    } catch (error) {
+      console.log("error: ", error);
+      alert("error deleting roles")
+    }
+  }
 }

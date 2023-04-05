@@ -20,6 +20,13 @@ export const addOneRole = createAction(
     })
 );
 
+export const setRoles = createAction(
+    'roles/add',
+    (roles) => ({
+        payload: roles,
+    })
+);
+
 export const addManyRoles = createAction(
     'roles/add',
     (roles) => ({
@@ -62,8 +69,13 @@ export default function roleReducer(state = {selectedRole: {}, all: []}, action)
             case setSelectedRole.toString():
                 draft.selectedRole = action.payload
                 break;
-
+                
+            case setRoles.toString():
+                draft.all = action.payload
+                break;
+                    
             case addManyRoles.toString():
+                // console.log('addManyRoles: ', action.payload);
                 const draftIds = draft.all.map((role) => role._id);
 
                 action.payload.forEach((role, index) => {
@@ -74,13 +86,10 @@ export default function roleReducer(state = {selectedRole: {}, all: []}, action)
                 break;
 
             case deleteManyRolesByName.toString():
-                console.log("deleteManyRolesByName", action.payload);
-                console.log("state.all", state.all);
                 draft.all = state.all.filter((role) => !action.payload.includes(role.name));
                 break;
 
             case deleteOneRoleById.toString():
-                console.log("deleteOneRole", action.payload);
                 draft.all = state.all.filter((role) => role._id !== action.payload);
                 break;
                 
@@ -89,8 +98,6 @@ export default function roleReducer(state = {selectedRole: {}, all: []}, action)
                 draft.all.push(action.payload)
                 break;
             case deleteManyRoles.toString():
-                console.log("deleteManyRolesById", action.payload);
-                console.log("state.all", state.all);
                 draft.all = state.all.filter((role) => !action.payload.includes(role._id));
                 break;
             case deleteManyRolesByMatch.toString():
@@ -105,7 +112,6 @@ export default function roleReducer(state = {selectedRole: {}, all: []}, action)
 
 function filterRoles(match, roles){
     return roles.filter((role) => {
-        console.log('1) ',role)
         for(const [key, value] of Object.entries(match)){
           if(Array.isArray(value)){
             for(let i=0; i<value.length; i++){

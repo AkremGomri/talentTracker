@@ -19,7 +19,7 @@ exports.protect = catchAsync(async(req,res ,next)=> {
 
         const userId=decodedToken.userId;
         // console.log("user idddd: ",userId);
-        const freshUser=await User.findOne({_id:userId}).populate('role');
+        const freshUser = await User.findOne({_id:userId}).populate('role');
 
         if(!freshUser) return next(new AppError('the user belonging to this token does no longer exist', 401));
         if(freshUser.hasPasswordChangedAfter(decodedToken.iat)) return next(new AppError('user recently changed password, please log in again', 401))

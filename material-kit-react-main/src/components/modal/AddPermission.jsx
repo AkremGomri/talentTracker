@@ -1,14 +1,21 @@
 import React, {useState} from 'react'
-import { Modal, Box, Typography, TextField, Button } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SendIcon from '@mui/icons-material/Send';
-import axios from 'axios';
+import { Modal, Box, Typography, TextField, Button, Alert, Stack } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import { useDispatch } from 'react-redux';
+import { transformDate } from '../../services/date';
+import { addOneRole } from '../../redux/features/role';
 import AddSelectPermission from './AddSelectPermission';
 import { actions, permissions } from '../../utils/constants/permissions'
+import request from '../../services/request';
 
 export default function AddPermission({ open, handleClose}) {
     const [permission, setPermission] = useState([]);
     const [permissionName, setPermissionName] = useState("");
+
+    const [error, setError] = useState('');
+
+    const dispatch = useDispatch();
 
     const style = {
         container: {
@@ -17,7 +24,7 @@ export default function AddPermission({ open, handleClose}) {
           border: '2px solid #fff',
           backgroundColor: "#fff",
           // opacity: [0.9, 0.8, 0.7],
-          color: 'secondary.light',
+          // color: 'secondary.dark',
           padding: 5,
           mx: {
             xs: "8%",
@@ -26,10 +33,10 @@ export default function AddPermission({ open, handleClose}) {
             lg: "30%",
           },
           my: {
-            xs: "7%",
-            sm: "7%",
-            md: "7%",
-            lg: "7%",
+            xs: "5%",
+            sm: "5%",
+            md: "5%",
+            lg: "5%",
             },
           px: 5,
           display: 'flex',
@@ -43,7 +50,7 @@ export default function AddPermission({ open, handleClose}) {
             lg: "40%", // theme.breakpoints.up('lg')
             xl: "40%", // theme.breakpoints.up('xl')
           },
-          height: 3/4,
+          height: 4/5,
           fontWeight: 'bold',
           fontSize: 14,
   
@@ -75,10 +82,10 @@ export default function AddPermission({ open, handleClose}) {
       }
 
   return (
-    <Modal open={open} onClose={handleClose} >
+    <Modal open={open} onClose={handleCloseModal} >
         <Box sx={style.container} >
           <Box sx={style.main} >
-            <Typography variant="h1" gutterBottom sx={{ mb: 6, textAlign: 'center' }}>
+            <Typography variant="h2" gutterBottom sx={{ mb: 6, textAlign: 'center' }}>
                 new role
             </Typography>
 
@@ -86,55 +93,77 @@ export default function AddPermission({ open, handleClose}) {
               Add the role name:
             </Typography>
           
-            <TextField id="Name label" label="Name" sx={{ mb: 3, width: "100%" }} onChange={(e) => setPermissionName(e.target.value)} />
 
-            <Typography variant="h6" gutterBottom>
+            <TextField id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setPermissionName(e.target.value)} />
+            { error.permissionName && <div style={{ color: "orange", marginLeft: "20px"}}>{error.permissionName}</div>}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
               Add permissions:
             </Typography>
 
             {
                Object.values(permissions).map((permission, index) => (
-                        <AddSelectPermission key={`${permission} - ${index}`} addPermission={(data) => addPermission(data)} actions={actions} permissions={permissions} />
-                     )
+                  <AddSelectPermission key={`${permission} - ${index}`} addPermission={(data) => addPermission(data)} actions={actions} permissions={permissions} />
+                  )
                 )
             }
-          <Button variant="outlined" startIcon={<DeleteIcon />} onClick={handleClose}>
-            Delete
-          </Button>
-          <Button variant="contained" endIcon={<SendIcon />} onClick={() => sendRequest(handleClose, permissionName, permission)}>
-            Send
-          </Button>
 
+          { error.permissionListEmpty && <div style={{ color: "orange", marginLeft: "20px"}}>{error.permissionListEmpty}</div>}
+
+            <Stack spacing={2} sx={{ width: "100%", mt: 4 }}>
+              <Button variant="contained" startIcon={<ControlPointIcon />} onClick={() => sendRequest()}>
+                Add
+              </Button>
+              <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCloseModal}>
+                Cancel
+              </Button>
+            </Stack>
 
           </Box>
         </Box>
     </Modal>
   )
-}
 
-async function sendRequest(handleClose, permissionName, donnee){
-  const options = {
-    url: `${process.env.REACT_APP_API_URL}/api/admin/role`,
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json;charset=UTF-8'
-    },
-    data: {
-      name: permissionName,
-      permissions: donnee
+  async function sendRequest(){
+    if(!permissionName){
+      setError({permissionName: "name is required"});
+      return;
     }
-  };
 
-  console.log("sending: ",{
-    name: permissionName,
-    permissions: donnee
-  });
+    if(!permission[0]?.subject || !Object.values(permission[0].actions).filter(a => a.length !== 0).length){
+      setError({permissionListEmpty: "at least one permission is required"});
+      return;
+    }
 
-  try{
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/role`, options.data);
+    const data = {
+      name: permissionName,
+      permissions: permission
+    }
+  
+    try{
+      const response = await request.post('/api/admin/role', data);
+      const role = response.data;
+      role.updatedAt = transformDate(role.updatedAt);      
+      dispatch(addOneRole(role));
+      handleCloseModal();
+    } catch (error) {
+      console.log("error: ", error);
+      if(error.code.includes("ERR_NETWORK")){
+        alert("network error")
+      }else if(error.response.data.message.includes("unique")){
+        setError({permissionName: "role name already exists"})
+        alert("role name already exists")
+      } else {
+        alert("error adding role")
+      }
+    }
+  }
+
+  async function handleCloseModal(){
+    setError({});
+    setPermission([]);
+    setPermissionName("");
     handleClose();
-  } catch (error) {
-    console.log("error: ", error);
   }
 }
+

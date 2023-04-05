@@ -2,18 +2,49 @@ const Role = require('../models/roleModel');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { fields, permissions } = require('../utils/constants/users_abilities');
 
 exports.createNewRole = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
   const data = req.body;
+  let newRole;
+  let isAuthorized = false;
+
   if(!data?.name || !data?.permissions){
     console.log("data missing");
-    return next(new AppError('Please provide a name and permissions', 400));
+    return res.status(401).json({
+      status: 'fail',
+      message: 'Please provide a name and permissions'
+    });
   }
   
-  let newRole = {
-    name: data.name,
-    permissions: data.permissions,
-  };
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Create?.length > 0){
+        newRole = {
+          name: data.name,
+          permissions: data.permissions,
+        };
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to create a new role'
+    });
+  }
+  
+  // if(!newRole.name || !newRole.permissions[0] !Object.values(newRole.permissions[0].actions).filter(a => a.length !== 0).length){
+  //   return res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Please provide a name and at least one field in permissions'
+  //   });
+  // }
+
   const validationResult = await Role.prototype.joiValidate(newRole);
   if (validationResult.error) {
     console.log("validation error:", validationResult.error);
@@ -34,6 +65,25 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
 });
 
 exports.getRole = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
+
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Read?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to get a role'
+    });
+  }
+
   const roleId = req.body.name || req.params.id;
   if(!roleId){
     console.log("req.body.name missing and req.params.id missing: ",roleId);
@@ -48,7 +98,10 @@ exports.getRole = catchAsync(async (req, res, next) => {
   }
 
   if(!role){
-    return next(new AppError(`No role ${role} found`, 404));
+    return res.status(404).json({
+      status: 'success',
+      data: null
+      });
   }
 
   /* get all users with that role */
@@ -63,10 +116,30 @@ exports.getRole = catchAsync(async (req, res, next) => {
 });
 
 exports.updateRole = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
+
+  
   const data = req.body;
   if( (!data.name && !req.params.id) || !data.permissions){
     console.log("data.name and req.params.id missing");
     return next(new AppError('Please provide a name or an id and provide permissions', 400));
+  }
+  
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Update?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to update a role'
+    });
   }
 
   let updates = {
@@ -89,15 +162,35 @@ exports.updateRole = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteRole = catchAsync(async (req, res, next) => {
-  const roleId = req.body.name || req.params.id;
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
 
-  if(!roleId){
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Delete?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to update a role'
+    });
+  }
+
+  const roleId = req.params.id;
+  const roleName = req.body.name;
+  
+  if(!roleId && !roleName){
     console.log("req.body.name and req.params.id missing");
     return next(new AppError('Please provide a name or an id', 400));
   }
 
   let result;
-  if (typeof req.body.name === "string") {
+  if (roleName) {
     result = await Role.deleteOne({ "name": roleId } );
   } else {
     result = await Role.deleteOne({ "_id": roleId });
@@ -112,6 +205,42 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
       data: {
           result
       }
+  });
+});
+
+/*               Many roles                 */
+exports.deleteManyRoles = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
+
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Delete?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to update a role'
+    });
+  }
+
+  let result;
+  if(!req.body){
+    return next(new AppError('Please provide roles', 400));
+  } else if (typeof req.body[0] === "string") {
+    result = await Role.deleteMany({ name: { $in: req.body } });
+  } else {
+    result = await Role.deleteMany({ _id: {$in: req.body} });
+  }
+  
+  return res.status(201).json({
+    status: 'success',
+    result
   });
 });
 
@@ -152,7 +281,33 @@ exports.updateManyRoles = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllRoles = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
+
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Delete?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to update a role'
+    });
+  }
   
+  myPermissions.some(p => {
+    if (p.subject === permissions.ROLE.name) {
+      if(p.actions.Read?.length > 0){
+        return isAuthorized = true;
+      }
+    }
+  });
+
   let roles = await Role.find();
   const users = await User.find();
 

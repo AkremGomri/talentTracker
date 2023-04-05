@@ -26,15 +26,18 @@ module.exports = seedRoles = async () => {
                 {
                     "subject": permissions.ROLE.name,
                     "actions": {
-                        [actions.MANAGE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[1]],
-                        [actions.CREATE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[2]]
+                        // [actions.MANAGE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[1]],
+                        [actions.CREATE] : [permissions.ROLE.fields[0]],
+                        [actions.READ] : [permissions.ROLE.fields[0]],
+                        [actions.UPDATE] : [permissions.ROLE.fields[0]],
+                        [actions.DELETE] : [permissions.ROLE.fields[0]]
 
                     },
                 },
                 {
                     "subject": permissions.USERS.name,
                     "actions":{
-                        [actions.MANAGE] : [...permissions.ROLE.fields],
+                        // [actions.MANAGE] : [...permissions.ROLE.fields],
                         [actions.CREATE] : [...permissions.ROLE.fields]
 
                     },

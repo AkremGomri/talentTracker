@@ -31,7 +31,7 @@ const permissionSchema = Joi.object({
           ...Object.entries(constants.permissions).map(([key, value]) => {
             return value.fields;
           }).flat(Infinity)
-        ).required()
+        )
       ).required()
     )
     // actions: Joi.array().items(Joi.string().valid(...Object.values(constants.actions))).required(),

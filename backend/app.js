@@ -19,6 +19,7 @@ const AppError = require('./utils/appError');
 const gloabalErrorHandler = require('./controllers/errorController');
 const path = require('path');
 
+const { protect } = require('./middlewares/auth.js');
 // Configure Express App Instance
 app.use(express.json( { limit: '50mb' } ));
 app.use(express.urlencoded( { extended: true, limit: '10mb' } ));
@@ -70,7 +71,7 @@ app.use('/api', (req, res, next) => {
 })
 
 app.use('/api/user/',userRoutes);
-app.use('/api/admin/',roleRoutes);
+app.use('/api/admin/', protect, roleRoutes);
 app.use('/api/config', configRoutes);
 
 /* static files */
