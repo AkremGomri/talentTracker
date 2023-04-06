@@ -94,7 +94,7 @@ export default function AddPermission({ open, handleClose}) {
             </Typography>
           
 
-            <TextField id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setPermissionName(e.target.value)} />
+            <TextField required id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setPermissionName(e.target.value)} />
             { error.permissionName && <div style={{ color: "orange", marginLeft: "20px"}}>{error.permissionName}</div>}
 
             <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>

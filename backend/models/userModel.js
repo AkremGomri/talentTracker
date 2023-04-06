@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 
 // mongoose schema
 const userSchema = mongoose.Schema({
+  name: { type: String },
   email: {
     type: String,
     required: [true, 'Please write a valid email'],
@@ -27,7 +28,7 @@ const userSchema = mongoose.Schema({
   },
   passwordChangedAt: Date,
   role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
-  manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
+  manager: [{ type: mongoose.Schema.ObjectId, ref: 'User', default: null }],
   Manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   Skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
 });
@@ -60,18 +61,19 @@ userSchema.methods.hasPasswordChangedAfter = function(JWTTimestamp) {
 // joi validation
 userSchema.methods.joiValidate = function(obj) {
 	const schema =  Joi.object({
-        email: Joi.string().email().required(),
+    name: Joi.string().min(3).max(30),
+    email: Joi.string().email().required(),
 		password: joiPassword
-            .string()
-            .minOfSpecialCharacters(1)
-            .minOfLowercase(1)
-            .minOfUppercase(1)
-            .minOfNumeric(1)
-            // .noWhiteSpaces()
-            .required(),
-        manager: Joi.object(),
-        Manages: Joi.array().items(Joi.object()),
-        skills: Joi.array().items(Joi.object())
+      .string()
+      .minOfSpecialCharacters(1)
+      .minOfLowercase(1)
+      .minOfUppercase(1)
+      .minOfNumeric(1)
+      // .noWhiteSpaces()
+      .required(),
+    manager: Joi.object(),
+    Manages: Joi.array().items(Joi.object()),
+    skills: Joi.array().items(Joi.object())
 	});
 	const validation = schema.validate(obj);
     return validation;

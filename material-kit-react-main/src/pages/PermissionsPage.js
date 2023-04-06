@@ -86,8 +86,6 @@ export default function PermissionsPage() {
   const dispatch = useDispatch();
   const roles = useSelector((state) => state.roles.all);
 
-  // const [ roles, setRoles ] = useState([]);
-
   const [open, setOpen] = useState(null);
 
   const [page, setPage] = useState(0);
@@ -129,23 +127,16 @@ export default function PermissionsPage() {
 
   const handleClick = (event, name) => {
     const selectedIndex = selected.indexOf(name);
-    console.log("name: ",name);
-    console.log("selected: ",selected);
     let newSelected = [];
     if (selectedIndex === -1) {
-      console.log("lenna wa7di == -1");
       newSelected = newSelected.concat(selected, name);
     } else if (selectedIndex === 0) {
-      console.log("lenna wa7di == 0");
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
-      console.log("lenna wa7di == selected.length - 1");
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      console.log("lenna wa7di > 0");
       newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
-    console.log("selected: ",selected);
     setSelected(newSelected);
   };
 
@@ -172,7 +163,6 @@ export default function PermissionsPage() {
   };
 
   const handleOpenAddRoleModal = () => {
-    console.log("handleOpenAddRoleModal", openAddRoleModel);
     setOpenAddRoleModel(true);
   };
 
@@ -181,7 +171,6 @@ export default function PermissionsPage() {
   };
 
   const deleteRole = async (roleId) => {
-    console.log(roleId);
     setOpen(false);
       // axios POST request
 
@@ -192,12 +181,10 @@ export default function PermissionsPage() {
         console.log("error: ", error);
         alert(error.code)
       }
-
-    // setRoles(roles.filter((role) => role._id !== roleId));
   };
 
   const [openEditRoleModel, setOpenEditRoleModel] = useState(false);
-  const [openAddRoleModel, setOpenAddRoleModel] = useState(false);
+  const [openAddRoleModal, setOpenAddRoleModel] = useState(false);
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - roles.length) : 0;
 
@@ -215,7 +202,6 @@ export default function PermissionsPage() {
         })
       );
       dispatch(setRoles(ROLESLIST))
-      // setRoles(ROLESLIST);
     }
     getRoles()
   }, [])
@@ -338,7 +324,7 @@ export default function PermissionsPage() {
       </Container>
 
       <RoleModal open={openEditRoleModel} handleClose={handleCloseEditRoleModal} />
-      <AddPermission open={openAddRoleModel} handleClose={handleCloseAddRoleModal} />
+      <AddPermission open={openAddRoleModal} handleClose={handleCloseAddRoleModal} />
 
       <Popover
         open={Boolean(open)}

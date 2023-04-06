@@ -90,7 +90,7 @@ export default function RoleListToolbar({ selectedRoles, filterName, onFilterNam
 
   async function deleteAllSelectedRoles() {
     try{
-      const response = await request.send('delete', '/api/admin/roles', selectedRoles);
+      await request.send('delete', '/api/admin/roles', selectedRoles);
       dispatch(deleteManyRolesByName(selectedRoles));
     } catch (error) {
       console.log("error: ", error);

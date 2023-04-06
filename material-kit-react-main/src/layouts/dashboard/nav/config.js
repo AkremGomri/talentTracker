@@ -40,6 +40,7 @@ export const navSections = [
 
 export const navPermission = {
   title: 'permissions',
+  // permissions: {},
   path: '/dashboard/permissions',
   icon: icon('ic_permissions'),
 }

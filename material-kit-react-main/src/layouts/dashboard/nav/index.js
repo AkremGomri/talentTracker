@@ -47,6 +47,7 @@ export default function Nav({ openNav, onCloseNav }) {
       console.log(navSections);
       myRole.permissions?.forEach((permission) => {
         if (permission.subject === permissions.ROLE.name && !navConfig.some(el => el.title === 'permissions')) {
+          // navPermission.permissions = permission.actions;
           setNavConfig([navPermission, ...navConfig]);
         }
       });

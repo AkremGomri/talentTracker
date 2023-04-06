@@ -24,7 +24,8 @@ router
 .delete(userCtrl.deleteManyUsers)
 /*           missing something            */
 router
-.delete('/', userCtrl.delete)
+    .delete('/', userCtrl.deleteUser)
+    .delete('/:id', userCtrl.deleteUserById)
 
 /*           test            */
 router.use('/test', protect, userCtrl.test)

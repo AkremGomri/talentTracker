@@ -12,13 +12,16 @@ router
     .put(roleCtrl.updateRole)
     .delete(roleCtrl.deleteRole)
 
-router    
+    router
+        .get('/roles/names', roleCtrl.readAllRolesNames)
+    
+    router    
     .route('/roles')
     .post(roleCtrl.createManyRoles)
     .get(roleCtrl.getAllRoles)
     .put(roleCtrl.updateManyRoles)
     .delete(roleCtrl.deleteManyRoles)
-/*          Dabatabase easy manipulation            */
+    /*          Dabatabase easy manipulation            */
 router
     .route('/roles/all')
     .post(roleCtrl.createManyRoles)

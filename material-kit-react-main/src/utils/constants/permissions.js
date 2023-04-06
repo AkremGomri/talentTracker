@@ -1,4 +1,5 @@
 /* fields */
+const all = "All";
 const email = "Email";
 const password = "Password";
 const role = "Role";
@@ -10,7 +11,7 @@ const permissions = "Permissions";
 /* fields grouped together */
 const userFields = [ email, password, role, manager, manages, skills ];
 
-const roleFields = [ name, permissions ];
+const roleFields = [ all ];
 
 /* subjects */
 const USERS = {
@@ -25,11 +26,23 @@ const ROLE = {
 };
 
 /* actions */
-// const MANAGE = "All";
+const MANAGE = "All";
 const CREATE = "Create";
 const READ = "Read";
 const UPDATE = "Update";
 const DELETE = "Delete";
+
+exports.fields = {
+  email,
+  password,
+  role,
+  manager,
+  manages,
+  skills,
+  name,
+  permissions,
+  all,
+};
 
 exports.permissions = {
   USERS,

@@ -4,8 +4,9 @@ import { styled, alpha } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
 import { useDispatch } from 'react-redux';
 // component
-import { deleteManyRolesByName } from '../../../redux/features/role';
 import Iconify from '../../../components/iconify';
+import request from '../../../services/request';
+import { addManyUsers, deleteManyUsersByName } from '../../../redux/features/user';
 
 // ----------------------------------------------------------------------
 
@@ -35,27 +36,27 @@ const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 UserListToolbar.propTypes = {
-  selectedRoles: PropTypes.array,
+  selectedUsers: PropTypes.array,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName }) {
+export default function UserListToolbar({ selectedUsers, filterName, onFilterName }) {
 
   const dispatch = useDispatch();
 
   return (
     <StyledRoot
       sx={{
-        ...(numSelected > 0 && {
+        ...(selectedUsers.length > 0 && {
           color: 'primary.main',
           bgcolor: 'primary.lighter',
         }),
       }}
     >
-      {numSelected > 0 ? (
+      {selectedUsers.length > 0 ? (
         <Typography component="div" variant="subtitle1">
-          {numSelected} selected
+          {selectedUsers.length} selected
         </Typography>
       ) : (
         <StyledSearch
@@ -70,9 +71,9 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
         />
       )}
 
-      {numSelected > 0 ? ( // akrem badel lenna
+      {selectedUsers.length > 0 ? ( // akrem badel lenna
         <Tooltip title="Delete">
-          <IconButton >
+          <IconButton onClick={() => deleteAllSelectedUsers()} >
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -85,4 +86,18 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName 
       )}
     </StyledRoot>
   );
+
+  async function deleteAllSelectedUsers() {
+    try{
+      console.log("selectedUsers: ", selectedUsers);
+      const response = await request.send('delete', '/api/user/many', selectedUsers);
+      if(response.result?.deletedCount <=0 ){
+        return;
+      }
+      console.log("marja3nech");
+    } catch (error) {
+      console.log("error: ", error);
+      alert("error deleting roles")
+    }
+  }
 }

@@ -208,6 +208,40 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.readAllRolesNames = catchAsync(async (req, res, next) => {
+  const me = req.user;
+  const myPermissions = me.role.permissions;
+  let isAuthorized = false;
+  console.log("heree !");
+
+  myPermissions.some(p => {
+    if (p.subject === permissions.USERS.name) {
+      console.log("p.actions.Create: ",p.actions.Create);
+      console.log("fields.role: ",fields.role);
+      if(p.actions.Create.includes(fields.role)){
+        console.log("true");
+        return isAuthorized = true;
+      }
+    }
+  });
+
+  if(!isAuthorized){
+    return res.status(401).json({
+      status: 'fail',
+      message: 'You are not authorized to update a role'
+    });
+  }
+
+  let result = await Role.find({}, {name: 1, _id: 0});
+  
+  result = result.map(r => r.name);
+
+  return res.status(201).json({
+    status: 'success',
+    result
+  });
+});
+
 /*               Many roles                 */
 exports.deleteManyRoles = catchAsync(async (req, res, next) => {
   const me = req.user;

@@ -8,8 +8,14 @@ const AppError = require('../utils/appError');
 const xlsx = require('xlsx');
 
 /*           one user            */
-exports.delete = catchAsync(async (req, res, next) => {
-  const result = await User.deleteOne({"email": req.body.email})
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const result = await User.deleteOne({"email": req.body.email});
+  if(result.deletedCount <= 0) next(new AppError('User not found', 404));
+  return res.status(200).json({message:"deleted successfully", result});
+});
+
+exports.deleteUserById = catchAsync(async (req, res, next) => {
+  const result = await User.deleteOne({"id": req.params.id});
   if(result.deletedCount <= 0) next(new AppError('User not found', 404));
   return res.status(200).json({message:"deleted successfully", result});
 });
