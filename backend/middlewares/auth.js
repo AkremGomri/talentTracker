@@ -18,7 +18,7 @@ exports.protect = catchAsync(async(req,res ,next)=> {
         const decodedToken = await verifyJwt(token, process.env.JWT_SECRET);
 
         const userId=decodedToken.userId;
-        // console.log("user idddd: ",userId);
+
         const freshUser = await User.findOne({_id:userId}).populate('role');
 
         if(!freshUser) return next(new AppError('the user belonging to this token does no longer exist', 401));

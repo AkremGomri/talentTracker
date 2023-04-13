@@ -24,21 +24,35 @@ module.exports = seedRoles = async () => {
             name: 'admin',
             permissions:[
                 {
-                    "subject": permissions.ROLE.name,
+                    "subject": permissions.Role.name,
                     "actions": {
                         // [actions.MANAGE] : [permissions.ROLE.fields[0], permissions.ROLE.fields[1]],
-                        [actions.CREATE] : [permissions.ROLE.fields[0]],
-                        [actions.READ] : [permissions.ROLE.fields[0]],
-                        [actions.UPDATE] : [permissions.ROLE.fields[0]],
-                        [actions.DELETE] : [permissions.ROLE.fields[0]]
+                        [actions.Post] : [ ...permissions.Role.fields ],
+                        [actions.Get] : [ ...permissions.Role.fields ],
+                        [actions.Patch] : [ ...permissions.Role.fields ],
+                        [actions.Delete] : [ ...permissions.Role.fields ]
 
                     },
                 },
                 {
-                    "subject": permissions.USERS.name,
+                    "subject": permissions.User.name,
                     "actions":{
                         // [actions.MANAGE] : [...permissions.ROLE.fields],
-                        [actions.CREATE] : [...permissions.ROLE.fields]
+                        [actions.Post] : [...permissions.User.fields],
+                        [actions.Get] : [...permissions.User.fields],
+                        [actions.Patch] : [...permissions.User.fields],
+                        [actions.Delete] : [...permissions.User.fields],
+
+                    },
+                },
+                {
+                    "subject": permissions.Field.name,
+                    "actions":{
+                        // [actions.MANAGE] : [...permissions.ROLE.fields],
+                        [actions.Post] : [...permissions.Field.fields],
+                        [actions.Get] : [...permissions.Field.fields],
+                        [actions.Patch] : [...permissions.Field.fields],
+                        [actions.Delete] : [...permissions.Field.fields],
 
                     },
                 },

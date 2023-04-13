@@ -20,8 +20,8 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
   }
   
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
-      if(p.actions.Create?.length > 0){
+    if (p.subject === permissions.Role.name) {
+      if(p.actions.Post?.length > 0){
         newRole = {
           name: data.name,
           permissions: data.permissions,
@@ -70,8 +70,8 @@ exports.getRole = catchAsync(async (req, res, next) => {
   let isAuthorized = false;
 
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
-      if(p.actions.Read?.length > 0){
+    if (p.subject === permissions.Role.name) {
+      if(p.actions.Get?.length > 0){
         return isAuthorized = true;
       }
     }
@@ -128,8 +128,8 @@ exports.updateRole = catchAsync(async (req, res, next) => {
   }
   
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
-      if(p.actions.Update?.length > 0){
+    if (p.subject === permissions.Role.name) {
+      if(p.actions.Patch?.length > 0){
         return isAuthorized = true;
       }
     }
@@ -167,7 +167,7 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
   let isAuthorized = false;
 
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
+    if (p.subject === permissions.Role.name) {
       if(p.actions.Delete?.length > 0){
         return isAuthorized = true;
       }
@@ -177,7 +177,7 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
   if(!isAuthorized){
     return res.status(401).json({
       status: 'fail',
-      message: 'You are not authorized to update a role'
+      message: 'You are not authorized to delete a role'
     });
   }
 
@@ -215,10 +215,10 @@ exports.readAllRolesNames = catchAsync(async (req, res, next) => {
   console.log("heree !");
 
   myPermissions.some(p => {
-    if (p.subject === permissions.USERS.name) {
-      console.log("p.actions.Create: ",p.actions.Create);
+    if (p.subject === permissions.User.name) {
+      console.log("p.actions.Get: ",p.actions.Get);
       console.log("fields.role: ",fields.role);
-      if(p.actions.Create.includes(fields.role)){
+      if(p.actions.Post.includes(fields.role)){
         console.log("true");
         return isAuthorized = true;
       }
@@ -228,7 +228,7 @@ exports.readAllRolesNames = catchAsync(async (req, res, next) => {
   if(!isAuthorized){
     return res.status(401).json({
       status: 'fail',
-      message: 'You are not authorized to update a role'
+      message: 'You are not authorized to get all roles'
     });
   }
 
@@ -249,7 +249,7 @@ exports.deleteManyRoles = catchAsync(async (req, res, next) => {
   let isAuthorized = false;
 
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
+    if (p.subject === permissions.Role.name) {
       if(p.actions.Delete?.length > 0){
         return isAuthorized = true;
       }
@@ -259,7 +259,7 @@ exports.deleteManyRoles = catchAsync(async (req, res, next) => {
   if(!isAuthorized){
     return res.status(401).json({
       status: 'fail',
-      message: 'You are not authorized to update a role'
+      message: 'You are not authorized to delete many roles'
     });
   }
 
@@ -320,7 +320,7 @@ exports.getAllRoles = catchAsync(async (req, res, next) => {
   let isAuthorized = false;
 
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
+    if (p.subject === permissions.Role.name) {
       if(p.actions.Delete?.length > 0){
         return isAuthorized = true;
       }
@@ -330,13 +330,13 @@ exports.getAllRoles = catchAsync(async (req, res, next) => {
   if(!isAuthorized){
     return res.status(401).json({
       status: 'fail',
-      message: 'You are not authorized to update a role'
+      message: 'You are not authorized to get all roles'
     });
   }
   
   myPermissions.some(p => {
-    if (p.subject === permissions.ROLE.name) {
-      if(p.actions.Read?.length > 0){
+    if (p.subject === permissions.Role.name) {
+      if(p.actions.Get?.length > 0){
         return isAuthorized = true;
       }
     }

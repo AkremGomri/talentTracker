@@ -1,33 +1,39 @@
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const _ = require('lodash');
 
 
 exports.Create = Model => catchAsync(async (req, res) => {
 
     const  modelsToCreate = req.body[`${Model.collection.name}`] || req.body[`${Model.collection.name.slice(0, -1)}`] || req.body;
 
-    const docs = await Model.insertMany(modelsToCreate);
+    const allowedFields = _.pick(modelsToCreate, allowedFields);
+
+    const docs = await Model.insertMany(modelsToCreate).select(extractAllowedFields(allowedFields, req.myPermissions));
     res.status(201).json({
         status: 'success',
         data: docs
     });
-}); // verified
+}); // 
 
-exports.Read = async (req, Model, myPermissions) => {
+exports.Read = Model => catchAsync(async (req, res, next) => {
 
     const name = req.body.name || req.body.names;
     const id = req.params.id || req.body.ids || req.body.id || (Object.keys(req.body).length? req.body : null);
 
     const filter = name? { name: name } : id? { _id: id } : {};
 
-    const docs = await Model.find(filter);
+    const docs = await Model.find(filter, req.myPermissions.join(' '));
 
     if (!docs) {
         return next(new AppError('No document found with that ID', 404));
     }
  
-    return docs;
-}; //verified
+    res.status(200).json({
+        status: 'success',
+        data: docs
+    });
+}); // verified
 
 exports.Update = Model => catchAsync(async (req, res, next) => {
 
@@ -63,18 +69,27 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
             status: 'success',
             data: result
         });
-}); // verified
+}); // 
 
-exports.getMyPermissions = (req, subject) => {
-    let  method = req.method;
-    method = method.charAt(0).toUpperCase() + method.slice(1).toLowerCase(); //transform create or CREATE to Create
+exports.getMyPermissions = subject => catchAsync(async (req, res, next) =>{
+    const  method = req.method.toLowerCase();
 
-    const myPermissions = req.user.permissions.find(p => p.subject === subject)
+    const myPermissions = req.user.role.permissions.find(p => p.subject === subject)
+    
+    if(!myPermissions){
+        return next(new AppError('You do not have permission to access this resource', 403));
+    }
+    
+    req.myPermissions = myPermissions.actions[method];
 
-    return myPermissions.actions[method].join(' ');
-}
+    next();
+});
 
-
+exports.extractAllowedFields = function (data, allowedFields) {
+    if(Array.isArray(data)) return data.map(f => _.pick(f, allowedFields));
+    else if(typeof data === 'object') return _.pick(data, allowedFields);
+    return;
+  };
 
 // exports.updateOne = Model => catchAsync(async (req, res, next) => {
 //     const me = req.user;

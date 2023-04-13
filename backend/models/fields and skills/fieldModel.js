@@ -5,4 +5,6 @@ const fieldSchema = new mongoose.Schema({
     subFields: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SubField' }],
 })
 
-module.exports = mongoose.model('Field', fieldSchema);
+
+const Field = mongoose.model('Field', fieldSchema);
+module.exports = Field;

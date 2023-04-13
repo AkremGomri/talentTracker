@@ -25,7 +25,7 @@ exports.test = (req, res, next) => {
   const permissions = req.user.role.permissions;
   console.log("permissions: ",permissions);
   permissions.every(p => {
-    if(p.actions.includes(constants.UPDATE)){
+    if(p.actions.includes(constants.Patch)){
       console.log("p: ",p);
     } else {
       console.log("not included ",p);
@@ -43,9 +43,9 @@ exports.testWithRole = (req, res, next) => {
   // const addRoleCapability = constants.ADD_USER;
 
   const hasAddRoleCapability = userPermissions.some((permission) => {
-    console.log("known that required subject is: ", constants.subjects.ROLE, " and required action is: ", constants.actions.CREATE);
-    console.log(permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.CREATE));
-    return permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.CREATE);
+    console.log("known that required subject is: ", constants.subjects.ROLE, " and required action is: ", constants.actions.Get);
+    console.log(permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.Get));
+    return permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.Get);
     // return permission.actions.includes(addRoleCapability);
   });
 
