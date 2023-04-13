@@ -10,7 +10,7 @@ router
     // .get(fieldController.getAllFields)
     .get(
         protect,
-        factory.getMyPermissions('field'),
+        factory.getMyPermissions('fields'),
         factory.Read(Field)
      )
     .post(fieldController.createFields)

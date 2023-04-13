@@ -71,25 +71,27 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
         });
 }); // 
 
-exports.getMyPermissions = subject => catchAsync(async (req, res, next) =>{
-    const  method = req.method.toLowerCase();
+exports.getMyPermissions = subject => (req, res, next) =>{
+    const  method = req.method[0].charAt(0).toUpperCase() + req.method.slice(1).toLowerCase();
 
     const myPermissions = req.user.role.permissions.find(p => p.subject === subject)
-    
+
     if(!myPermissions){
         return next(new AppError('You do not have permission to access this resource', 403));
     }
-    
+
     req.myPermissions = myPermissions.actions[method];
 
     next();
-});
+};
 
-exports.extractAllowedFields = function (data, allowedFields) {
-    if(Array.isArray(data)) return data.map(f => _.pick(f, allowedFields));
-    else if(typeof data === 'object') return _.pick(data, allowedFields);
-    return;
-  };
+exports.extractAllowedFields = (data, allowedFields) =>  (req, res , next) => {
+    if(Array.isArray(data)) req.allowedData = data.map(f => _.pick(f, allowedFields));
+    else if(typeof data === 'object')  req.allowedData = _.pick(data, allowedFields);
+    else return AppError('Invalid data type', 400);
+
+    next();
+};
 
 // exports.updateOne = Model => catchAsync(async (req, res, next) => {
 //     const me = req.user;
