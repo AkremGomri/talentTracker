@@ -9,8 +9,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 //import routes
-const userRoutes = require('./routes/userRoutes')
-const roleRoutes = require('./routes/roleRoutes')
+const userRoutes = require('./routes/userRoutes');
+const skillRoutes = require('./routes/fields and skills/fieldRoutes');
+const roleRoutes = require('./routes/roleRoutes');
 const configRoutes = require('./routes/configRoutes');
 // const logger = require("@util/logger");
 const seedBD = require('./utils/seedDB');
@@ -70,7 +71,8 @@ app.use('/api', (req, res, next) => {
     next();
 })
 
-app.use('/api/user/',userRoutes);
+app.use('/api/user/', userRoutes);
+app.use('/api/skills/', skillRoutes);
 app.use('/api/admin/', protect, roleRoutes);
 app.use('/api/config', configRoutes);
 
@@ -83,7 +85,7 @@ app.use(express.static(path.join('public'), {
 }));
 
 // Handle not valid route
-app.all('*', (req, res, next) => {
+app.use((req, res, next) => {
   return next(new AppError(`Endpoint Not Found: ${req.originalUrl}`, 404));
 })
 
