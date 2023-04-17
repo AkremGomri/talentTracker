@@ -8,14 +8,10 @@ const { protect } = require('../../middlewares/auth');
 router
     .route('/:id?')
     // .get(fieldController.getAllFields)
-    .get(
-        protect,
-        factory.getMyPermissions('fields'),
-        factory.Read(Field)
-     )
-    .post(fieldController.createFields)
+    .get(protect,factory.Read(Field))
+    .post(protect, factory.Read)
     // .delete(fieldController.deleteOneField)
-    .delete(fieldController.deleteFields)
+    .delete(protect, factory.Delete(Field))
     .patch(fieldController.updateField);
 
 router

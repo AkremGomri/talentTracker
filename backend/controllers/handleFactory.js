@@ -1,29 +1,35 @@
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const _ = require('lodash');
-
+const mongoose = require('mongoose');
 
 exports.Create = Model => catchAsync(async (req, res) => {
 
     const  modelsToCreate = req.body[`${Model.collection.name}`] || req.body[`${Model.collection.name.slice(0, -1)}`] || req.body;
 
-    const allowedFields = _.pick(modelsToCreate, allowedFields);
+    const myPermissions = getMyPermissions(req, Model.collection.name); //exp: 'name email'
+    const dataToStore = extractAllowedFields(modelsToCreate, myPermissions);
 
-    const docs = await Model.insertMany(modelsToCreate).select(extractAllowedFields(allowedFields, req.myPermissions));
+    const docs = await Model.insertMany(dataToStore);
     res.status(201).json({
         status: 'success',
         data: docs
     });
-}); // 
+}); // verified
 
 exports.Read = Model => catchAsync(async (req, res, next) => {
 
-    const name = req.body.name || req.body.names;
-    const id = req.params.id || req.body.ids || req.body.id || (Object.keys(req.body).length? req.body : null);
+    const name = req.body.name || req.body.names; // || req.body[`${Model.collection.name.slice(0, -1)}`];
+    const id = req.params.id || req.body.ids || req.body.id || (Object.keys(req.body).length? req.body : null); 
 
-    const filter = name? { name: name } : id? { _id: id } : {};
+    const filter = name? { name } : id? { _id: id } : {};
 
-    const docs = await Model.find(filter, req.myPermissions.join(' '));
+    const myPermissions = getMyPermissions(req, Model.collection.name).join(' '); //exp: 'name email'
+    console.log("myPermissions: ", myPermissions);
+
+    // const allowedFields = extractAllowedFields(filter, myPermissions);
+
+    const docs = await Model.find(filter, myPermissions);
 
     if (!docs) {
         return next(new AppError('No document found with that ID', 404));
@@ -53,13 +59,26 @@ exports.Update = Model => catchAsync(async (req, res, next) => {
 });
 
 exports.Delete = Model => catchAsync(async (req, res, next) => {
-    const ids = req.params.id || req.body.ids || req.body.id || (req.body.every(id => typeof id === 'string')? req.body :  req.body.map(r => r._id));
+    const ids = req.params.id || req.body.ids || req.body.id  || (Array.isArray(req.body) ? req.body.every(id => mongoose.isValidObjectId(id))? req.body.map(id => id.toString()) :  req.body.map(r => r._id.toString()) : null);
+    console.log("ids: ", ids);
+    const names = req.body.name || req.body.names || (req.body.every(name => typeof name === 'string')? req.body : null);
+    console.log(names);
+    const filter = ids ? { _id: { $in: ids } }: { name: { $in: names } };
+    console.log("filter: ", filter);
 
-    const filter = { _id: { $in: ids } };
+    const myPermissions = getMyPermissions(req, Model.collection.name).join(' '); //exp: 'name email'
+    
+    let result;
+    console.log("before deletion");
+    if (!myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Model.deleteMany(filter)
+    else result = await Model.updateMany(
+        filter,
+        { $set: { "deleted": true } }
+      );
+    console.log("after deletion");
 
-    const result = await Model.deleteMany(filter);
-
-    if (result.deletedCount === 0) {
+    console.log("result: ", result);
+    if (result.deletedCount === 0 || !result.acknowledged) {
         return next(new AppError('No document found with that ID', 404));
     }
 
@@ -71,7 +90,14 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
         });
 }); // 
 
-exports.getMyPermissions = subject => (req, res, next) =>{
+
+function extractAllowedFields (data, allowedFields) { // this function extracts the allowed fields from the data object. It can be used to extract the allowed fields from a single object or an array of objects.
+    if(Array.isArray(data)) return data.map(f => _.pick(f, allowedFields));
+    else if(typeof data === 'object')  return _.pick(data, allowedFields);
+    else return AppError('Invalid data type', 400);
+};
+
+function getMyPermissions (req, subject) { // this function extracts the users permissions related to a specific subject and a specific action. For example: ['name', 'permissions'] of the 'fields' subject and 'Get' action.
     const  method = req.method[0].charAt(0).toUpperCase() + req.method.slice(1).toLowerCase();
 
     const myPermissions = req.user.role.permissions.find(p => p.subject === subject)
@@ -80,17 +106,7 @@ exports.getMyPermissions = subject => (req, res, next) =>{
         return next(new AppError('You do not have permission to access this resource', 403));
     }
 
-    req.myPermissions = myPermissions.actions[method];
-
-    next();
-};
-
-exports.extractAllowedFields = (data, allowedFields) =>  (req, res , next) => {
-    if(Array.isArray(data)) req.allowedData = data.map(f => _.pick(f, allowedFields));
-    else if(typeof data === 'object')  req.allowedData = _.pick(data, allowedFields);
-    else return AppError('Invalid data type', 400);
-
-    next();
+    return myPermissions.actions[method];
 };
 
 // exports.updateOne = Model => catchAsync(async (req, res, next) => {
