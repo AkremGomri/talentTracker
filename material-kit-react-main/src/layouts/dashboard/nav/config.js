@@ -44,3 +44,10 @@ export const navPermission = {
   path: '/dashboard/permissions',
   icon: icon('ic_permissions'),
 }
+
+export const navFields = {
+  title: 'fields',
+  // permissions: {},
+  path: '/dashboard/fields',
+  icon: icon('ic_fields'),
+}

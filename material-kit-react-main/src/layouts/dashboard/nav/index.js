@@ -15,7 +15,7 @@ import Logo from '../../../components/logo';
 import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
-import { navSections, navPermission } from './config';
+import { navSections, navPermission, navFields } from './config';
 import { permissions, actions } from '../../../utils/constants/permissions';
 // ----------------------------------------------------------------------
 
@@ -41,14 +41,16 @@ export default function Nav({ openNav, onCloseNav }) {
 
   const [navConfig, setNavConfig] = useState([...navSections]);
   const isDesktop = useResponsive('up', 'lg');
-  console.log("trying: ", navConfig);
+
   useEffect(() => {
     localforage.getItem('myRole').then((myRole) => {
-      console.log(navSections);
       myRole.permissions?.forEach((permission) => {
-        if (permission.subject === permissions.ROLE.name && !navConfig.some(el => el.title === 'permissions')) {
+        if (permission.subject === permissions.Role.name && !navConfig.some(el => el.title === 'permissions')) {
           // navPermission.permissions = permission.actions;
           setNavConfig([navPermission, ...navConfig]);
+        } 
+        if (permission.subject === permissions.Field.name && !navConfig.some(el => el.title === 'fields')){
+          setNavConfig([navFields, ...navConfig]);
         }
       });
       console.log('myRole: ', myRole);
@@ -58,7 +60,7 @@ export default function Nav({ openNav, onCloseNav }) {
       onCloseNav();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, navConfig]); // navConfig shouldn't be there, but it's a workaround for now.
 
   const renderContent = (
     <Scrollbar

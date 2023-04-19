@@ -1,15 +1,16 @@
 /* fields */
 const all = "All";
-const email = "Email";
-const password = "Password";
-const role = "Role";
-const manager = "Manager";
-const manages = "Manages";
-const skills = "Skills";
-const name = "Name";
-const permissions = "Permissions";
+const email = "email";
+const password = "password";
+const role = "role";
+const manager = "manager";
+const manages = "manages";
+const skills = "skills";
+const name = "name";
+const permissions = "permissions";
+const deleted = "deleted";
 /* fields grouped together */
-const userFields = [ email, password, role, manager, manages, skills ];
+const userFields = [ email, password, role, manager, manages, skills, deleted ];
 
 const roleFields = [ all ];
 

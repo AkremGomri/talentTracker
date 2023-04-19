@@ -29,8 +29,8 @@ const userSchema = mongoose.Schema({
   passwordChangedAt: Date,
   role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
   manager: [{ type: mongoose.Schema.ObjectId, ref: 'User', default: null }],
-  Manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-  Skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
+  manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
+  skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
 });
 
 //hashing password

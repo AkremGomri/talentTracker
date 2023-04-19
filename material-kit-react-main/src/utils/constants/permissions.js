@@ -1,36 +1,42 @@
 /* fields */
 const all = "All";
-const email = "Email";
-const password = "Password";
-const role = "Role";
-const manager = "Manager";
-const manages = "Manages";
-const skills = "Skills";
-const name = "Name";
-const permissions = "Permissions";
+const email = "email";
+const password = "password";
+const role = "role";
+const manager = "manager";
+const manages = "manages";
+const skills = "skills";
+const name = "name";
+const permissions = "permissions";
+const deleted = "deleted";
 /* fields grouped together */
-const userFields = [ email, password, role, manager, manages, skills ];
+const userFields = [ email, password, role, manager, manages, skills, deleted ];
 
 const roleFields = [ all ];
 
 /* subjects */
-const USERS = {
+const User = {
   name: "users",
   fields: userFields,
   mode: ["All users", "Related users", "Only me"]
 };
 
-const ROLE = {
-  name: "Role",
+const Role = {
+  name: "roles",
   fields: roleFields
 };
 
+const Field = {
+  name: "fields",
+  fields: ["name", "subFields"]
+}
+
 /* actions */
 const MANAGE = "All";
-const CREATE = "Create";
-const READ = "Read";
-const UPDATE = "Update";
-const DELETE = "Delete";
+const Post = "Post";
+const Get = "Get";
+const Patch = "Patch";
+const Delete = "Delete";
 
 exports.fields = {
   email,
@@ -45,14 +51,15 @@ exports.fields = {
 };
 
 exports.permissions = {
-  USERS,
-  ROLE
+  User,
+  Role,
+  Field
 };
 
 exports.actions = {
   // MANAGE,
-  CREATE,
-  READ,
-  UPDATE,
-  DELETE
+  Post,
+  Get,
+  Patch,
+  Delete
 };

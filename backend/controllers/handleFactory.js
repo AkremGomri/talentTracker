@@ -4,12 +4,12 @@ const _ = require('lodash');
 const mongoose = require('mongoose');
 
 exports.Create = Model => catchAsync(async (req, res) => {
-
+    console.log("creating...");
     const  modelsToCreate = req.body[`${Model.collection.name}`] || req.body[`${Model.collection.name.slice(0, -1)}`] || req.body;
 
     const myPermissions = getMyPermissions(req, Model.collection.name); //exp: 'name email'
     const dataToStore = extractAllowedFields(modelsToCreate, myPermissions);
-
+    console.log("creating...");
     const docs = await Model.insertMany(dataToStore);
     res.status(201).json({
         status: 'success',
@@ -59,12 +59,11 @@ exports.Update = Model => catchAsync(async (req, res, next) => {
 });
 
 exports.Delete = Model => catchAsync(async (req, res, next) => {
-    const ids = req.params.id || req.body.ids || req.body.id  || (Array.isArray(req.body) ? req.body.every(id => mongoose.isValidObjectId(id))? req.body.map(id => id.toString()) :  req.body.map(r => r._id.toString()) : null);
-    console.log("ids: ", ids);
-    const names = req.body.name || req.body.names || (req.body.every(name => typeof name === 'string')? req.body : null);
-    console.log(names);
+    const ids = req.params.id || (Array.isArray(req.body) ? req.body.every(id => mongoose.isValidObjectId(id))? req.body.map(id => id.toString()) :  null : null);
+
+    const names = req.body.name || req.body;
+
     const filter = ids ? { _id: { $in: ids } }: { name: { $in: names } };
-    console.log("filter: ", filter);
 
     const myPermissions = getMyPermissions(req, Model.collection.name).join(' '); //exp: 'name email'
     
@@ -88,7 +87,7 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
             status: 'success',
             data: result
         });
-}); // 
+}); // verified
 
 
 function extractAllowedFields (data, allowedFields) { // this function extracts the allowed fields from the data object. It can be used to extract the allowed fields from a single object or an array of objects.

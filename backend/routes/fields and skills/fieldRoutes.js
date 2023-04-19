@@ -9,7 +9,7 @@ router
     .route('/:id?')
     // .get(fieldController.getAllFields)
     .get(protect,factory.Read(Field))
-    .post(protect, factory.Read)
+    .post(protect, factory.Create(Field))
     // .delete(fieldController.deleteOneField)
     .delete(protect, factory.Delete(Field))
     .patch(fieldController.updateField);
