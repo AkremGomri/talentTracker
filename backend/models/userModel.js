@@ -31,6 +31,7 @@ const userSchema = mongoose.Schema({
   manager: [{ type: mongoose.Schema.ObjectId, ref: 'User', default: null }],
   manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
+  deleted: { type: Boolean, default: false }
 });
 
 //hashing password

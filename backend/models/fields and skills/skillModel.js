@@ -1,28 +1,18 @@
 const mongoose=require('mongoose');
-const uniqueValidator=require('mongoose-unique-validator');
-const Joi = require('joi');
+
+const skillElementSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    // parentSkill : { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+})
 
 const skillSchema= mongoose.Schema({
     name:{ type: String ,required:true,unique:true },
     // level :{type:Number ,default: 0, min: [0, "level must be equal or greater than 0"], max: [5, "level must be equal or less than 5"]},
-    // Users: [
-    //     { type: mongoose.Schema.ObjectId, ref: 'User' }
-    // ],
     parentSubField: { type: mongoose.Schema.Types.ObjectId, ref: 'SubField', required: true },
-    skillElements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SkillElement' }],
+    skillElements: [skillElementSchema],
+    nbUsers: {type: Number, default: 0},
+    deleted: { type: Boolean, default: false }
 
 });
-
-// skillSchema.methods.joiValidate = function(obj) {
-// 	const schema =  Joi.object({
-//         name: Joi.string().required(),
-// 		level: Joi.number().min(0).max(5),
-//         Users: Joi.array().items(Joi.object())
-// 	});
-// 	const validation = schema.validate(obj);
-//     return validation;
-    
-// }
-// skillSchema.plugin(uniqueValidator); 
 
 module.exports=mongoose.model('Skill',skillSchema);

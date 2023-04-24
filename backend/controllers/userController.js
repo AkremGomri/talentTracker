@@ -23,10 +23,8 @@ exports.deleteUserById = catchAsync(async (req, res, next) => {
 /*           test            */
 exports.test = (req, res, next) => {
   const permissions = req.user.role.permissions;
-  console.log("permissions: ",permissions);
   permissions.every(p => {
     if(p.actions.includes(constants.Patch)){
-      console.log("p: ",p);
     } else {
       console.log("not included ",p);
     }
@@ -43,8 +41,6 @@ exports.testWithRole = (req, res, next) => {
   // const addRoleCapability = constants.ADD_USER;
 
   const hasAddRoleCapability = userPermissions.some((permission) => {
-    console.log("known that required subject is: ", constants.subjects.ROLE, " and required action is: ", constants.actions.Get);
-    console.log(permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.Get));
     return permission.subject === constants.subjects.ROLE && permission.actions.includes(constants.actions.Get);
     // return permission.actions.includes(addRoleCapability);
   });
@@ -61,7 +57,6 @@ exports.testWithRole = (req, res, next) => {
 /*          Many users            */
 exports.createManyUsers = catchAsync(async (req, res, next) => {
   if(!req.body){
-    console.log("req.body.users missing");
     return next(new AppError('missing field', 400));
   }
 
@@ -109,7 +104,6 @@ exports.getManyUsers = catchAsync(async (req, res, next) => {
 exports.deleteManyUsers = catchAsync(async (req, res, next) => {
   let result;
   result = await User.deleteMany({ email: { $in: req.body }});
-  console.log("result: ",result);
     // await User.deleteMany({ email: { $in: req.body.emails } });
   
   return res.status(201).json({

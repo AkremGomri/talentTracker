@@ -10,7 +10,9 @@ const bodyParser = require('body-parser');
 
 //import routes
 const userRoutes = require('./routes/userRoutes');
-const skillRoutes = require('./routes/fields and skills/fieldRoutes');
+const fieldRoutes = require('./routes/fields and skills/fieldRoutes');
+const subFieldRoutes = require('./routes/fields and skills/subFieldRoutes');
+const skillRoutes = require('./routes/fields and skills/skillRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const configRoutes = require('./routes/configRoutes');
 // const logger = require("@util/logger");
@@ -73,6 +75,8 @@ app.use('/api', (req, res, next) => {
 
 app.use('/api/user/', userRoutes);
 app.use('/api/skills/', skillRoutes);
+app.use('/api/fields/', fieldRoutes);
+app.use('/api/subFields/', subFieldRoutes);
 app.use('/api/admin/', protect, roleRoutes);
 app.use('/api/config', configRoutes);
 

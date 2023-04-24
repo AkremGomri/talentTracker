@@ -7,6 +7,7 @@ const RoleSchema= mongoose.Schema({
   name:{type: String ,required:true,unique:true},
   permissions: [{ type: Object, required:true}],
   nbUsers: { type: Number, default: 0 }, //still never set correctly
+  deleted: { type: Boolean, default: false },
   updatedAt: Date,
   // isDeleted: { type: Boolean, default: false },
   // deletedAt: { type: Date, default: null },

@@ -12,7 +12,7 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
   let isAuthorized = false;
 
   if(!data?.name || !data?.permissions){
-    console.log("data missing");
+
     return res.status(401).json({
       status: 'fail',
       message: 'Please provide a name and permissions'
@@ -47,14 +47,12 @@ exports.createNewRole = catchAsync(async (req, res, next) => {
 
   const validationResult = await Role.prototype.joiValidate(newRole);
   if (validationResult.error) {
-    console.log("validation error:", validationResult.error);
     return next(new AppError(validationResult.error.details[0].message, 400));
   }
 
   try{
     newRole = await Role.create(newRole);
   } catch(err){
-    console.log("error:", err);
     return next(new AppError(err, 400));
   }
   
@@ -86,7 +84,6 @@ exports.getRole = catchAsync(async (req, res, next) => {
 
   const roleId = req.body.name || req.params.id;
   if(!roleId){
-    console.log("req.body.name missing and req.params.id missing: ",roleId);
     return next(new AppError('Please provide a name or an id', 400));
   }
 
@@ -123,7 +120,6 @@ exports.updateRole = catchAsync(async (req, res, next) => {
   
   const data = req.body;
   if( (!data.name && !req.params.id) || !data.permissions){
-    console.log("data.name and req.params.id missing");
     return next(new AppError('Please provide a name or an id and provide permissions', 400));
   }
   
@@ -185,7 +181,6 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
   const roleName = req.body.name;
   
   if(!roleId && !roleName){
-    console.log("req.body.name and req.params.id missing");
     return next(new AppError('Please provide a name or an id', 400));
   }
 
@@ -212,14 +207,10 @@ exports.readAllRolesNames = catchAsync(async (req, res, next) => {
   const me = req.user;
   const myPermissions = me.role.permissions;
   let isAuthorized = false;
-  console.log("heree !");
 
   myPermissions.some(p => {
     if (p.subject === permissions.User.name) {
-      console.log("p.actions.Get: ",p.actions.Get);
-      console.log("fields.role: ",fields.role);
       if(p.actions.Post.includes(fields.role)){
-        console.log("true");
         return isAuthorized = true;
       }
     }
@@ -282,7 +273,6 @@ exports.deleteManyRoles = catchAsync(async (req, res, next) => {
 exports.createManyRoles = catchAsync(async (req, res, next) => {
   const data  = req.body.roles;
   if(!data){
-    console.log("data missing");
     return next(new AppError('Please provide roles', 400));
   }
 
@@ -301,7 +291,6 @@ exports.createManyRoles = catchAsync(async (req, res, next) => {
 exports.updateManyRoles = catchAsync(async (req, res, next) => {
   const data = req.body.roles;
   if(!data){
-    console.log("data missing");
     return next(new AppError('Please provide roles', 400));
   }
 

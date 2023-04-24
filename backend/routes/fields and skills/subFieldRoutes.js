@@ -2,20 +2,19 @@ const express = require('express');
 const router = express.Router();
 const fieldController = require('../../controllers/fields and skills/fieldController');
 const factory = require('../../controllers/handleFactory');
-const Field = require('../../models/fields and skills/fieldModel');
+const subField = require('../../models/fields and skills/subFieldModel');
 const { protect } = require('../../middlewares/auth');
 
 router
     .route('/:id?')
     // .get(fieldController.getAllFields)
-    .get(protect,factory.Read(Field, {
-        path: 'subFields',
+    .get(protect,factory.Read(subField, {
+        path: 'parentField skills',
         select: 'name'
-      }
-      ))
-    .post(protect, factory.Create(Field))
+      }))
+    .post(protect, factory.Create(subField))
     // .delete(fieldController.deleteOneField)
-    .delete(protect, factory.Delete(Field))
+    .delete(protect, factory.Delete(subField))
     .patch(fieldController.updateField);
 
 router
