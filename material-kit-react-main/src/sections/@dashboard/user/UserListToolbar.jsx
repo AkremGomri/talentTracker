@@ -89,11 +89,12 @@ export default function UserListToolbar({ selectedUsers, filterName, onFilterNam
 
   async function deleteAllSelectedUsers() {
     try{
-      console.log("selectedUsers: ", selectedUsers);
       const response = await request.send('delete', '/api/user/many', selectedUsers);
       if(response.result?.deletedCount <=0 ){
         return;
       }
+      console.log("selectedUsers ouii: ",selectedUsers);
+      dispatch(deleteManyUsersByName(selectedUsers));
       console.log("marja3nech");
     } catch (error) {
       console.log("error: ", error);

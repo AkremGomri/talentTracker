@@ -36,6 +36,7 @@ import { deleteOneUserById, setUsers, setSelectedUser } from '../redux/features/
 import request from '../services/request';
 import SnackBar from '../components/others/SnackBar';
 // import USERLIST from '../_mock/user';
+import { selectAllUsers } from '../redux/utils/user';
 
 // ----------------------------------------------------------------------
 
@@ -84,7 +85,7 @@ export default function UserPage() {
   const currentUser = useRef();
 
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users.all);
+  const users = useSelector(selectAllUsers);
 
   const [open, setOpen] = useState(null);
 

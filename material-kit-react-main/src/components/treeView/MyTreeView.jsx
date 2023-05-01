@@ -1,34 +1,47 @@
+/* eslint-disable camelcase */
 import React, { useState } from "react";
 import { Typography, Button, IconButton, Box } from "@mui/material";
 import TreeView from "@mui/lab/TreeView";
 import TreeItem from "@mui/lab/TreeItem";
-import { ExpandMore, ChevronRight } from "@mui/icons-material";
+
+
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SvgIcon from "@mui/material/SvgIcon";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import FolderIcon from '@mui/icons-material/Folder';
+import { useDispatch } from "react-redux";
+import { setSelected_skill_item_id } from '../../redux/features/skillMatrix';
 
 const MyTreeView = ({
   setExpanded,
   expanded,
   open,
-  handleExpandClick,
   canModify,
   children
 }) => {
+
+  const dispatch = useDispatch();
+
   const handleToggle = (event, nodeIds) => {
-    console.log("handleToggle: ", nodeIds);
+    if(expanded.length < nodeIds.length && nodeIds[0]) 
+    dispatch( setSelected_skill_item_id({
+          _id: nodeIds[0].split("-")[0],
+          name: nodeIds[0].split("-")[1],
+          type: nodeIds[0].split("-")[2],
+        })
+      );
     setExpanded(nodeIds);
   };
 
   return (
     // eslint-disable-next-line react/no-unknown-property
     <Box>
-      <Button onClick={handleExpandClick}>
-        {open ? "Close all" : "Open all"}
-      </Button>
       <TreeView
         defaultExpanded={["1"]}
-        defaultCollapseIcon={<MinusSquare />}
-        defaultExpandIcon={<PlusSquare />}
+        defaultCollapseIcon={<FolderOpenIcon />}
+        defaultExpandIcon={<FolderIcon />}
         sx={{ flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
         // defaultCollapseIcon={<ExpandMore />}
         // defaultExpandIcon={<ChevronRight />}

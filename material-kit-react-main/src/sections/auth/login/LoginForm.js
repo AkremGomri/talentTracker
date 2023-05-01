@@ -25,6 +25,8 @@ export default function LoginForm() {
   const handleClick = async () => {
     
     const data = { email, password };
+    console.log("email: ",email);
+    console.log("password: ",password);
     try{
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/user/login`, data);
       localforage.setItem('token', response.data.token);
@@ -33,8 +35,10 @@ export default function LoginForm() {
     } catch (error) {
       console.log("errro: ",error);
       if (error.response?.data) {
+        alert(error.response.data.message);
         setError(error.response.data.message);
       } else {
+        alert("Check your internet connection")
         setError("Check your internet connection");
       }
     }

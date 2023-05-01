@@ -10,6 +10,9 @@ import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import axios from "axios";
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import StarIcon from '@mui/icons-material/Star';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, children }) => {
   useEffect(() => {
@@ -21,6 +24,7 @@ const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, child
       <Box sx={{ position: "relative", my: ["10px"] }}>
         <Box sx={{ display: "flex", flexDirection: "row" }}>
           <TreeItem
+            icon={<StarIcon sx={{ color: "yellow" }} />}
             style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             nodeId={id}
             label={<Typography variant="caption">{name}</Typography>}
@@ -70,8 +74,6 @@ const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, child
           nodeId={id}
           label={<Typography variant="h6">{name}</Typography>}
           expanded={expanded}
-          // defaultCollapseIcon={<ExpandMore />}
-          // defaultExpandIcon={<ChevronRight />}
           // onLabelClick={handleToggle}
         >
           {children}

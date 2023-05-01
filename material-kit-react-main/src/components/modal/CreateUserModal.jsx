@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import request from '../../services/request';
 import { addOneUser } from '../../redux/features/user';
 import SnackBar from "../others/SnackBar";
-import { permissions, fields } from "../../utils/constants/permissions";
+import { permissions, fields, actions } from "../../utils/constants/permissions";
 
 
 /* ***** */
@@ -106,14 +106,11 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
     async function getRoleNames() {
       const myRole = await localforage.getItem('myRole');
       myRole.permissions?.forEach((permission) => {
-        if (permission.subject === permissions.USERS.name && permission.actions.Create.includes(fields.role)) {
+        if (permission.subject === permissions.User.name && permission.actions.Post.includes(fields.role)) {
           setAccessTo([ ...accessTo, fields.role]);
-          console.log();
-          console.log("accessTo: ", accessTo);
           request.send('get', '/api/admin/roles/names')
             .then(({ result }) => {
               setRoleNamesList(result);
-
             });
         }
       });
@@ -170,6 +167,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                         <Select
                             required
                             labelId="role-label"
+                            label="Role"
                             id="role"
                             value={role}
                             onChange={(e) => setRole(e.target.value)}
@@ -185,6 +183,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                     <InputLabel id="manager-label">Manager</InputLabel>
                     <Select
                         labelId="manager-label"
+                        label="Manager"
                         id="manager"
                         multiple
                         value={manager}
@@ -199,6 +198,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                     <Select
                         labelId="manages-label"
                         id="manages"
+                        label="Manages"
                         multiple
                         value={manages}
                         onChange={(e) => setManages(e.target.value)}
@@ -207,6 +207,19 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                         <MenuItem value="employee2">Employee 2</MenuItem>
                     </Select>
                 </FormControl>
+                {/* <FormControl sx={{ width: "32%", my: 1 }}>
+                    <InputLabel id="manages-label">Manages</InputLabel>
+                    <Select
+                        labelId="manages-label"
+                        id="manages"
+                        multiple
+                        value={manages}
+                        onChange={(e) => setManages(e.target.value)}
+                    >
+                        <MenuItem value="employee1">Employee 1</MenuItem>
+                        <MenuItem value="employee2">Employee 2</MenuItem>
+                    </Select>
+                </FormControl> */}
                 {/* <FormControl style={{ marginBottom: "16px" }}>
                 <InputLabel id="skills-label">Skills</InputLabel>
                 <Select
@@ -258,23 +271,24 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
       
         try{
           const response = await request.post('/api/user/signUp', data);
-          const user = response.data;
+          // if(!response.data) throw new Error(response);
+          const { user } = response;
 
-          setDisplaySnackBar({
-            open: true, 
-            message: response
-          });
+          // setDisplaySnackBar({
+          //   open: true, 
+          //   message: response
+          // });
 
-          console.log("rr: ",response);
-          // role.updatedAt = transformDate(role.updatedAt);      
-          dispatch(addOneUser(data));
+          console.log("user: ",user);
+
+          dispatch(addOneUser(user));
+          console.log("here we are");
           handleCloseModal();
 
-          
         } catch (error) {
+          console.log("error: ",error);
           const { message: msgError }= error.response.data;
-          // console.log("error: ", error);
-          // console.log("msgError: ", msgError);
+
           if(error.code.includes("ERR_NETWORK")){
             alert("network error")
           }else if(msgError.includes("unique")){
