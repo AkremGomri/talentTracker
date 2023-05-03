@@ -11,6 +11,7 @@ import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import PermissionsPage from './pages/PermissionsPage';
 import FieldsPage from './pages/Fields';
+import Profil from './pages/profil/Profil';
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +28,7 @@ export default function Router() {
         { path: 'fields', element: <FieldsPage />},
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
+        { path: 'profil', element: <Profil />}
       ],
     },
     {

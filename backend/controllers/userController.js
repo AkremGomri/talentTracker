@@ -90,8 +90,8 @@ exports.updateManyUsers = catchAsync(async (req, res, next) => {
 
 exports.getManyUsers = catchAsync(async (req, res, next) => {
   let users;
-
-  users = await User.find({ emails: { $elemMatch: { email: { $in: req.body } } } }).populate('role');
+  console.log("lll: ",req.body);
+  users = await User.find({ email: { $in: req.body } } ).populate('role');
 
   return res.status(201).json({
       status: 'success',

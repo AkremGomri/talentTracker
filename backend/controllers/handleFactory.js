@@ -85,6 +85,8 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
 
 
 function extractAllowedFields (data, allowedFields) { // this function extracts the allowed fields from the data object. It can be used to extract the allowed fields from a single object or an array of objects.
+    console.log("data: ",data);
+    console.log("allowedFields: ",allowedFields);
     if(Array.isArray(data)) return data.map(f => _.pick(f, allowedFields));
     else if(typeof data === 'object')  return _.pick(data, allowedFields);
     else return AppError('Invalid data type', 400);
@@ -93,16 +95,21 @@ function extractAllowedFields (data, allowedFields) { // this function extracts 
 function getMyPermissions (req, subject, next) { // this function extracts the users permissions related to a specific subject and a specific action. For example: ['name', 'permissions'] of the 'fields' subject and 'Get' action.
     const  method = req.method[0].charAt(0).toUpperCase() + req.method.slice(1).toLowerCase();
 
-    const myPermissions = req.user.role.permissions.find(p => {
-        return p.subject === subject
-    })
-
+    const myPermissions = req.user.role.permissions.find(p => p.subject === subject);
+    // console.log("myPermissions: ",myPermissions);
+    // console.log("method: ",method);
     if(!myPermissions){
         return next(new AppError('You do not have permission to access this resource', 403));
     }
 
+    // console.log("xxx: ",myPermissions.actions[method]);
+
     return myPermissions.actions[method];
 };
+
+exports.getMyPermissions = getMyPermissions;
+
+exports.extractAllowedFields = extractAllowedFields;
 
 // exports.updateOne = Model => catchAsync(async (req, res, next) => {
 //     const me = req.user;

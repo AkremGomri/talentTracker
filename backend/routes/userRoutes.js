@@ -11,21 +11,21 @@ router
 /*          Many Users            */
 router
 .route('/all')
-.post(userCtrl.createManyUsers)
-.get(userCtrl.getAllUsers)
-.put(userCtrl.updateManyUsers)
-.delete(userCtrl.deleteAllUsers)
+.post(protect, userCtrl.createManyUsers)
+.get(protect, userCtrl.getAllUsers)
+.put(protect, userCtrl.updateManyUsers)
+.delete(protect, userCtrl.deleteAllUsers)
 
 router
 .route('/many')
-.post(userCtrl.createManyUsers)
-.get(userCtrl.getManyUsers)
-.put(userCtrl.updateManyUsers)
-.delete(userCtrl.deleteManyUsers)
+.post(protect, userCtrl.createManyUsers)
+.get(protect, userCtrl.getManyUsers) // I think any one connected no matter his role and permissions can do that.
+.put(protect, userCtrl.updateManyUsers)
+.delete(protect, userCtrl.deleteManyUsers)
 /*           missing something            */
 router
-    .delete('/', userCtrl.deleteUser)
-    .delete('/:id', userCtrl.deleteUserById)
+    .delete('/', protect, userCtrl.deleteUser)
+    .delete('/:id', protect, userCtrl.deleteUserById)
 
 /*           test            */
 router.use('/test', protect, userCtrl.test)

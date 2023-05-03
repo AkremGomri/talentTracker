@@ -55,6 +55,7 @@ const MANAGE = "All";
 const Post = "Post";
 const Get = "Get";
 const Patch = "Patch";
+const Put = "Put";
 const Delete = "Delete";
 
 exports.fields = {
@@ -81,6 +82,7 @@ exports.actions = {
   // MANAGE,
   Post,
   Get,
+  Put,
   Patch,
   Delete
 };

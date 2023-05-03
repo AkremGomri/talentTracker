@@ -33,19 +33,21 @@ exports.signup = catchAsync(async(req, res, next) => {
         role: reqUser.role         
     });
     newUser.joiValidate(reqUser);
-    await newUser.save();
-    return res.status(201).json({ message: "utilisateur crée!" });
+    const user = await newUser.save();
+    await user.populate('role');
+    return res.status(201).json({ message: "utilisateur crée!", user });
 });
   
 exports.login = catchAsync(async (req, res, next) => {
     const { email, password } = req.body;
-    
+    console.log("email: ", email);
+    console.log("password: ", password);
     if(!email || !password) return next(new AppError('Please provide an email and a password', 400));
 
     const freshUser = await User.findOne({"email": email}).select('+password').populate('role');
 
     if (!freshUser || !await freshUser.isPasswordCorrect(password, freshUser.password)) return res.status(401).json({status: 'fail', message: 'Incorrect email or password !'})
-
+    console.log("freshUser: ", freshUser);
     const token=jwt.sign(
         { userId: freshUser._id },
         process.env.JWT_SECRET,

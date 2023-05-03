@@ -1,8 +1,8 @@
 const User = require("../../models/userModel");
 const Role = require("../../models/roleModel");
-const Field = require("../../models/fields and skills/fieldModel");
-const SubField = require("../../models/fields and skills/subFieldModel");
-const Skill = require("../../models/fields and skills/skillModel");
+const Field = require("../../models/fields_and_skills/fieldModel");
+const SubField = require("../../models/fields_and_skills/subFieldModel");
+const Skill = require("../../models/fields_and_skills/skillModel");
 
 const mongoose = require('mongoose')
 // const dotenv=require('dotenv').config();;

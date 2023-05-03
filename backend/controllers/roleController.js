@@ -304,6 +304,7 @@ exports.updateManyRoles = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllRoles = catchAsync(async (req, res, next) => {
+  console.log("here we are: ");
   const me = req.user;
   const myPermissions = me.role.permissions;
   let isAuthorized = false;
