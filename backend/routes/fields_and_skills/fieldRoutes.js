@@ -12,6 +12,7 @@ router
     .post(protect, fieldController.createFields)
     // .delete(fieldController.deleteOneField)
     .delete(protect, fieldController.deleteFields)
+    .patch(protect, fieldController.updateField)
     .put(protect, fieldController.updateField);
 
 router

@@ -12,7 +12,8 @@ router
     .post(protect, skillController.createSkills)
     // .delete(fieldController.deleteOneField)
     .delete(protect, skillController.deleteSkills)
-    .put(protect, skillController.updateSkill);
+    .put(protect, skillController.updateSkill)
+    .patch(protect, skillController.updateSkill);
 
 router
     .route('/update/:id')

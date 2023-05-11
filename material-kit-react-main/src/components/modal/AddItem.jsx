@@ -10,7 +10,7 @@ import { actions, permissions } from '../../utils/constants/permissions'
 import request from '../../services/request';
 import MyDialog from '../dialog/MyDialog';
 
-export default function AddSkillItem({ open, setOpen}) {
+export default function AddItem({ open, setOpen}) {
     const [skillItem, setSkillItem] = useState([]);
     const [categoryName, setCategoryName] = useState("");
     const [categoryDiscription, setCategoryDiscription] = useState("");

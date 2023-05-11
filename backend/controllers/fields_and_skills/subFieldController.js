@@ -3,11 +3,12 @@ const SubField = require('../../models/fields_and_skills/subFieldModel');
 const catchAsync = require('../../utils/catchAsync');
 const factory = require('../handleFactory');
 
-exports.createFields = catchAsync(async (req, res, next) => {
-
+exports.createSubFields = catchAsync(async (req, res, next) => {
+    
     const  modelsToCreate = req.body[`${SubField.collection.name}`] || req.body[`${SubField.collection.name.slice(0, -1)}`] || req.body;
     const myPermissions = factory.getMyPermissions(req, 'subfields', next);
     const dataToStore = factory.extractAllowedFields(modelsToCreate, myPermissions);
+
     const subFields = await SubField.insertMany(dataToStore);
     res.status(201).json({
         status: 'success',
@@ -16,7 +17,7 @@ exports.createFields = catchAsync(async (req, res, next) => {
 
 }); // verified
 
-exports.getFields = catchAsync(async (req, res, next) => {
+exports.getSubFields = catchAsync(async (req, res, next) => {
 
     const name = req.body.name || req.body.names; // || req.body[`${SubField.collection.name.slice(0, -1)}`];
     const id = req.params.id || req.body.ids || req.body.id || (Object.keys(req.body).length? req.body : null); 
@@ -29,10 +30,10 @@ exports.getFields = catchAsync(async (req, res, next) => {
     const myfieldPermit = factory.getMyPermissions(req, 'fields', next).join(' ');
 
     const subFields = await SubField.find(filter, mysubFieldPermit).populate({
-        path: 'skills',
+        path: 'childrenItems',
         select: myskillsPermit
     }).populate({
-        path: 'parentField',
+        path: 'parentItem',
         select: myfieldPermit
       })
 
@@ -47,17 +48,19 @@ exports.getFields = catchAsync(async (req, res, next) => {
     });
 }); // verified
 
-exports.updateField = catchAsync(async (req, res, next) => {
-
-    const filter = (req.params.id || req.body.id )? { _id: req.params.id || req.body.id } : { name: req.body.name };
+exports.updateSubField = catchAsync(async (req, res, next) => {
+    console.log("we are hereee");
+    const filter = (req.params.id || req.body._id )? { _id: req.params.id || req.body._id } : { name: req.body.name };
     const updates = req.body;
-
+    console.log(filter);
     if (!filter) {
         return next(new AppError('Nothing provided to update', 404));
     }
 
     const myPermissions = factory.getMyPermissions(req, 'subfields', next);
     const dataToStore = factory.extractAllowedFields(updates, myPermissions);
+    console.log(myPermissions);
+    console.log(dataToStore);
 
     const result = await SubField.updateOne(filter, dataToStore);
 
@@ -67,7 +70,7 @@ exports.updateField = catchAsync(async (req, res, next) => {
     });
 }); // verified
 
-exports.deleteFields = catchAsync(async (req, res, next) => {
+exports.deleteSubFields = catchAsync(async (req, res, next) => {
     const ids = req.params.id || (Array.isArray(req.body) ? req.body.every(id => mongoose.isValidObjectId(id))? req.body.map(id => id.toString()) :  null : null);
 
     const names = req.body.name || req.body;

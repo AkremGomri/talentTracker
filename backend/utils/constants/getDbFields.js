@@ -88,7 +88,6 @@ async function getSubFieldFields(){
             });
         // console.log(Object.keys(subField._doc));
         });
-        console.log("subFields fields: ", subFieldFields);
     } catch (e) {
         console.log("error: ", e);
     }

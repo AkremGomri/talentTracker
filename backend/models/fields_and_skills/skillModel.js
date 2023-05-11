@@ -2,15 +2,15 @@ const mongoose = require('mongoose');
 
 const skillElementSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    // deleted: { type: Boolean, default: false }
-    // parentSkill : { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+    deleted: { type: Boolean, default: false },
+    // parentItem : { type: mongoose.Schema.Types.ObjectId, ref: 'Skill' },
 });
 
 const skillSchema = mongoose.Schema({
     name:{ type: String ,required:true,unique:true },
     // level :{type:Number ,default: 0, min: [0, "level must be equal or greater than 0"], max: [5, "level must be equal or less than 5"]},
-    parentSubField: { type: mongoose.Schema.Types.ObjectId, ref: 'SubField'},
-    skillElements: [skillElementSchema],
+    parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'SubField'},
+    childrenItems: [skillElementSchema],
     description: { type: String, default: "" },
     nbUsers: {type: Number, default: 0},
     deleted: { type: Boolean, default: false }
@@ -19,6 +19,7 @@ const skillSchema = mongoose.Schema({
 
 skillSchema.pre(/^find/, function () {
     this.where({ deleted: false });
+
 });
 
 // skillSchema.pre('updateMany', async function(next){

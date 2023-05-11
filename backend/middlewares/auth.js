@@ -11,17 +11,17 @@ const catchAsync = require('../utils/catchAsync');
 const verifyJwt = promisify(jwt.verify);
 
 exports.protect = catchAsync(async(req,res ,next)=> {
-    console.log("heena");
+
         if(!req.headers?.authorization?.startsWith('Bearer')) return next(new AppError('you are not logged in, please log in to get access', 401));
 
         const token = req.headers.authorization.split(' ')[1];
 
         const decodedToken = await verifyJwt(token, process.env.JWT_SECRET);
 
-        const userId=decodedToken.userId;
+        const { userId } = decodedToken;
 
         const freshUser = await User.findOne({_id:userId}).populate('role');
-        console.log("freshUser: ",freshUser);
+
         if(!freshUser) return next(new AppError('the user belonging to this token does no longer exist', 401));
         if(freshUser.hasPasswordChangedAfter(decodedToken.iat)) return next(new AppError('user recently changed password, please log in again', 401))
         

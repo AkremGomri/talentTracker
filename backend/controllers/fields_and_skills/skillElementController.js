@@ -27,7 +27,7 @@ const factory = require('../handleFactory');
 //     const myfieldPermit = factory.getMyPermissions(req, 'fields', next).join(' ');
 
 //     const skills = await Skill.find(filter, myskillsPermit).populate({
-//         path: 'parentSubField',
+//         path: 'childrenItems',
 //         select: mysubFieldPermit
 //       }).populate({
 //         path: 'skillElements',

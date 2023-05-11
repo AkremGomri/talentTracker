@@ -5,10 +5,15 @@ const { joiPasswordExtendCore } = require('joi-password');
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 const validator = require('validator');
 const bcrypt = require('bcrypt');
+const _ = require('lodash');
 
 // mongoose schema
 const userSchema = mongoose.Schema({
-  name: { type: String },
+  name: {
+    first: { type: String },
+    last: { type: String },
+  },
+  // lastName: { type: String },
   email: {
     type: String,
     required: [true, 'Please write a valid email'],
@@ -30,8 +35,59 @@ const userSchema = mongoose.Schema({
   role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
   manager: [{ type: mongoose.Schema.ObjectId, ref: 'User', default: null }],
   manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-  skills: [{ type: mongoose.Schema.ObjectId, ref: 'Skill' }],
+  skills: [{ 
+    skill: { type: mongoose.Schema.ObjectId, ref: 'Skill'},
+    // user: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    levelISet: { 
+      type: Number, 
+      default: 0, 
+      min: 0, max: 5,
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer value'
+      },
+    },
+    levelMyManagerSet: { 
+      type: Number, 
+      default: 0, 
+      min: 0, max: 5,
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer value'
+      },
+      date: { type: Date, default: Date.now },
+    }
+  }],
+  jobTitle: { type: mongoose.Schema.ObjectId, ref: 'JobTitle', default: null },
+  about: { type: String },
+  profilImage: { type: String, default: 'default.jpg' },
+  profilCover: { type: String, default: 'default.jpg' },
+  contact: {
+    phone_number: { type: String, default: '' },
+    country: { type: String, default: '' },
+    city: { type: String, default: '' },
+    zip_code: { type: String, default: '', maxlength: 5 },
+    website: { type: String, default: '' },
+  },
+  join_date: { type: Date, default: Date.now()},
   deleted: { type: Boolean, default: false }
+});
+
+// userSchema.post(/^find/, function(docs, next){
+//   if( Array.isArray(docs)) {
+//     docs.forEach(function(doc) {
+//       doc.password = undefined;
+//     });
+//   } else {
+//     console.log("hellooooo: ",docs);
+//     docs.password = undefined;
+//   }
+//   console.log("hereeeee");
+//   next();
+// });
+
+userSchema.virtual('fullName').get(function () {
+  return _.startCase(`${this.name.first} ${this.name.last}`);
 });
 
 //hashing password

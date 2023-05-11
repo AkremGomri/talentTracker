@@ -26,24 +26,17 @@ exports.signup = catchAsync(async(req, res, next) => {
         reqUser.role = role._id;
     }
 
-    const newUser = new User({
-        email: reqUser.email,
-        password: reqUser.password,
-        passwordConfirm: reqUser.passwordConfirm,
-        role: reqUser.role         
-    });
+    const newUser = new User(reqUser);
     newUser.joiValidate(reqUser);
     const user = await newUser.save();
-    await user.populate('role');
+    await user.populate('role jobTitle');
     return res.status(201).json({ message: "utilisateur crée!", user });
 });
   
 exports.login = catchAsync(async (req, res, next) => {
     const { email, password } = req.body;
-    console.log("email: ", email);
-    console.log("password: ", password);
     if(!email || !password) return next(new AppError('Please provide an email and a password', 400));
-
+    
     const freshUser = await User.findOne({"email": email}).select('+password').populate('role');
 
     if (!freshUser || !await freshUser.isPasswordCorrect(password, freshUser.password)) return res.status(401).json({status: 'fail', message: 'Incorrect email or password !'})

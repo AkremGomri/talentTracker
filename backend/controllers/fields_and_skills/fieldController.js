@@ -24,18 +24,23 @@ exports.getFields = catchAsync(async (req, res, next) => {
     const filter = name? { name } : id? { _id: id } : {};
     filter.deleted = false;
 
+    console.log("filter: ",filter);
     const myfieldPermit = factory.getMyPermissions(req, 'fields', next).join(' ');
     const mysubFieldPermit = factory.getMyPermissions(req, 'subfields', next).join(' ');
     const mySkillsPermit = factory.getMyPermissions(req, 'skills', next).join(' ');
 
+    console.log("myfieldPermit: ",myfieldPermit);
+    console.log("mysubFieldPermit: ",mysubFieldPermit);
+    console.log("mySkillsPermit: ",mySkillsPermit);
+
     const fields = await Field.find(filter, myfieldPermit).populate({
-        path: 'subFields',
+        path: 'childrenItems',
         select: mysubFieldPermit,
         populate: {
-            path: 'skills',
+            path: 'childrenItems',
             select: mySkillsPermit,
             populate: {
-                path: 'skillElements',
+                path: 'childrenItems',
             }
         }
       });
@@ -53,8 +58,13 @@ exports.getFields = catchAsync(async (req, res, next) => {
 }); //verified
 
 exports.updateField = catchAsync(async (req, res, next) => {
-        console.log("hello there");
-        const filter = { _id: req.params.id || req.body.id || req.body._id || req.body.name };
+
+        let filter = { _id: req.params.id || req.body.id || req.body._id };
+        if(!filter._id) {
+            delete filter._id;
+            filter.name= req.body.name
+        }
+
         const updates = req.body;
 
         const myfieldPermit = factory.getMyPermissions(req, 'fields', next);
@@ -89,7 +99,7 @@ exports.deleteFields = catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (!myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Field.deleteMany(filter);
+    if (myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Field.deleteMany(filter);
     else result = await Field.updateMany(
         filter,
         { $set: { "deleted": true } }

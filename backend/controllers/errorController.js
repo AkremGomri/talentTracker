@@ -60,9 +60,9 @@ const handleCastErrorDB = err => {
 };
 
 const handleDuplicateFieldsDB = err => {
-    console.log("enter handleDuplicateFieldsDB");
     const value = err.stack.match(/(["'])(\\?.)*?\1/)[0];
-    const message = `Duplicate field value: ${value}. Please use another value!`;
+    const message = `Duplicate field value: ${value}. Please use another value! 
+        note that a similar doccument might be archived or not existing at all, either way you have to try a different name.`;
     return new AppError(message, 400);
 };
 

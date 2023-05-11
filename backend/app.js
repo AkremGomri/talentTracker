@@ -10,10 +10,11 @@ const bodyParser = require('body-parser');
 
 //import routes
 const userRoutes = require('./routes/userRoutes');
+const roleRoutes = require('./routes/roleRoutes');
+const jobTitleRoutes = require('./routes/jobTitleRoutes');
 const fieldRoutes = require('./routes/fields_and_skills/fieldRoutes');
 const subFieldRoutes = require('./routes/fields_and_skills/subFieldRoutes');
 const skillRoutes = require('./routes/fields_and_skills/skillRoutes');
-const roleRoutes = require('./routes/roleRoutes');
 const configRoutes = require('./routes/configRoutes');
 // const logger = require("@util/logger");
 const seedBD = require('./utils/seedDB');
@@ -77,15 +78,23 @@ app.use('/api/fields/', fieldRoutes);
 app.use('/api/skills/', skillRoutes);
 app.use('/api/subFields/', subFieldRoutes);
 
+app.use('/api/jobTitle/', jobTitleRoutes)
+
 app.use('/api/user/', userRoutes);
 app.use('/api/admin/', protect, roleRoutes);
 app.use('/api/config', configRoutes);
 
 /* static files */
+// const mime = require('mime');
+
 app.use(express.static(path.join('public'), {
   maxAge: '1d',
   setHeaders: (res, path) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    // const contentType = mime.getType(path);
+    // if (contentType.startsWith('image/')) {
+    //   res.setHeader('Content-Type', contentType);
+    // }
   }
 }));
 

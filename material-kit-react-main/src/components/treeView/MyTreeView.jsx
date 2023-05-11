@@ -25,14 +25,15 @@ const MyTreeView = ({
   const dispatch = useDispatch();
 
   const handleToggle = (event, nodeIds) => {
-    if(expanded.length < nodeIds.length && nodeIds[0]) 
-    dispatch( setSelected_skill_item_id({
-          _id: nodeIds[0].split("-")[0],
-          name: nodeIds[0].split("-")[1],
-          type: nodeIds[0].split("-")[2],
-        })
-      );
-    setExpanded(nodeIds);
+    if(expanded.length < nodeIds.length && nodeIds[0]){
+      dispatch( setSelected_skill_item_id({
+            _id: nodeIds[0].split("-")[0],
+            name: nodeIds[0].split("-")[1],
+            type: nodeIds[0].split("-")[2],
+          })
+        );
+      } else dispatch( setSelected_skill_item_id({}) );
+      setExpanded(nodeIds);
   };
 
   return (

@@ -3,39 +3,63 @@ const router =express.Router();
 const userCtrl=require('../controllers/userController');
 const authController=require('../controllers/authController');
 const { protect } = require('../middlewares/auth');
+const multer = require('multer');
 
 router
 .post('/signUp', authController.signup)
 .post('/login', authController.login)
 
-/*          Many Users            */
+/*              Me                */
 router
-.route('/all')
-.post(protect, userCtrl.createManyUsers)
-.get(protect, userCtrl.getAllUsers)
-.put(protect, userCtrl.updateManyUsers)
-.delete(protect, userCtrl.deleteAllUsers)
+.route('/me')
+    // .get(protect, userCtrl.getMe)
+    .put(protect, userCtrl.updateMe)
+    // .delete(protect, userCtrl.deleteMe)
 
+const images = multer({ dest: 'public/images/avatar' });
 router
-.route('/many')
-.post(protect, userCtrl.createManyUsers)
-.get(protect, userCtrl.getManyUsers) // I think any one connected no matter his role and permissions can do that.
-.put(protect, userCtrl.updateManyUsers)
-.delete(protect, userCtrl.deleteManyUsers)
+    .put('/my-photo/:id?',multer({ dest: 'public/images/avatar' }).single('image'), protect, userCtrl.updateProfilePhoto)
+
+    /*          Many Users            */
+router
+    .route('/all')
+    .post(protect, userCtrl.createManyUsers)
+    .get(protect, userCtrl.getAllUsers)
+    .put(protect, userCtrl.updateManyUsers)
+    .delete(protect, userCtrl.deleteAllUsers)
+    
+router
+    .route('/many')
+    .post(protect, userCtrl.createManyUsers)
+    .get(protect, userCtrl.getManyUsers) // I think any one connected no matter his role and permissions can do that.
+    .put(protect, userCtrl.updateManyUsers)
+    .delete(protect, userCtrl.deleteManyUsers)
+    
+    router
+    .route('/profile/:id?')
+.get(protect, userCtrl.getProfil)
+// .get(protect, userCtrl.getManyUsers) // I think any one connected no matter his role and permissions can do that.
+// .put(protect, userCtrl.updateManyUsers)
+// .delete(protect, userCtrl.deleteManyUsers)
+
 /*           missing something            */
 router
-    .delete('/', protect, userCtrl.deleteUser)
-    .delete('/:id', protect, userCtrl.deleteUserById)
+.delete('/', protect, userCtrl.deleteUser)
+.delete('/:id', protect, userCtrl.deleteUserById)
+
+/*           One User            */
+router
+.route('/')
+.get(protect, userCtrl.getOneUser)
 
 /*           test            */
 router.use('/test', protect, userCtrl.test)
 router.use('/testWithRole', protect, userCtrl.testWithRole)
 
-const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
 router
-    .post('/upload-excel', upload.single('file'), userCtrl.ExcelSaveUsers);
+    .put('/upload-excel', upload.single('file'), userCtrl.ExcelSaveUsers);
 //************************************//
 
 module.exports=router;

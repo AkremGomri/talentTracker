@@ -12,6 +12,8 @@ const name = "name";
 const permissions = "permissions";
 const deleted = "deleted";
 const subFields = "subFields";
+const parentItem = "parentItem";
+const childrenItems = "childrenItems";
 const parentField = "parentField";
 const skillElements = "skillElements";
 const nbUsers = "nbUsers";
@@ -19,9 +21,9 @@ const parentSubField="parentSubField";
 
 /* fields grouped together */
 const userFields = [name, email, password, role, manager, manages, skills, deleted];
-const fieldFields = [name, subFields, nbUsers, deleted];
-const subFieldFields = [name, parentField, skills, nbUsers, deleted];
-const skillFields = [name, parentSubField, skillElements, nbUsers, deleted];
+const fieldFields = [name, parentItem, childrenItems, subFields, nbUsers, deleted];
+const subFieldFields = [name, parentItem, childrenItems, parentField, skills, nbUsers, deleted];
+const skillFields = [name, parentItem, childrenItems, parentSubField, skillElements, nbUsers, deleted];
 const roleFields = [name, permissions, nbUsers, deleted];
 
 /* subjects */

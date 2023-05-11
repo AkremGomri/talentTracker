@@ -8,14 +8,15 @@ const { protect } = require('../../middlewares/auth');
 router
     .route('/:id?')
     // .get(subFieldController.getAllFields)
-    .get(protect, subFieldController.getFields)
-    .post(protect, subFieldController.createFields)
+    .get(protect, subFieldController.getSubFields)
+    .post(protect, subFieldController.createSubFields)
     // .delete(subFieldController.deleteOneField)
-    .delete(protect, subFieldController.deleteFields)
-    .put(protect, subFieldController.updateField);
+    .delete(protect, subFieldController.deleteSubFields)
+    .patch(protect, subFieldController.updateSubField)
+    .put(protect, subFieldController.updateSubField);
 
 router
     .route('/update/:id')
-    .post(subFieldController.updateField)
+    .post(subFieldController.updateSubField)
 
 module.exports = router;

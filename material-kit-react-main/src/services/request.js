@@ -37,6 +37,24 @@ const post = async (url, data) => {
     return response.data;
 };
 
+const put = async (url, data) => {
+
+    const options = {
+        url: `${process.env.REACT_APP_API_URL}${url}`,
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json;charset=UTF-8',
+          'Authorization': `Bearer ${await localforage.getItem('token')}`
+        },
+        data
+      };
+
+    const response = await axios(options);
+
+    return response.data;
+};
+
 const get = async (url) => {
 
     const options = {
@@ -58,6 +76,7 @@ const request = {
     send,
     post,
     get,
+    put
 }; 
 
 export default request;

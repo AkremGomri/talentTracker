@@ -31,6 +31,7 @@ export default function LoginForm() {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/user/login`, data);
       localforage.setItem('token', response.data.token);
       localforage.setItem('myRole', response.data.role);
+      localforage.setItem('userId', response.data.userId);
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.log("errro: ",error);

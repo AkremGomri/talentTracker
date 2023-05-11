@@ -3,8 +3,9 @@ const FieldModel = require('./fieldModel');
 
 const subFieldSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    parentField: { type: mongoose.Schema.Types.ObjectId, ref: 'Field', required: true },
-    skills: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skill' }],
+    parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Field', required: true },
+    childrenItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skill' }],
+    type: [{ type: String, enum: ['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical'] }],
     description: { type: String, default: "" },
     nbUsers: {type: Number, default: 0},
     deleted: { type: Boolean, default: false }
@@ -15,19 +16,19 @@ const subFieldSchema = new mongoose.Schema({
 //     const subField = this;
 //     try {
 //         // Find the parent field document
-//         const parentField = await mongoose.model('Field').findById(subField.parentField);
-//         console.log("subField.parentField: ",subField.parentField);
-//         console.log('parentField', parentField);
+//         const childrenItems = await mongoose.model('Field').findById(subField.childrenItems);
+//         console.log("subField.childrenItems: ",subField.childrenItems);
+//         console.log('childrenItems', childrenItems);
 //         console.log('subField', subField);
 
-//         if (!parentField) {
+//         if (!childrenItems) {
 //             return next();
 //         }
 //         // Add the new subfield ID to the subFields array
-//         parentField.subFields.push(subField._id);
+//         childrenItems.subFields.push(subField._id);
 
 //         // Save the parent field document
-//         await parentField.save();
+//         await childrenItems.save();
         
 //         // Call next to continue the save operation
 //         console.log("finished");
@@ -43,7 +44,7 @@ subFieldSchema.pre(/^find/, function () {
 });
 
 subFieldSchema.pre('remove', function(next) {
-    this.model('Skill').deleteMany({ parentSubField: this._id }, next);
+    this.model('Skill').deleteMany({ childrenItems: this._id }, next);
 });
 
 module.exports = mongoose.model('SubField', subFieldSchema);

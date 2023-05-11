@@ -149,7 +149,7 @@ exports.updateRole = catchAsync(async (req, res, next) => {
     updatedRole = await Role.findOneAndUpdate({ "_id": req.params.id }, updates, { new: true });
   }
   if (updatedRole === null) {
-    throw "role " + data.name + " not found"
+     next( new AppError("role " + data.name + " not found", 404))
   }
   return res.status(201).json({
       status: 'success',
@@ -186,7 +186,7 @@ exports.deleteRole = catchAsync(async (req, res, next) => {
 
   let result;
   if (roleName) {
-    result = await Role.deleteOne({ "name": roleId } );
+    result = await Role.deleteOne({ "name": roleName } );
   } else {
     result = await Role.deleteOne({ "_id": roleId });
   }
@@ -304,7 +304,6 @@ exports.updateManyRoles = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllRoles = catchAsync(async (req, res, next) => {
-  console.log("here we are: ");
   const me = req.user;
   const myPermissions = me.role.permissions;
   let isAuthorized = false;

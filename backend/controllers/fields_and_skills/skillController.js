@@ -4,12 +4,19 @@ const catchAsync = require('../../utils/catchAsync');
 const factory = require('../handleFactory');
 
 exports.createSkills = catchAsync(async (req, res, next) => {
+    console.log("************************************************************************************");
 
-    const  modelsToCreate = req.body[`${Skill.collection.name}`] || req.body[`${Skill.collection.name.slice(0, -1)}`] || req.body;
+    const  modelsToCreate = req.body;
     const myPermissions = factory.getMyPermissions(req, 'skills', next);
     const dataToStore = factory.extractAllowedFields(modelsToCreate, myPermissions);
+    
+    console.log("modelsToCreate: ",modelsToCreate);
+    console.log("myPermissions: ",myPermissions);
+    console.log("dataToStore: ",dataToStore);
+
     const skills = await Skill.insertMany(dataToStore);
-    res.status(201).json({
+
+    return res.status(201).json({
         status: 'success',
         data: skills
     });
@@ -17,7 +24,6 @@ exports.createSkills = catchAsync(async (req, res, next) => {
 }); // verified
 
 exports.getSkills = catchAsync(async (req, res, next) => {
-
     const name = req.body.name || req.body.names; // || req.body[`${Skill.collection.name.slice(0, -1)}`];
     const id = req.params.id || req.body.ids || req.body.id || (Object.keys(req.body).length? req.body : null); 
 
@@ -29,13 +35,12 @@ exports.getSkills = catchAsync(async (req, res, next) => {
     const myfieldPermit = factory.getMyPermissions(req, 'fields', next).join(' ');
 
     const skills = await Skill.find(filter, myskillsPermit).populate({
-        path: 'parentSubField',
+        path: 'childrenItems',
         select: mysubFieldPermit
       }).populate({
-        path: 'skillElements',
+        path: 'childrenItems',
         select: myfieldPermit
       })
-
 
     // const skills = factory.Read(req, Skill, myPermissions);
     if (!skills) {
@@ -83,7 +88,7 @@ exports.deleteSkills = catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (!myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Skill.deleteMany(filter);
+    if (myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Skill.deleteMany(filter);
     else result = await Skill.updateMany(
         filter,
         { $set: { "deleted": true } }

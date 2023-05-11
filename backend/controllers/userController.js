@@ -7,7 +7,35 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const xlsx = require('xlsx');
 
+/*            me                 */
+exports.updateMe = catchAsync(async (req, res, next) => {
+
+  const id = req.auth.userId;
+  const user = await User.updateOne({ _id: id }, req.body);
+  return res.status(200).json({ message: "updated successfully", user });
+});
+
+exports.updateProfilePhoto = catchAsync(async (req, res, next) => {
+  console.log("req: ", req);
+  console.log("req.file: ", req.file);
+  console.log("req.image: ", req.image);
+  console.log("req.body: ", req.body);
+  // console.log("profilImage: ", req.file.path);
+  // const result = await User.updateOne({_id: req.auth.userId}, {profilImage: req.file.path});
+  if(result.deletedCount <= 0) next(new AppError('User not found', 404));
+  return res.status(200).json({message:"deleted successfully", result});
+});
+
 /*           one user            */
+exports.getOneUser = catchAsync(async (req, res, next) => {
+  const filter = req.params.id? { "_id": req.params.id } : { "email": req.body.email };
+  const user = await User.findOne(filter).select('-firstName -lastName').lean({ virtuals: true });
+  // console.log("user Name: ", user.fullName);
+  // console.log("user Name: ", user.name);
+  if(!user) return next(new AppError('User not found', 404));
+  return res.status(200).json({user});
+});
+
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const result = await User.deleteOne({"email": req.body.email});
   if(result.deletedCount <= 0) next(new AppError('User not found', 404));
@@ -15,11 +43,21 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUserById = catchAsync(async (req, res, next) => {
-  const result = await User.deleteOne({"id": req.params.id});
+  const result = await User.deleteOne({"_id": req.params.id});
   if(result.deletedCount <= 0) next(new AppError('User not found', 404));
   return res.status(200).json({message:"deleted successfully", result});
 });
 
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const filter = req.params.id? { "_id": req.params.id } : { "email": req.body.email };
+
+  delete req.body._id;
+  // delete req.body.email;
+  // delete req.body.password;
+  const result = await User.updateOne(filter, req.body);
+  if(result.deletedCount <= 0) next(new AppError('User not found', 404));
+  return res.status(200).json({message:"deleted successfully", result});
+});
 /*           test            */
 exports.test = (req, res, next) => {
   const permissions = req.user.role.permissions;
@@ -113,7 +151,6 @@ exports.deleteManyUsers = catchAsync(async (req, res, next) => {
 });
 
 /* All users */
-
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find().populate('role');
   
@@ -137,7 +174,7 @@ exports.deleteAllUsers = async (req, res, next) => {
 };
 
 
-/*          Excel            */
+/*          Others            */
 exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
     const workbook = xlsx.readFile(req.file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -150,4 +187,24 @@ exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
         res.status(201).json({ message: 'Data inserted successfully!' });
       }
     });
+});
+
+exports.getProfil = catchAsync(async(req, res, next) => {
+  const filter = (req.params.id || req.body._id)? { "_id": req.params.id || req.body._id } : req.body.email? { "email": req.body.email } : {};
+
+  console.log('filter: ',filter);
+  const user = await User.find(filter).select('-password -deleted -__v').populate({
+    path: 'jobTitle role',
+    select: "name description"
+}).populate({
+  path: 'skills.skill',
+}).populate({
+  path: 'skills.skill',
+  populate: {
+    path: 'parentItem'
+  }
+});
+
+  if(!user) return next(new AppError('User not found', 404));
+  return res.status(200).json(user);
 });

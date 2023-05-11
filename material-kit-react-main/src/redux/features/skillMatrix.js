@@ -35,7 +35,6 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
     return produce(state, draft => {
         switch(action.type) {
             case setSelected_skill_item_id.toString():
-                console.log('action.payload: ', action.payload);
                 draft.selectedItem = action.payload
                 break;
 

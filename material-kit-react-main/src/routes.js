@@ -12,6 +12,7 @@ import DashboardAppPage from './pages/DashboardAppPage';
 import PermissionsPage from './pages/PermissionsPage';
 import FieldsPage from './pages/Fields';
 import Profil from './pages/profil/Profil';
+import ProfileSettings from './pages/profil/ProfileSettings';
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +29,8 @@ export default function Router() {
         { path: 'fields', element: <FieldsPage />},
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
-        { path: 'profil', element: <Profil />}
+        { path: 'profil', element: <Profil />},
+        { path: 'profil/settings', element: <ProfileSettings />} 
       ],
     },
     {
@@ -43,10 +45,10 @@ export default function Router() {
         { path: '*', element: <Navigate to="/404" /> },
       ],
     },
-    {
-      path: '*',
-      element: <Navigate to="/404" replace />,
-    },
+    // {
+    //   path: '*',
+    //   element: <Navigate to="/404" replace />,
+    // },
   ]);
 
   return routes;

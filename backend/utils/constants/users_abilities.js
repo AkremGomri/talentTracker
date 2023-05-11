@@ -11,18 +11,22 @@ const skills = "skills";
 const name = "name";
 const permissions = "permissions";
 const deleted = "deleted";
+const parentItem = "parentItem";
+const childrenItems = "childrenItems";
 const subFields = "subFields";
 const parentField = "parentField";
 const skillElements = "skillElements";
 const nbUsers = "nbUsers";
 const parentSubField="parentSubField";
+const description = "description";
 
 /* fields grouped together */
 const userFields = [name, email, password, role, manager, manages, skills, deleted];
-const fieldFields = [name, subFields, nbUsers, deleted];
-const subFieldFields = [name, parentField, skills, nbUsers, deleted];
-const skillFields = [name, parentSubField, skillElements, nbUsers, deleted];
+const fieldFields = [name, childrenItems, subFields, nbUsers, deleted];
+const subFieldFields = [name, parentItem, childrenItems, parentField, skills, nbUsers, deleted];
+const skillFields = [name, parentItem, childrenItems, parentSubField, skillElements, nbUsers, deleted];
 const roleFields = [name, permissions, nbUsers, deleted];
+const JobTitleFields = [name, description, nbUsers, deleted];
 
 /* subjects */
 const User = {
@@ -34,6 +38,11 @@ const User = {
 const Role = {
   name: "roles",
   fields: roleFields
+};
+
+const JobTitle = {
+  name: "jobtitles",
+  fields: JobTitleFields
 };
 
 const Field = {
@@ -67,12 +76,16 @@ exports.fields = {
   skills,
   name,
   permissions,
+  description,
+  nbUsers,
+  // deleted,
   all,
 };
 
 exports.permissions = {
   User,
   Role,
+  JobTitle,
   Field,
   SubField,
   Skill

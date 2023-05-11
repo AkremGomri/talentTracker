@@ -1,42 +1,17 @@
-/* eslint-disable no-undef */
+/* eslint-disable prefer-template */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable spaced-comment */
 /* eslint-disable react/self-closing-comp */
-import React, { useState } from 'react';
-// import { Link } from 'react-router-dom';
-// import { Card, CardBody, CardHeader, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Nav, NavItem, NavLink, Pagination, PaginationItem, Link , Progress, Row, TabContent, Table, TabPane, Collapse, UncontrolledDropdown } from 'reactstrap';
-import { TabContent, TabPane } from 'reactstrap';
-import { 
-    Typography,
-    Card,             // <Card> 
-    CardContent,      // <CardBody> 
-    CardHeader,       // <CardHeader> 
-    Grid,             // <Col> 
-    Container,        // <Container> 
-    MenuItem,         // <DropdownItem> 
-    MenuList,         // <DropdownMenu> 
-    IconButton,       // <DropdownToggle> 
-    Input,            // <Input> 
-    InputLabel,       // <Typography variant="subtitle1"> 
-    Tabs,             // <Nav> 
-    Tab,              // <NavItem> 
-    // <NavLink> with a prop of `component={Tab}` 
-    TablePagination,  // <Pagination> 
-    PaginationItem,   // Not available, use <Pagination> and <PaginationItem> from Reactstrap 
-    Pagination,
-    Link ,   // Not available, use <Pagination> and <PaginationItem> from Reactstrap 
-    LinearProgress,   // <Progress> 
-    // Grid,             // <Row> 
-    Table,            // <Table> 
-    Collapse,         // <Collapse> 
-    Select,           // <UncontrolledDropdown> with the `multiple` prop 
-  } from '@mui/material';
-
-  import { TabPanel, TabContext } from '@mui/lab';
-
-  
+import { Box } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardBody, CardHeader, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Nav, NavItem, NavLink, Pagination, PaginationItem, PaginationLink, Progress, Row, TabContent, Table, TabPane, UncontrolledCollapse, UncontrolledDropdown } from 'reactstrap';
 import classnames from 'classnames';
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Autoplay } from "swiper";
+import localforage from 'localforage';
 
+//Images
 import profileBg from '../../assets/images/profile-bg.jpg';
 import avatar1 from '../../assets/images/users/avatar-1.jpg';
 import avatar2 from '../../assets/images/users/avatar-2.jpg';
@@ -55,8 +30,85 @@ import smallImage6 from '../../assets/images/small/img-6.jpg';
 import smallImage7 from '../../assets/images/small/img-7.jpg';
 import smallImage9 from '../../assets/images/small/img-9.jpg';
 
+import request from '../../services/request';
+import { MultipleRadar, SimpleRadar } from '../../components/chart/Radar';
+import { BasicColumn, ColumnWithLable } from '../../components/chart/Column';
 
-const Profil = () => {
+
+const SimplePage = () => {
+
+    const [profile, setProfile] = useState(null);
+    const [skills, setSkills] = useState(null);
+    const [skillsRadar, setSkillsRadar] = useState(null);
+    const [name, setName] = useState(null);
+    const [email, setemail] = useState(null);
+
+    useEffect(() => {
+        async function getData(){
+            // Retrieve the profile data from LocalForage
+            try{
+                const profiles = await localforage.getItem('profile');
+                let data;
+                if(!profiles){
+                    // eslint-disable-next-line prefer-template
+                    data = await request.get('/api/user/profile/' + await localforage.getItem('userId'));
+                    
+                    await localforage.setItem('profile data', data[0]);
+                    
+                    setProfile(data[0]);
+                    setSkills({
+                        ...skills, 
+                        labels: data[0].skills.map(skill => skill.skill.name),
+                        ListOflevelISets: data[0].skills.map(skill => skill.levelISet), 
+                        ListOflevelMyManagerSet: data[0].skills.map(skill => skill.levelMyManagerSet),
+                        averageList: data[0].skills.map(skill => (skill.levelISet + skill.levelMyManagerSet) / 2)
+                    });
+                    //['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']
+                    setSkillsRadar({
+                        ...skillsRadar,
+                        Analytical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Creative: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Soft: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Managerial: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Interpersonal: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Technical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                    });
+                } else {
+                    console.log("else: ",profiles);
+                    setProfile(profiles);
+                    setSkills({
+                        ...skills, 
+                        labels: profiles.skills.map(skill => skill.skill.name),
+                        ListOflevelISets: profiles.skills.map(skill => skill.levelISet), 
+                        ListOflevelMyManagerSet: profiles.skills.map(skill => skill.levelMyManagerSet),
+                        average: profiles.skills.map(skill => (skill.levelISet + skill.levelMyManagerSet) / 2)
+                    });
+                    setSkillsRadar({
+                        ...skillsRadar,
+                        Analytical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Creative: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Soft: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Managerial: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Interpersonal: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Technical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                    });
+                }
+            } catch(e) {
+                console.log("error: ",e);
+            }
+  
+            // Fetch the profile data from the backend
+        }
+        getData();
+    }, []);
+
+    function formatDate(d){
+        const date = new Date(d);
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        const formattedDate = date.toLocaleDateString(undefined, options);
+        return formattedDate;
+    }
+
     const projects = [
         {
             id: 1,
@@ -74,7 +126,7 @@ const Profil = () => {
                     img: avatar3
                 }
             ],
-            cardBorderGridor: "warning",
+            cardBorderColor: "warning",
             memberName: [
                 {
                     id: 1,
@@ -86,7 +138,7 @@ const Profil = () => {
             id: 2,
             title: "ABC Project Customization",
             updatedTime: "2 month Ago",
-            badgeText: "LinearProgress",
+            badgeText: "Progress",
             badgeClass: "primary",
             member: [
                 {
@@ -102,7 +154,7 @@ const Profil = () => {
                     img: avatar6
                 },
             ],
-            cardBorderGridor: "success",
+            cardBorderColor: "success",
             memberName: [
                 {
                     id: 1,
@@ -127,7 +179,7 @@ const Profil = () => {
                 },
 
             ],
-            cardBorderGridor: "info",
+            cardBorderColor: "info",
             memberName: [
                 {
                     id: 1,
@@ -152,7 +204,7 @@ const Profil = () => {
                 },
 
             ],
-            cardBorderGridor: "primary",
+            cardBorderColor: "primary",
         },
         {
             id: 5,
@@ -171,7 +223,7 @@ const Profil = () => {
                 },
 
             ],
-            cardBorderGridor: "danger",
+            cardBorderColor: "danger",
             memberName: [
                 {
                     id: 1,
@@ -201,7 +253,7 @@ const Profil = () => {
                     memberText: "R"
                 }
             ],
-            cardBorderGridor: "primary"
+            cardBorderColor: "primary"
         },
         {
             id: 7,
@@ -223,7 +275,7 @@ const Profil = () => {
                     img: avatar4
                 },
             ],
-            cardBorderGridor: "warning"
+            cardBorderColor: "warning"
         },
         {
             id: 8,
@@ -237,7 +289,7 @@ const Profil = () => {
                     img: avatar1
                 }
             ],
-            cardBorderGridor: "success"
+            cardBorderColor: "success"
         },
         {
             id: 9,
@@ -259,7 +311,7 @@ const Profil = () => {
                     img: avatar4
                 }
             ],
-            cardBorderGridor: "info",
+            cardBorderColor: "info",
             memberName: [
                 {
                     id: 1,
@@ -285,7 +337,7 @@ const Profil = () => {
                     memberText: "A"
                 }
             ],
-            cardBorderGridor: "success"
+            cardBorderColor: "success"
         },
         {
             id: 11,
@@ -307,7 +359,7 @@ const Profil = () => {
                     img: avatar5
                 }
             ],
-            cardBorderGridor: "danger",
+            cardBorderColor: "danger",
             memberName: [
                 {
                     id: 1,
@@ -327,7 +379,7 @@ const Profil = () => {
                     img: avatar7
                 }
             ],
-            cardBorderGridor: "primary"
+            cardBorderColor: "primary"
         },
 
     ];
@@ -373,7 +425,7 @@ const Profil = () => {
             id: 5,
             icon: "ri-folder-line",
             iconBackgroundClass: "info",
-            fileName: "Project Screenshots Gridlection",
+            fileName: "Project Screenshots Collection",
             fileType: "Folder File",
             fileSize: "87.24 MB",
             updatedDate: "08 Nov 2021"
@@ -407,199 +459,213 @@ const Profil = () => {
 
     document.title="Profile | Velzon - React Admin & Dashboard Template";
 
+    if (!profile) {
+        return <div>Loading profile data...</div>;
+    }
+
     return (
         <>
-            <div className="page-content">
+            <Box className="page-content">
                 <Container fluid>
-                    <div className="profile-foreground position-relative mx-n4 mt-n4">
-                        <div className="profile-wid-bg">
-                            <img src={profileBg} alt="" className="profile-wid-img" />
-                        </div>
-                    </div>
-                    <div className="pt-4 mb-4 mb-lg-3 pb-lg-4">
-                        <Grid container spacing={4}>
-                            <div className="Grid-auto">
-                                <div className="avatar-lg">
-                                    <img src={avatar1} alt="user-img"
+                    <Box className="profile-foreground position-relative mx-n4 mt-n4">
+                        <Box className="profile-wid-bg">
+                            <img src={"http://localhost:5000/images/cover/default.png"} alt="" className="profile-wid-img" />
+                        </Box>
+                    </Box>
+                    <Box className="pt-4 mb-4 mb-lg-3 pb-lg-4">
+                        <Row className="g-4">
+                            <Box className="col-auto">
+                                <Box className="avatar-lg">
+                                    <img src={"http://localhost:5000/images/avatar/default.png"} alt="user-img"
                                         className="img-thumbnail rounded-circle" />
-                                </div>
-                            </div>
+                                </Box>
+                            </Box>
 
-                            <Grid>
-                                <div className="p-2">
-                                    <h3 className="text-white mb-1">Anna Adame</h3>
-                                    <p className="text-white-75">Owner & Founder</p>
-                                    <div className="hstack text-white-50 gap-1">
-                                        <div className="me-2"><i
+                            <Col>
+                                <Box className="p-2">
+                                    <h3 className="text-white mb-1">{profile?.name? `${profile?.name?.first} ${profile?.name?.last}` : `${profile?.email}`}</h3>
+                                    <p className="text-white-75">{profile?.jobTitle? profile?.jobTitle?.name : "Not set"}</p>
+                                    <Box className="hstack text-white-50 gap-1">
+                                        <Box className="me-2"><i
                                             className="ri-map-pin-user-line me-1 text-white-75 fs-16 align-middle"></i>California,
-                                            United States</div>
-                                        <div><i
+                                            United States</Box>
+                                        <Box><i
                                             className="ri-building-line me-1 text-white-75 fs-16 align-middle"></i>Themesbrand
-                                        </div>
-                                    </div>
-                                </div>
-                            </Grid>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Col>
 
-                            <Grid xs={12} className="Grid-lg-auto order-last order-lg-0">
-                                <Grid container spacing={4}className="text text-white-50 text-center">
-                                    <Grid lg={6} xs={4}>
-                                        <div className="p-2">
+                            <Col xs={12} className="col-lg-auto order-last order-lg-0">
+                                <Row className="text text-white-50 text-center">
+                                    <Col lg={6} xs={4}>
+                                        <Box className="p-2">
                                             <h4 className="text-white mb-1">24.3K</h4>
                                             <p className="fs-14 mb-0">Followers</p>
-                                        </div>
-                                    </Grid>
-                                    <Grid lg={6} xs={4}>
-                                        <div className="p-2">
+                                        </Box>
+                                    </Col>
+                                    <Col lg={6} xs={4}>
+                                        <Box className="p-2">
                                             <h4 className="text-white mb-1">1.3K</h4>
                                             <p className="fs-14 mb-0">Following</p>
-                                        </div>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </div>
+                                        </Box>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </Box>
 
-                    <Grid container spacing={4}>
-                        <Grid lg={12}>
-                            <div>
-                                <div className="d-flex">
-                                    <Tabs pills className="animation-nav profile-nav gap-2 gap-lg-3 flex-grow-1"
+                    <Row>
+                        <Col lg={12}>
+                            <Box>
+                                <Box className="d-flex">
+                                    <Nav pills className="animation-nav profile-nav gap-2 gap-lg-3 flex-grow-1"
                                         role="tablist">
-                                        <Tab>
-                                            <Tab
+                                        <NavItem>
+                                            <NavLink
                                                 href="#overview-tab"
                                                 className={classnames({ active: activeTab === '1' })}
                                                 onClick={() => { toggleTab('1'); }}
                                             >
                                                 <i className="ri-airplay-fill d-inline-block d-md-none"></i> <span
                                                     className="d-none d-md-inline-block">Overview</span>
-                                            </Tab>
-                                        </Tab>
-                                        <Tab>
-                                            <Tab
-                                                href="#activities"
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink
+                                                href="#statistics"
                                                 className={classnames({ active: activeTab === '2' })}
                                                 onClick={() => { toggleTab('2'); }}
                                             >
-                                                <i className="ri-list-unordered d-inline-block d-md-none"></i> <span
-                                                    className="d-none d-md-inline-block">Activities</span>
-                                            </Tab>
-                                        </Tab>
-                                        <Tab>
-                                            <Tab
-                                                href="#projects"
+                                                <i className="ri-airplay-fill d-inline-block d-md-none"></i> <span
+                                                    className="d-none d-md-inline-block">Statistics</span>
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink
+                                                href="#activities"
                                                 className={classnames({ active: activeTab === '3' })}
                                                 onClick={() => { toggleTab('3'); }}
                                             >
-                                                <i className="ri-price-tag-line d-inline-block d-md-none"></i> <span
-                                                    className="d-none d-md-inline-block">Projects</span>
-                                            </Tab>
-                                        </Tab>
-                                        <Tab>
-                                            <Tab
-                                                href="#documents"
+                                                <i className="ri-list-unordered d-inline-block d-md-none"></i> <span
+                                                    className="d-none d-md-inline-block">Activities</span>
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink
+                                                href="#projects"
                                                 className={classnames({ active: activeTab === '4' })}
                                                 onClick={() => { toggleTab('4'); }}
                                             >
+                                                <i className="ri-price-tag-line d-inline-block d-md-none"></i> <span
+                                                    className="d-none d-md-inline-block">Projects</span>
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink
+                                                href="#documents"
+                                                className={classnames({ active: activeTab === '5' })}
+                                                onClick={() => { toggleTab('5'); }}
+                                            >
                                                 <i className="ri-folder-4-line d-inline-block d-md-none"></i> <span
                                                     className="d-none d-md-inline-block">Documents</span>
-                                            </Tab>
-                                        </Tab>
-                                    </Tabs>
-                                    <div className="flex-shrink-0">
-                                        <Link to="/pages-profile-settings" className="btn btn-success"><i
+                                            </NavLink>
+                                        </NavItem>
+                                    </Nav>
+                                    <Box className="flex-shrink-0">
+                                        <Link to="settings" className="btn btn-success"><i
                                             className="ri-edit-box-line align-bottom"></i> Edit Profile</Link>
-                                    </div>
-                                </div>
+                                    </Box>
+                                </Box>
 
-                                <TabContext value={null} activeTab={activeTab} className="pt-4">
-                                    <TabPanel value={null} index={null} tabId="1">
-                                        <Grid container spacing={4}>
-                                            <Grid xxl={3}>
+                                <TabContent activeTab={activeTab} className="pt-4">
+                                    <TabPane tabId="1">
+                                        <Row>
+                                            <Col xxl={3}>
                                                 <Card>
-                                                    <CardContent>
+                                                    <CardBody>
                                                         <h5 className="card-title mb-5">Complete Your Profile</h5>
-                                                        <LinearProgress value={30} Gridor="danger" className="animated-progess custom-progress progress-label" ><div className="label">30%</div> </LinearProgress>
-                                                    </CardContent>
+                                                        <Progress value={30} color="danger" className="animated-progess custom-progress progress-label" ><Box className="label">30%</Box> </Progress>
+                                                    </CardBody>
                                                 </Card>
 
                                                 <Card>
-                                                    <CardContent>
+                                                    <CardBody>
                                                         <h5 className="card-title mb-3">Info</h5>
-                                                        <div className="table-responsive">
+                                                        <Box className="table-responsive">
                                                             <Table className="table-borderless mb-0">
                                                                 <tbody>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">Full Name :</th>
-                                                                        <td className="text-muted">Anna Adame</td>
+                                                                        <td className="text-muted">{`${profile?.name?.first} ${profile?.name?.last}`}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">Mobile :</th>
-                                                                        <td className="text-muted">+(1) 987 6543</td>
+                                                                        <td className="text-muted">{profile?.contact?.phone_number}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">E-mail :</th>
-                                                                        <td className="text-muted">daveadame@velzon.com</td>
+                                                                        <td className="text-muted">{profile?.email}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">Location :</th>
-                                                                        <td className="text-muted">California, United States
+                                                                        <td className="text-muted">{profile?.contact?.country}, {profile?.contact?.city}
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
-                                                                        <th className="ps-0" scope="row">Joining Date</th>
-                                                                        <td className="text-muted">24 Nov 2021</td>
+                                                                        <th className="ps-0" scope="row">Joining Date :</th>
+                                                                        <td className="text-muted">{formatDate(profile?.join_date)}</td>
                                                                     </tr>
                                                                 </tbody>
                                                             </Table>
-                                                        </div>
-                                                    </CardContent>
+                                                        </Box>
+                                                    </CardBody>
                                                 </Card>
 
-                                                <Card>
-                                                    <CardContent>
+                                                {/* <Card>
+                                                    <CardBody>
                                                         <h5 className="card-title mb-4">Portfolio</h5>
-                                                        <div className="d-flex flex-wrap gap-2">
-                                                            <div>
+                                                        <Box className="d-flex flex-wrap gap-2">
+                                                            <Box>
                                                                 <Link to="#" className="avatar-xs d-block">
                                                                     <span
                                                                         className="avatar-title rounded-circle fs-16 bg-dark text-light">
                                                                         <i className="ri-github-fill"></i>
                                                                     </span>
                                                                 </Link>
-                                                            </div>
-                                                            <div>
+                                                            </Box>
+                                                            <Box>
                                                                 <Link to="#" className="avatar-xs d-block">
                                                                     <span
                                                                         className="avatar-title rounded-circle fs-16 bg-primary">
                                                                         <i className="ri-global-fill"></i>
                                                                     </span>
                                                                 </Link>
-                                                            </div>
-                                                            <div>
+                                                            </Box>
+                                                            <Box>
                                                                 <Link to="#" className="avatar-xs d-block">
                                                                     <span
                                                                         className="avatar-title rounded-circle fs-16 bg-success">
                                                                         <i className="ri-dribbble-fill"></i>
                                                                     </span>
                                                                 </Link>
-                                                            </div>
-                                                            <div>
+                                                            </Box>
+                                                            <Box>
                                                                 <Link to="#" className="avatar-xs d-block">
                                                                     <span
                                                                         className="avatar-title rounded-circle fs-16 bg-danger">
                                                                         <i className="ri-pinterest-fill"></i>
                                                                     </span>
                                                                 </Link>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                                                            </Box>
+                                                        </Box>
+                                                    </CardBody>
+                                                </Card> */}
 
-                                                <Card>
-                                                    <CardContent>
+                                                {/* <Card>
+                                                    <CardBody>
                                                         <h5 className="card-title mb-4">Skills</h5>
-                                                        <div className="d-flex flex-wrap gap-2 fs-15">
+                                                        <Box className="d-flex flex-wrap gap-2 fs-15">
                                                             <Link to="#"
                                                                 className="badge badge-soft-primary">Photoshop</Link>
                                                             <Link to="#"
@@ -614,271 +680,265 @@ const Profil = () => {
                                                                 className="badge badge-soft-primary">Php</Link>
                                                             <Link to="#"
                                                                 className="badge badge-soft-primary">Python</Link>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                                                        </Box>
+                                                    </CardBody>
+                                                </Card> */}
 
-                                                <Card>
-                                                    <CardContent>
-                                                        <div className="d-flex align-items-center mb-4">
-                                                            <div className="flex-grow-1">
+                                                {/* <Card>
+                                                    <CardBody>
+                                                        <Box className="d-flex align-items-center mb-4">
+                                                            <Box className="flex-grow-1">
                                                                 <h5 className="card-title mb-0">Suggestions</h5>
-                                                            </div>
-                                                            <div className="flex-shrink-0">
+                                                            </Box>
+                                                            <Box className="flex-shrink-0">
 
-                                                                <Select direction='start'>
-                                                                    <IconButton tag="a" id="MenuListLink2" role="button">
+                                                                <UncontrolledDropdown direction='start'>
+                                                                    <DropdownToggle tag="a" id="dropdownMenuLink2" role="button">
                                                                         <i className="ri-more-2-fill fs-14"></i>
-                                                                    </IconButton>
-                                                                    <MenuList>
-                                                                        <MenuItem>View</MenuItem>
-                                                                        <MenuItem>Edit</MenuItem>
-                                                                        <MenuItem>Delete</MenuItem>
-                                                                    </MenuList>
-                                                                </Select>
+                                                                    </DropdownToggle>
+                                                                    <DropdownMenu>
+                                                                        <DropdownItem>View</DropdownItem>
+                                                                        <DropdownItem>Edit</DropdownItem>
+                                                                        <DropdownItem>Delete</DropdownItem>
+                                                                    </DropdownMenu>
+                                                                </UncontrolledDropdown>
 
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <div className="d-flex align-items-center py-3">
-                                                                <div className="avatar-xs flex-shrink-0 me-3">
+                                                            </Box>
+                                                        </Box>
+                                                        <Box>
+                                                            <Box className="d-flex align-items-center py-3">
+                                                                <Box className="avatar-xs flex-shrink-0 me-3">
                                                                     <img src={avatar3} alt=""
                                                                         className="img-fluid rounded-circle" />
-                                                                </div>
-                                                                <div className="flex-grow-1">
-                                                                    <div>
+                                                                </Box>
+                                                                <Box className="flex-grow-1">
+                                                                    <Box>
                                                                         <h5 className="fs-14 mb-1">Esther James</h5>
                                                                         <p className="fs-13 text-muted mb-0">Frontend
                                                                             Developer</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex-shrink-0 ms-2">
+                                                                    </Box>
+                                                                </Box>
+                                                                <Box className="flex-shrink-0 ms-2">
                                                                     <button type="button"
                                                                         className="btn btn-sm btn-outline-success"><i
                                                                             className="ri-user-add-line align-middle"></i></button>
-                                                                </div>
-                                                            </div>
-                                                            <div className="d-flex align-items-center py-3">
-                                                                <div className="avatar-xs flex-shrink-0 me-3">
+                                                                </Box>
+                                                            </Box>
+                                                            <Box className="d-flex align-items-center py-3">
+                                                                <Box className="avatar-xs flex-shrink-0 me-3">
                                                                     <img src={avatar4} alt=""
                                                                         className="img-fluid rounded-circle" />
-                                                                </div>
-                                                                <div className="flex-grow-1">
-                                                                    <div>
+                                                                </Box>
+                                                                <Box className="flex-grow-1">
+                                                                    <Box>
                                                                         <h5 className="fs-14 mb-1">Jacqueline Steve</h5>
                                                                         <p className="fs-13 text-muted mb-0">UI/UX Designer
                                                                         </p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex-shrink-0 ms-2">
+                                                                    </Box>
+                                                                </Box>
+                                                                <Box className="flex-shrink-0 ms-2">
                                                                     <button type="button"
                                                                         className="btn btn-sm btn-outline-success"><i
                                                                             className="ri-user-add-line align-middle"></i></button>
-                                                                </div>
-                                                            </div>
-                                                            <div className="d-flex align-items-center py-3">
-                                                                <div className="avatar-xs flex-shrink-0 me-3">
+                                                                </Box>
+                                                            </Box>
+                                                            <Box className="d-flex align-items-center py-3">
+                                                                <Box className="avatar-xs flex-shrink-0 me-3">
                                                                     <img src={avatar5} alt=""
                                                                         className="img-fluid rounded-circle" />
-                                                                </div>
-                                                                <div className="flex-grow-1">
-                                                                    <div>
+                                                                </Box>
+                                                                <Box className="flex-grow-1">
+                                                                    <Box>
                                                                         <h5 className="fs-14 mb-1">George Whalen</h5>
                                                                         <p className="fs-13 text-muted mb-0">Backend
                                                                             Developer</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex-shrink-0 ms-2">
+                                                                    </Box>
+                                                                </Box>
+                                                                <Box className="flex-shrink-0 ms-2">
                                                                     <button type="button"
                                                                         className="btn btn-sm btn-outline-success"><i
                                                                             className="ri-user-add-line align-middle"></i></button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                    </CardBody>
+                                                </Card> */}
 
 
-                                                <Card>
-                                                    <CardContent>
-                                                        <div className="d-flex align-items-center mb-4">
-                                                            <div className="flex-grow-1">
+                                                {/* <Card>
+                                                    <CardBody>
+                                                        <Box className="d-flex align-items-center mb-4">
+                                                            <Box className="flex-grow-1">
                                                                 <h5 className="card-title mb-0">Popular Posts</h5>
-                                                            </div>
-                                                            <div className="flex-shrink-0">
-                                                                <Select direction='start'>
-                                                                    <IconButton tag="a" id="MenuListLink1" role="button">
+                                                            </Box>
+                                                            <Box className="flex-shrink-0">
+                                                                <UncontrolledDropdown direction='start'>
+                                                                    <DropdownToggle tag="a" id="dropdownMenuLink1" role="button">
                                                                         <i className="ri-more-2-fill fs-14"></i>
-                                                                    </IconButton>
-                                                                    <MenuList>
-                                                                        <MenuItem>View</MenuItem>
-                                                                        <MenuItem>Edit</MenuItem>
-                                                                        <MenuItem>Delete</MenuItem>
-                                                                    </MenuList>
-                                                                </Select>
-                                                            </div>
-                                                        </div>
-                                                        <div className="d-flex mb-4">
-                                                            <div className="flex-shrink-0">
+                                                                    </DropdownToggle>
+                                                                    <DropdownMenu>
+                                                                        <DropdownItem>View</DropdownItem>
+                                                                        <DropdownItem>Edit</DropdownItem>
+                                                                        <DropdownItem>Delete</DropdownItem>
+                                                                    </DropdownMenu>
+                                                                </UncontrolledDropdown>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="d-flex mb-4">
+                                                            <Box className="flex-shrink-0">
                                                                 <img src={smallImage4} alt=""
                                                                     height="50" className="rounded" />
-                                                            </div>
-                                                            <div className="flex-grow-1 ms-3 overflow-hidden">
+                                                            </Box>
+                                                            <Box className="flex-grow-1 ms-3 overflow-hidden">
                                                                 <Link to="#">
                                                                     <h6 className="text-truncate fs-14">Design your apps in
                                                                         your own way</h6>
                                                                 </Link>
                                                                 <p className="text-muted mb-0">15 Dec 2021</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="d-flex mb-4">
-                                                            <div className="flex-shrink-0">
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="d-flex mb-4">
+                                                            <Box className="flex-shrink-0">
                                                                 <img src={smallImage5} alt=""
                                                                     height="50" className="rounded" />
-                                                            </div>
-                                                            <div className="flex-grow-1 ms-3 overflow-hidden">
+                                                            </Box>
+                                                            <Box className="flex-grow-1 ms-3 overflow-hidden">
                                                                 <Link to="#">
                                                                     <h6 className="text-truncate fs-14">Smartest
                                                                         Applications for Business</h6>
                                                                 </Link>
                                                                 <p className="text-muted mb-0">28 Nov 2021</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="d-flex">
-                                                            <div className="flex-shrink-0">
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="d-flex">
+                                                            <Box className="flex-shrink-0">
                                                                 <img src={smallImage6} alt=""
                                                                     height="50" className="rounded" />
-                                                            </div>
-                                                            <div className="flex-grow-1 ms-3 overflow-hidden">
+                                                            </Box>
+                                                            <Box className="flex-grow-1 ms-3 overflow-hidden">
                                                                 <Link to="#">
                                                                     <h6 className="text-truncate fs-14">How to get creative
                                                                         in your work</h6>
                                                                 </Link>
                                                                 <p className="text-muted mb-0">21 Nov 2021</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </Grid>
-                                            <Grid xxl={9}>
+                                                            </Box>
+                                                        </Box>
+                                                    </CardBody>
+                                                </Card> */}
+                                            </Col>
+                                            <Col xxl={9}>
                                                 <Card>
-                                                    <CardContent>
-                                                        <h5 className="card-title mb-3">About</h5>
-                                                        <p>Hi I'm Anna Adame, It will be as simple as Occidental; in
-                                                            fact, it will be Occidental. To an English person, it will
-                                                            seem like simplified English, as a skeptical Cambridge
-                                                            friend of mine told me what Occidental is European languages
-                                                            are members of the same family.</p>
-                                                        <p>You always want to make sure that your fonts work well
-                                                            together and try to limit the number of fonts you use to
-                                                            three or less. Experiment and play around with the fonts
-                                                            that you already have in the software you’re working with
-                                                            reputable font websites. This may be the most commonly
-                                                            encountered tip I received from the designers I spoke with.
-                                                            They highly encourage that you use different fonts in one
-                                                            design, but do not over-exaggerate and go overboard.</p>
-                                                        <Grid container spacing={4}>
-                                                            <Grid xs={6} md={4}>
-                                                                <div className="d-flex mt-4">
-                                                                    <div
+                                                    <CardBody>
+                                                        {
+                                                            profile?.about? 
+                                                            <>
+                                                                <h5 className="card-title mb-3">About</h5>
+                                                                <p>{profile?.about}</p>                       
+                                                            </>
+                                                            : null
+                                                        }
+                                                        <Row>
+                                                            <Col xs={6} md={4}>
+                                                                <Box className="d-flex mt-4">
+                                                                    <Box
                                                                         className="flex-shrink-0 avatar-xs align-self-center me-3">
-                                                                        <div
+                                                                        <Box
                                                                             className="avatar-title bg-light rounded-circle fs-16 text-primary">
                                                                             <i className="ri-user-2-fill"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex-grow-1 overflow-hidden">
+                                                                        </Box>
+                                                                    </Box>
+                                                                    <Box className="flex-grow-1 overflow-hidden">
                                                                         <p className="mb-1">Designation :</p>
                                                                         <h6 className="text-truncate mb-0">Lead Designer /
                                                                             Developer</h6>
-                                                                    </div>
-                                                                </div>
-                                                            </Grid>
+                                                                    </Box>
+                                                                </Box>
+                                                            </Col>
 
-                                                            <Grid xs={6} md={4}>
-                                                                <div className="d-flex mt-4">
-                                                                    <div
+                                                            <Col xs={6} md={4}>
+                                                                <Box className="d-flex mt-4">
+                                                                    <Box
                                                                         className="flex-shrink-0 avatar-xs align-self-center me-3">
-                                                                        <div
+                                                                        <Box
                                                                             className="avatar-title bg-light rounded-circle fs-16 text-primary">
                                                                             <i className="ri-global-line"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex-grow-1 overflow-hidden">
+                                                                        </Box>
+                                                                    </Box>
+                                                                    <Box className="flex-grow-1 overflow-hidden">
                                                                         <p className="mb-1">Website :</p>
                                                                         <Link to="#" className="fw-semibold">www.velzon.com</Link>
-                                                                    </div>
-                                                                </div>
-                                                            </Grid>
-                                                        </Grid>
-                                                    </CardContent>
+                                                                    </Box>
+                                                                </Box>
+                                                            </Col>
+                                                        </Row>
+                                                    </CardBody>
                                                 </Card>
 
-                                                <Grid container spacing={4}>
-                                                    <Grid lg={12}>
+                                                {/* <Row>
+                                                    <Col lg={12}>
                                                         <Card>
                                                             <CardHeader className="align-items-center d-flex">
                                                                 <h4 className="card-title mb-0  me-2">Recent Activity</h4>
-                                                                <div className="flex-shrink-0 ms-auto">
-                                                                    <Tabs className="justify-content-end nav-tabs-custom rounded card-header-tabs border-bottom-0"
+                                                                <Box className="flex-shrink-0 ms-auto">
+                                                                    <Nav className="justify-content-end nav-tabs-custom rounded card-header-tabs border-bottom-0"
                                                                         role="tablist">
-                                                                        <Tab>
-                                                                            <Tab
+                                                                        <NavItem>
+                                                                            <NavLink
                                                                                 to="#today-tab"
                                                                                 className={classnames({ active: activityTab === '1' })}
                                                                                 onClick={() => { toggleActivityTab('1'); }}
                                                                             >
                                                                                 Today
-                                                                            </Tab>
-                                                                        </Tab>
-                                                                        <Tab>
-                                                                            <Tab
+                                                                            </NavLink>
+                                                                        </NavItem>
+                                                                        <NavItem>
+                                                                            <NavLink
                                                                                 to="#weekly-tab"
                                                                                 className={classnames({ active: activityTab === '2' })}
                                                                                 onClick={() => { toggleActivityTab('2'); }}
                                                                             >
                                                                                 Weekly
-                                                                            </Tab>
-                                                                        </Tab>
-                                                                        <Tab className="nav-item">
-                                                                            <Tab
+                                                                            </NavLink>
+                                                                        </NavItem>
+                                                                        <NavItem className="nav-item">
+                                                                            <NavLink
                                                                                 to="#monthly-tab"
                                                                                 className={classnames({ active: activityTab === '3' })}
                                                                                 onClick={() => { toggleActivityTab('3'); }}
                                                                             >
                                                                                 Monthly
-                                                                            </Tab>
-                                                                        </Tab>
-                                                                    </Tabs>
-                                                                </div>
+                                                                            </NavLink>
+                                                                        </NavItem>
+                                                                    </Nav>
+                                                                </Box>
                                                             </CardHeader>
-                                                            <CardContent>
-                                                                <TabContext value={null} activeTab={activityTab} className="text-muted">
-                                                                    <TabPanel value={null} index={null} tabId="1">
-                                                                        <div className="profile-timeline">
-                                                                            <div>
-                                                                            </div>
-                                                                            <div className="accordion accordion-flush" id="todayExample">
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header">
+                                                            <CardBody>
+                                                                <TabContent activeTab={activityTab} className="text-muted">
+                                                                    <TabPane tabId="1">
+                                                                        <Box className="profile-timeline">
+                                                                            <Box>
+                                                                            </Box>
+                                                                            <Box className="accordion accordion-flush" id="todayExample">
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header">
                                                                                         <button className="accordion-button p-2 shadow-none" type="button" id="headingOne" >
-                                                                                            <div className="d-flex">
-                                                                                                <div className="flex-shrink-0">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box className="flex-shrink-0">
                                                                                                     <img src={avatar2} alt="" className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
                                                                                                         Jacqueline Steve
                                                                                                     </h6>
                                                                                                     <small className="text-muted">We has changed 2 attributes on 05:16PM</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </button>
-                                                                                    </div>
-                                                                                    <Collapse className="accordion-Gridlapse" toggler="#headingOne" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse className="accordion-collapse" toggler="#headingOne" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             In an awareness campaign, it
                                                                                             is vital for people to begin
@@ -896,21 +956,21 @@ const Profil = () => {
                                                                                             soul, like these sweet
                                                                                             mornings of spring which I
                                                                                             enjoy with my whole heart.
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header" id="headingTwo">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="GridlapseTwo">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header" id="headingTwo">
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapseTwo">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0 avatar-xs">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-title bg-light text-success rounded-circle">
                                                                                                         M
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -921,23 +981,23 @@ const Profil = () => {
                                                                                                         a new event with
                                                                                                         attachments -
                                                                                                         04:45PM</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="GridlapseTwo" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="collapseTwo" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
-                                                                                            <Grid container spacing={4}className="g-2">
-                                                                                                <div className="Grid-auto">
-                                                                                                    <div
+                                                                                            <Row className="g-2">
+                                                                                                <Box className="col-auto">
+                                                                                                    <Box
                                                                                                         className="d-flex border border-dashed p-2 rounded position-relative">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="flex-shrink-0">
                                                                                                             <i
                                                                                                                 className="ri-image-2-line fs-17 text-danger"></i>
-                                                                                                        </div>
-                                                                                                        <div
+                                                                                                        </Box>
+                                                                                                        <Box
                                                                                                             className="flex-grow-1 ms-2">
                                                                                                             <h6><Link to="#"
                                                                                                                 className="stretched-link">Business
@@ -948,18 +1008,18 @@ const Profil = () => {
                                                                                                             </h6>
                                                                                                             <small>685
                                                                                                                 KB</small>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="Grid-auto">
-                                                                                                    <div
+                                                                                                        </Box>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box className="col-auto">
+                                                                                                    <Box
                                                                                                         className="d-flex border border-dashed p-2 rounded position-relative">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="flex-shrink-0">
                                                                                                             <i
                                                                                                                 className="ri-file-zip-line fs-17 text-info"></i>
-                                                                                                        </div>
-                                                                                                        <div
+                                                                                                        </Box>
+                                                                                                        <Box
                                                                                                             className="flex-grow-1 ms-2">
                                                                                                             <h6><Link to="#"
                                                                                                                 className="stretched-link">Bank
@@ -970,25 +1030,25 @@ const Profil = () => {
                                                                                                             </h6>
                                                                                                             <small>8.78
                                                                                                                 MB</small>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </Grid>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                                        </Box>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                            </Row>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="headingThree">
                                                                                         <Link to="#" className="accordion-button p-2 shadow-none">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar5}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1001,25 +1061,25 @@ const Profil = () => {
                                                                                                         submitted a
                                                                                                         ticket -
                                                                                                         02:33PM</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                    </Box>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="headingFour">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="GridlapseFour" >
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapseFour" >
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0 avatar-xs">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-title bg-light text-muted rounded-circle">
                                                                                                         <i
                                                                                                             className="ri-user-3-fill"></i>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1029,12 +1089,12 @@ const Profil = () => {
                                                                                                         className="text-muted">Commented
                                                                                                         on
                                                                                                         12:57PM</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="GridlapseFour" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="collapseFour" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             " A wonderful serenity has
                                                                                             taken possession of my
@@ -1047,21 +1107,21 @@ const Profil = () => {
                                                                                             you have the opportunity to
                                                                                             be creative and make your
                                                                                             own style choices. "
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="headingFive">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="GridlapseFive" >
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapseFive" >
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar7}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1073,12 +1133,12 @@ const Profil = () => {
                                                                                                         buildng product
                                                                                                         -
                                                                                                         10:05AM</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="GridlapseFive" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="collapseFive" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             <p className="text-muted mb-2">
                                                                                                 Every team project can
@@ -1088,7 +1148,7 @@ const Profil = () => {
                                                                                                 team to understand and
                                                                                                 contribute to your
                                                                                                 project.</p>
-                                                                                            <div className="avatar-group">
+                                                                                            <Box className="avatar-group">
                                                                                                 <Link to="#"
                                                                                                     className="avatar-group-item"
                                                                                                     data-bs-toggle="tooltip"
@@ -1118,13 +1178,13 @@ const Profil = () => {
                                                                                                     data-bs-placement="top"
                                                                                                     title=""
                                                                                                     data-bs-original-title=" Ruby">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-xs">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="avatar-title rounded-circle bg-light text-primary">
                                                                                                             R
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                        </Box>
+                                                                                                    </Box>
                                                                                                 </Link>
                                                                                                 <Link to="#"
                                                                                                     className="avatar-group-item"
@@ -1133,38 +1193,38 @@ const Profil = () => {
                                                                                                     data-bs-placement="top"
                                                                                                     title=""
                                                                                                     data-bs-original-title="more">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-xs">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="avatar-title rounded-circle">
                                                                                                             2+
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                        </Box>
+                                                                                                    </Box>
                                                                                                 </Link>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                            </div>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                            </Box>
 
-                                                                        </div>
-                                                                    </TabPanel>
-                                                                    <TabPanel value={null} index={null} tabId="2">
-                                                                        <div className="profile-timeline">
-                                                                            <div className="accordion accordion-flush"
+                                                                        </Box>
+                                                                    </TabPane>
+                                                                    <TabPane tabId="2">
+                                                                        <Box className="profile-timeline">
+                                                                            <Box className="accordion accordion-flush"
                                                                                 id="weeklyExample">
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading6">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="Gridlapse6">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapse6">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar3}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1176,12 +1236,12 @@ const Profil = () => {
                                                                                                         with our company
                                                                                                         -
                                                                                                         Yesterday</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse6" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse6" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             It makes a statement, it’s
                                                                                             impressive graphic design.
@@ -1191,25 +1251,25 @@ const Profil = () => {
                                                                                             again until it looks right,
                                                                                             and each letter has the
                                                                                             perfect spot of its own.
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading7">
                                                                                         <Link className="accordion-button p-2 shadow-none"
-                                                                                            data-bs-toggle="Gridlapse"
-                                                                                            to="#Gridlapse7"
+                                                                                            data-bs-toggle="collapse"
+                                                                                            to="#collapse7"
                                                                                             aria-expanded="false">
-                                                                                            <div className="d-flex">
-                                                                                                <div className="avatar-xs">
-                                                                                                    <div
+                                                                                            <Box className="d-flex">
+                                                                                                <Box className="avatar-xs">
+                                                                                                    <Box
                                                                                                         className="avatar-title rounded-circle bg-light text-danger">
                                                                                                         <i
                                                                                                             className="ri-shopping-bag-line"></i>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1224,26 +1284,26 @@ const Profil = () => {
                                                                                                         their order has
                                                                                                         been placed - 1
                                                                                                         week Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                    </Box>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading8">
                                                                                         <Link to="#" className="accordion-button p-2 shadow-none"
-                                                                                            id="Gridlapse8" >
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                            id="collapse8" >
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0 avatar-xs">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-title bg-light text-success rounded-circle">
                                                                                                         <i
                                                                                                             className="ri-home-3-line"></i>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1257,60 +1317,60 @@ const Profil = () => {
                                                                                                         project on
                                                                                                         linkedin - 1
                                                                                                         week Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse8" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse8" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5 fst-italic">
                                                                                             Powerful, clean & modern
                                                                                             responsive bootstrap 5 admin
                                                                                             template. The maximum file
                                                                                             size for uploads in this
                                                                                             demo :
-                                                                                            <Grid container spacing={4}className="mt-2">
-                                                                                                <Grid xxl={6}>
-                                                                                                    <Grid container spacing={4}
+                                                                                            <Row className="mt-2">
+                                                                                                <Col xxl={6}>
+                                                                                                    <Row
                                                                                                         className="border border-dashed gx-2 p-2">
-                                                                                                        <Grid xs={3}>
+                                                                                                        <Col xs={3}>
                                                                                                             <img src={smallImage3} alt="" className="img-fluid rounded" />
-                                                                                                        </Grid>
+                                                                                                        </Col>
 
-                                                                                                        <Grid xs={3}>
+                                                                                                        <Col xs={3}>
                                                                                                             <img src={smallImage5} alt="" className="img-fluid rounded" />
-                                                                                                        </Grid>
+                                                                                                        </Col>
 
-                                                                                                        <Grid xs={3}>
+                                                                                                        <Col xs={3}>
                                                                                                             <img src={smallImage7} alt="" className="img-fluid rounded" />
-                                                                                                        </Grid>
+                                                                                                        </Col>
 
-                                                                                                        <Grid xs={3}>
+                                                                                                        <Col xs={3}>
                                                                                                             <img src={smallImage9} alt="" className="img-fluid rounded" />
-                                                                                                        </Grid>
+                                                                                                        </Col>
 
-                                                                                                    </Grid>
+                                                                                                    </Row>
 
-                                                                                                </Grid>
-                                                                                            </Grid>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                                </Col>
+                                                                                            </Row>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading9">
                                                                                         <Link className="accordion-button p-2 shadow-none"
-                                                                                            data-bs-toggle="Gridlapse"
-                                                                                            to="#Gridlapse9"
+                                                                                            data-bs-toggle="collapse"
+                                                                                            to="#collapse9"
                                                                                             aria-expanded="false">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar6}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1325,21 +1385,21 @@ const Profil = () => {
                                                                                                         submitted a
                                                                                                         ticket - 2 week
                                                                                                         Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                    </Box>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading10">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="Gridlapse10">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapse10">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar5} alt="" className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1349,12 +1409,12 @@ const Profil = () => {
                                                                                                         className="text-muted">Commented
                                                                                                         - 4 week
                                                                                                         Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse10" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse10" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             <p
                                                                                                 className="text-muted fst-italic mb-2">
@@ -1373,30 +1433,30 @@ const Profil = () => {
                                                                                                 of course but the
                                                                                                 template structure made
                                                                                                 it easy. "</p>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                            </div>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                            </Box>
 
-                                                                        </div>
-                                                                    </TabPanel>
-                                                                    <TabPanel value={null} index={null} tabId="3">
-                                                                        <div className="profile-timeline">
-                                                                            <div className="accordion accordion-flush"
+                                                                        </Box>
+                                                                    </TabPane>
+                                                                    <TabPane tabId="3">
+                                                                        <Box className="profile-timeline">
+                                                                            <Box className="accordion accordion-flush"
                                                                                 id="monthlyExample">
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading11">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="Gridlapse11" >
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapse11" >
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0 avatar-xs">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-title bg-light text-success rounded-circle">
                                                                                                         M
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1408,23 +1468,23 @@ const Profil = () => {
                                                                                                         attachments - 1
                                                                                                         month
                                                                                                         Ago.</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse11" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse11" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
-                                                                                            <div className="row g-2">
-                                                                                                <div className="Grid-auto">
-                                                                                                    <div
+                                                                                            <Box className="row g-2">
+                                                                                                <Box className="col-auto">
+                                                                                                    <Box
                                                                                                         className="d-flex border border-dashed p-2 rounded position-relative">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="flex-shrink-0">
                                                                                                             <i
                                                                                                                 className="ri-image-2-line fs-17 text-danger"></i>
-                                                                                                        </div>
-                                                                                                        <div
+                                                                                                        </Box>
+                                                                                                        <Box
                                                                                                             className="flex-grow-1 ms-2">
                                                                                                             <h6><Link to="#"
                                                                                                                 className="stretched-link">Business
@@ -1435,18 +1495,18 @@ const Profil = () => {
                                                                                                             </h6>
                                                                                                             <small>685
                                                                                                                 KB</small>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="Grid-auto">
-                                                                                                    <div
+                                                                                                        </Box>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box className="col-auto">
+                                                                                                    <Box
                                                                                                         className="d-flex border border-dashed p-2 rounded position-relative">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="flex-shrink-0">
                                                                                                             <i
                                                                                                                 className="ri-file-zip-line fs-17 text-info"></i>
-                                                                                                        </div>
-                                                                                                        <div
+                                                                                                        </Box>
+                                                                                                        <Box
                                                                                                             className="flex-grow-1 ms-2">
                                                                                                             <h6><Link to="#"
                                                                                                                 className="stretched-link">Bank
@@ -1457,18 +1517,18 @@ const Profil = () => {
                                                                                                             </h6>
                                                                                                             <small>8.78
                                                                                                                 MB</small>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="Grid-auto">
-                                                                                                    <div
+                                                                                                        </Box>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box className="col-auto">
+                                                                                                    <Box
                                                                                                         className="d-flex border border-dashed p-2 rounded position-relative">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="flex-shrink-0">
                                                                                                             <i
                                                                                                                 className="ri-file-zip-line fs-17 text-info"></i>
-                                                                                                        </div>
-                                                                                                        <div
+                                                                                                        </Box>
+                                                                                                        <Box
                                                                                                             className="flex-grow-1 ms-2">
                                                                                                             <h6><Link to="#"
                                                                                                                 className="stretched-link">Bank
@@ -1479,27 +1539,27 @@ const Profil = () => {
                                                                                                             </h6>
                                                                                                             <small>8.78
                                                                                                                 MB</small>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                                        </Box>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading12">
                                                                                         <Link to="#" className="accordion-button p-2 shadow-none"
-                                                                                            id="Gridlapse12"
+                                                                                            id="collapse12"
                                                                                             aria-expanded="true">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar2}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1511,12 +1571,12 @@ const Profil = () => {
                                                                                                         attributes on 3
                                                                                                         month
                                                                                                         Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="Gridlapse12" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="collapse12" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             In an awareness campaign, it
                                                                                             is vital for people to begin
@@ -1534,24 +1594,24 @@ const Profil = () => {
                                                                                             soul, like these sweet
                                                                                             mornings of spring which I
                                                                                             enjoy with my whole heart.
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading13">
                                                                                         <Link className="accordion-button p-2 shadow-none"
-                                                                                            data-bs-toggle="Gridlapse"
-                                                                                            to="#Gridlapse13"
+                                                                                            data-bs-toggle="collapse"
+                                                                                            to="#collapse13"
                                                                                             aria-expanded="false">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar6}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1564,25 +1624,25 @@ const Profil = () => {
                                                                                                         submitted a
                                                                                                         ticket - 5 month
                                                                                                         Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                    </Box>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading14">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="Gridlapse14">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapse14">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0 avatar-xs">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-title bg-light text-muted rounded-circle">
                                                                                                         <i
                                                                                                             className="ri-user-3-fill"></i>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1592,12 +1652,12 @@ const Profil = () => {
                                                                                                         className="text-muted">Commented
                                                                                                         on 24 Nov,
                                                                                                         2021.</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse14" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse14" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5 fst-italic">
                                                                                             " A wonderful serenity has
                                                                                             taken possession of my
@@ -1610,21 +1670,21 @@ const Profil = () => {
                                                                                             you have the opportunity to
                                                                                             be creative and make your
                                                                                             own style choices. "
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                                <div className="accordion-item border-0">
-                                                                                    <div className="accordion-header"
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                                <Box className="accordion-item border-0">
+                                                                                    <Box className="accordion-header"
                                                                                         id="heading15">
-                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="Gridlapse15">
-                                                                                            <div className="d-flex">
-                                                                                                <div
+                                                                                        <Link to="#" className="accordion-button p-2 shadow-none" id="collapse15">
+                                                                                            <Box className="d-flex">
+                                                                                                <Box
                                                                                                     className="flex-shrink-0">
                                                                                                     <img src={avatar7}
                                                                                                         alt=""
                                                                                                         className="avatar-xs rounded-circle" />
-                                                                                                </div>
-                                                                                                <div
+                                                                                                </Box>
+                                                                                                <Box
                                                                                                     className="flex-grow-1 ms-3">
                                                                                                     <h6
                                                                                                         className="fs-14 mb-1">
@@ -1636,12 +1696,12 @@ const Profil = () => {
                                                                                                         buildng product
                                                                                                         - 8 month
                                                                                                         Ago</small>
-                                                                                                </div>
-                                                                                            </div>
+                                                                                                </Box>
+                                                                                            </Box>
                                                                                         </Link>
-                                                                                    </div>
-                                                                                    <Collapse toggler="#Gridlapse15" defaultOpen>
-                                                                                        <div
+                                                                                    </Box>
+                                                                                    <UncontrolledCollapse toggler="#collapse15" defaultOpen>
+                                                                                        <Box
                                                                                             className="accordion-body ms-2 ps-5">
                                                                                             <p className="text-muted mb-2">
                                                                                                 Every team project can
@@ -1651,7 +1711,7 @@ const Profil = () => {
                                                                                                 team to understand and
                                                                                                 contribute to your
                                                                                                 project.</p>
-                                                                                            <div className="avatar-group">
+                                                                                            <Box className="avatar-group">
                                                                                                 <Link to="#"
                                                                                                     className="avatar-group-item"
                                                                                                     data-bs-toggle="tooltip"
@@ -1681,13 +1741,13 @@ const Profil = () => {
                                                                                                     data-bs-placement="top"
                                                                                                     title=""
                                                                                                     data-bs-original-title=" Ruby">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-xs">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="avatar-title rounded-circle bg-light text-primary">
                                                                                                             R
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                        </Box>
+                                                                                                    </Box>
                                                                                                 </Link>
                                                                                                 <Link to="#"
                                                                                                     className="avatar-group-item"
@@ -1696,42 +1756,42 @@ const Profil = () => {
                                                                                                     data-bs-placement="top"
                                                                                                     title=""
                                                                                                     data-bs-original-title="more">
-                                                                                                    <div
+                                                                                                    <Box
                                                                                                         className="avatar-xs">
-                                                                                                        <div
+                                                                                                        <Box
                                                                                                             className="avatar-title rounded-circle">
                                                                                                             2+
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                        </Box>
+                                                                                                    </Box>
                                                                                                 </Link>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </Collapse>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </TabPanel>
-                                                                </TabContext>
-                                                            </CardContent>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </UncontrolledCollapse>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </Box>
+                                                                    </TabPane>
+                                                                </TabContent>
+                                                            </CardBody>
                                                         </Card>
-                                                    </Grid>
-                                                </Grid>
+                                                    </Col>
+                                                </Row> */}
 
-                                                <Card>
-                                                    <CardContent>
+                                                {/* <Card>
+                                                    <CardBody>
                                                         <h5 className="card-title">Projects</h5>
-                                                        <div className="d-flex justify-content-end gap-2 mb-2">
-                                                            <div className="slider-button-prev">
-                                                                <div className="avatar-title fs-18 rounded px-1">
+                                                        <Box className="d-flex justify-content-end gap-2 mb-2">
+                                                            <Box className="slider-button-prev">
+                                                                <Box className="avatar-title fs-18 rounded px-1">
                                                                     <i className="ri-arrow-left-s-line"></i>
-                                                                </div>
-                                                            </div>
-                                                            <div className="slider-button-next">
-                                                                <div className="avatar-title fs-18 rounded px-1">
+                                                                </Box>
+                                                            </Box>
+                                                            <Box className="slider-button-next">
+                                                                <Box className="avatar-title fs-18 rounded px-1">
                                                                     <i className="ri-arrow-right-s-line"></i>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
                                                         <Swiper className="project-swiper"
                                                             slidesPerView={3}
                                                             spaceBetween={20}
@@ -1739,13 +1799,13 @@ const Profil = () => {
                                                             pagination={{ clickable: true }}
                                                         >
 
-                                                            <div className="swiper-wrapper">
+                                                            <Box className="swiper-wrapper">
                                                                 <SwiperSlide>
                                                                     <Card
                                                                         className="profile-project-card shadow-none profile-project-success mb-0">
-                                                                        <CardContent className="p-4">
-                                                                            <div className="d-flex">
-                                                                                <div
+                                                                        <CardBody className="p-4">
+                                                                            <Box className="d-flex">
+                                                                                <Box
                                                                                     className="flex-grow-1 text-muted overflow-hidden">
                                                                                     <h5
                                                                                         className="fs-14 text-truncate mb-1">
@@ -1755,67 +1815,67 @@ const Profil = () => {
                                                                                     </h5>
                                                                                     <p className="text-muted text-truncate mb-0">
                                                                                         Last Update : <span className="fw-semibold text-dark">4 hr Ago</span></p>
-                                                                                </div>
-                                                                                <div className="flex-shrink-0 ms-2">
-                                                                                    <div className="badge badge-soft-warning fs-10">
-                                                                                        Inprogress</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="d-flex mt-4">
-                                                                                <div className="flex-grow-1">
-                                                                                    <div
+                                                                                </Box>
+                                                                                <Box className="flex-shrink-0 ms-2">
+                                                                                    <Box className="badge badge-soft-warning fs-10">
+                                                                                        Inprogress</Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                            <Box className="d-flex mt-4">
+                                                                                <Box className="flex-grow-1">
+                                                                                    <Box
                                                                                         className="d-flex align-items-center gap-2">
-                                                                                        <div>
+                                                                                        <Box>
                                                                                             <h5 className="fs-12 text-muted mb-0">
                                                                                                 Members :</h5>
-                                                                                        </div>
-                                                                                        <div className="avatar-group">
-                                                                                            <div
+                                                                                        </Box>
+                                                                                        <Box className="avatar-group">
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar4}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar5}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
-                                                                                                    <div
+                                                                                                <Box className="avatar-xs">
+                                                                                                    <Box
                                                                                                         className="avatar-title rounded-circle bg-light text-primary">
                                                                                                         A
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar2}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </CardContent>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardBody>
                                                                     </Card>
                                                                 </SwiperSlide>
 
                                                                 <SwiperSlide>
                                                                     <Card className="profile-project-card shadow-none profile-project-danger mb-0">
-                                                                        <CardContent className="p-4">
-                                                                            <div className="d-flex">
-                                                                                <div
+                                                                        <CardBody className="p-4">
+                                                                            <Box className="d-flex">
+                                                                                <Box
                                                                                     className="flex-grow-1 text-muted overflow-hidden">
                                                                                     <h5 className="fs-14 text-truncate mb-1">
                                                                                         <Link to="#" className="text-dark">Client - John</Link></h5>
@@ -1823,53 +1883,53 @@ const Profil = () => {
                                                                                         Last Update : <span
                                                                                             className="fw-semibold text-dark">1
                                                                                             hr Ago</span></p>
-                                                                                </div>
-                                                                                <div className="flex-shrink-0 ms-2">
-                                                                                    <div
+                                                                                </Box>
+                                                                                <Box className="flex-shrink-0 ms-2">
+                                                                                    <Box
                                                                                         className="badge badge-soft-success fs-10">
-                                                                                        Completed</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="d-flex mt-4">
-                                                                                <div className="flex-grow-1">
-                                                                                    <div
+                                                                                        Completed</Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                            <Box className="d-flex mt-4">
+                                                                                <Box className="flex-grow-1">
+                                                                                    <Box
                                                                                         className="d-flex align-items-center gap-2">
-                                                                                        <div>
+                                                                                        <Box>
                                                                                             <h5
                                                                                                 className="fs-12 text-muted mb-0">
                                                                                                 Members :</h5>
-                                                                                        </div>
-                                                                                        <div className="avatar-group">
-                                                                                            <div
+                                                                                        </Box>
+                                                                                        <Box className="avatar-group">
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar2}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
-                                                                                                    <div
+                                                                                                <Box className="avatar-xs">
+                                                                                                    <Box
                                                                                                         className="avatar-title rounded-circle bg-light text-primary">
                                                                                                         C
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </CardContent>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardBody>
                                                                     </Card>
                                                                 </SwiperSlide>
                                                                 <SwiperSlide>
                                                                     <Card
                                                                         className="profile-project-card shadow-none profile-project-info mb-0">
-                                                                        <CardContent className="p-4">
-                                                                            <div className="d-flex">
-                                                                                <div
+                                                                        <CardBody className="p-4">
+                                                                            <Box className="d-flex">
+                                                                                <Box
                                                                                     className="flex-grow-1 text-muted overflow-hidden">
                                                                                     <h5
                                                                                         className="fs-14 text-truncate mb-1">
@@ -1878,44 +1938,44 @@ const Profil = () => {
                                                                                         Last Update : <span
                                                                                             className="fw-semibold text-dark">2
                                                                                             hr Ago</span></p>
-                                                                                </div>
-                                                                                <div className="flex-shrink-0 ms-2">
-                                                                                    <div
+                                                                                </Box>
+                                                                                <Box className="flex-shrink-0 ms-2">
+                                                                                    <Box
                                                                                         className="badge badge-soft-warning fs-10">
-                                                                                        Inprogress</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="d-flex mt-4">
-                                                                                <div className="flex-grow-1">
-                                                                                    <div
+                                                                                        Inprogress</Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                            <Box className="d-flex mt-4">
+                                                                                <Box className="flex-grow-1">
+                                                                                    <Box
                                                                                         className="d-flex align-items-center gap-2">
-                                                                                        <div>
+                                                                                        <Box>
                                                                                             <h5
                                                                                                 className="fs-12 text-muted mb-0">
                                                                                                 Members :</h5>
-                                                                                        </div>
-                                                                                        <div className="avatar-group">
-                                                                                            <div
+                                                                                        </Box>
+                                                                                        <Box className="avatar-group">
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar5}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </CardContent>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardBody>
                                                                     </Card>
                                                                 </SwiperSlide>
                                                                 <SwiperSlide>
                                                                     <Card
                                                                         className="profile-project-card shadow-none profile-project-danger mb-0">
-                                                                        <CardContent className="p-4">
-                                                                            <div className="d-flex">
-                                                                                <div
+                                                                        <CardBody className="p-4">
+                                                                            <Box className="d-flex">
+                                                                                <Box
                                                                                     className="flex-grow-1 text-muted overflow-hidden">
                                                                                     <h5
                                                                                         className="fs-14 text-truncate mb-1">
@@ -1927,45 +1987,45 @@ const Profil = () => {
                                                                                         Last Update : <span
                                                                                             className="fw-semibold text-dark">4
                                                                                             hr Ago</span></p>
-                                                                                </div>
-                                                                                <div className="flex-shrink-0 ms-2">
-                                                                                    <div
+                                                                                </Box>
+                                                                                <Box className="flex-shrink-0 ms-2">
+                                                                                    <Box
                                                                                         className="badge badge-soft-success fs-10">
-                                                                                        Completed</div>
-                                                                                </div>
-                                                                            </div>
+                                                                                        Completed</Box>
+                                                                                </Box>
+                                                                            </Box>
 
-                                                                            <div className="d-flex mt-4">
-                                                                                <div className="flex-grow-1">
-                                                                                    <div
+                                                                            <Box className="d-flex mt-4">
+                                                                                <Box className="flex-grow-1">
+                                                                                    <Box
                                                                                         className="d-flex align-items-center gap-2">
-                                                                                        <div>
+                                                                                        <Box>
                                                                                             <h5
                                                                                                 className="fs-12 text-muted mb-0">
                                                                                                 Members :</h5>
-                                                                                        </div>
-                                                                                        <div className="avatar-group">
-                                                                                            <div
+                                                                                        </Box>
+                                                                                        <Box className="avatar-group">
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar4}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar5}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </CardContent>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardBody>
 
                                                                     </Card>
 
@@ -1973,9 +2033,9 @@ const Profil = () => {
 
                                                                 <SwiperSlide>
                                                                     <Card className="profile-project-card shadow-none profile-project-warning mb-0">
-                                                                        <CardContent className="p-4">
-                                                                            <div className="d-flex">
-                                                                                <div className="flex-grow-1 text-muted overflow-hidden">
+                                                                        <CardBody className="p-4">
+                                                                            <Box className="d-flex">
+                                                                                <Box className="flex-grow-1 text-muted overflow-hidden">
                                                                                     <h5 className="fs-14 text-truncate mb-1">
                                                                                         <Link to="#" className="text-dark">Chat App</Link></h5>
                                                                                     <p
@@ -1983,92 +2043,143 @@ const Profil = () => {
                                                                                         Last Update : <span
                                                                                             className="fw-semibold text-dark">1
                                                                                             hr Ago</span></p>
-                                                                                </div>
-                                                                                <div className="flex-shrink-0 ms-2">
-                                                                                    <div
+                                                                                </Box>
+                                                                                <Box className="flex-shrink-0 ms-2">
+                                                                                    <Box
                                                                                         className="badge badge-soft-warning fs-10">
-                                                                                        Inprogress</div>
-                                                                                </div>
-                                                                            </div>
+                                                                                        Inprogress</Box>
+                                                                                </Box>
+                                                                            </Box>
 
-                                                                            <div className="d-flex mt-4">
-                                                                                <div className="flex-grow-1">
-                                                                                    <div
+                                                                            <Box className="d-flex mt-4">
+                                                                                <Box className="flex-grow-1">
+                                                                                    <Box
                                                                                         className="d-flex align-items-center gap-2">
-                                                                                        <div>
+                                                                                        <Box>
                                                                                             <h5
                                                                                                 className="fs-12 text-muted mb-0">
                                                                                                 Members :</h5>
-                                                                                        </div>
-                                                                                        <div className="avatar-group">
-                                                                                            <div
+                                                                                        </Box>
+                                                                                        <Box className="avatar-group">
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar4}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
+                                                                                                <Box className="avatar-xs">
                                                                                                     <img src={avatar5}
                                                                                                         alt=""
                                                                                                         className="rounded-circle img-fluid" />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                            <Box
                                                                                                 className="avatar-group-item">
-                                                                                                <div className="avatar-xs">
-                                                                                                    <div
+                                                                                                <Box className="avatar-xs">
+                                                                                                    <Box
                                                                                                         className="avatar-title rounded-circle bg-light text-primary">
                                                                                                         A
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </CardContent>
+                                                                                                    </Box>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardBody>
                                                                     </Card>
                                                                 </SwiperSlide>
-                                                            </div>
+                                                            </Box>
                                                         </Swiper>
-                                                    </CardContent>
-                                                </Card>
-                                            </Grid>
-                                        </Grid>
-                                    </TabPanel>
-                                    <TabPanel value={null} index={null} tabId="2">
+                                                    </CardBody>
+                                                </Card> */}
+                                            </Col>
+                                        </Row>
+                                    </TabPane>
+
+                                    <TabPane tabId="2">
                                         <Card>
-                                            <CardContent>
-                                                <h5 className="card-title mb-3">Activities</h5>
-                                                <div className="acitivity-timeline">
-                                                    <div className="acitivity-item d-flex">
-                                                        <div className="flex-shrink-0">
+                                            <CardBody>
+                                                <h5 className="card-title mb-3">Statistics</h5>
+                                                <Box className="acitivity-timeline">
+                                                                                                    
+                                                    {/* <Box>
+                                                    { skills && <BasicColumn 
+                                                            dataColors='["--vz-danger", "--vz-primary", "--vz-success"]' 
+                                                            title='level'
+                                                            categories={skills.labels}
+                                                            names={[skills.ListOflevelISets && "self score", skills.averageList && "Average score", skills.ListOflevelMyManagerSet && "Manager's score"]}
+                                                            data={[skills.ListOflevelISets ? skills.ListOflevelISets : [] ,skills.averageList? skills.averageList : [] ,skills.ListOflevelMyManagerSet? skills.ListOflevelMyManagerSet: []]}
+                                                            />}
+                                                    </Box>
+                                                    <Box>
+                                                        { skills && 
+                                                        <SimpleRadar dataColors='["--vz-success"]'/>}
+                                                    </Box> */}
+
+                                                    <Row>
+                                                        <Col xl={8}>
+                                                            <Card>
+                                                                <CardHeader>
+                                                                    <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Specific Skills Chart</h4>
+                                                                    { skills && <BasicColumn 
+                                                                        dataColors='["--vz-danger", "--vz-primary", "--vz-success"]' 
+                                                                        title='level'
+                                                                        categories={skills.labels}
+                                                                        names={[skills.ListOflevelISets && "self score", skills.averageList && "Average score", skills.ListOflevelMyManagerSet && "Manager's score"]}
+                                                                        data={[skills.ListOflevelISets ? skills.ListOflevelISets : [] ,skills.averageList? skills.averageList : [] ,skills.ListOflevelMyManagerSet? skills.ListOflevelMyManagerSet: []]}
+                                                                        />}
+                                                                </CardHeader>
+
+                                                                <CardBody>
+                                                                </CardBody>
+                                                            </Card>
+                                                        </Col>
+                                                        <Col xl={4}>
+                                                            <Card>
+                                                                <CardHeader>
+                                                                    <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Core Competencies Chart</h4>
+                                                                </CardHeader>
+                                                                <CardBody>
+                                                                    { skills && 
+                                                                        <SimpleRadar
+                                                                            categories={['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']}
+                                                                            names={["Series 1", "Series 2", "Series 3"]} 
+                                                                            data={[[skillsRadar.Analytical, skillsRadar.Creative, skillsRadar.Soft, skillsRadar.Managerial, skillsRadar.Interpersonal, skillsRadar.Technical]]}
+                                                                            dataColors='["--vz-success"]'/>
+                                                                    }                                                                
+                                                                </CardBody>
+                                                            </Card>
+                                                        </Col>
+                                                    </Row>
+                                                    {/* <Box className="acitivity-item d-flex">
+                                                        <Box className="flex-shrink-0">
                                                             <img src={avatar1} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Oliver Phillips <span
                                                                 className="badge bg-soft-primary text-primary align-middle">New</span>
                                                             </h6>
                                                             <p className="text-muted mb-2">We talked about a project on linkedin.</p>
                                                             <small className="mb-0 text-muted">Today</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0 avatar-xs acitivity-avatar">
-                                                            <div className="avatar-title bg-soft-success text-success rounded-circle"> N </div>
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0 avatar-xs acitivity-avatar">
+                                                            <Box className="avatar-title bg-soft-success text-success rounded-circle"> N </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Nancy Martino <span
                                                                 className="badge bg-soft-secondary text-secondary align-middle">In
-                                                                LinearProgress</span></h6>
+                                                                Progress</span></h6>
                                                             <p className="text-muted mb-2"><i
                                                                 className="ri-file-text-line align-middle ms-2"></i>
                                                                 Create new project Buildng product</p>
-                                                            <div className="avatar-group mb-2">
+                                                            <Box className="avatar-group mb-2">
                                                                 <Link to="#" className="avatar-group-item"
                                                                     data-bs-toggle="tooltip" data-bs-placement="top"
                                                                     title="" data-bs-original-title="Christi">
@@ -2084,123 +2195,123 @@ const Profil = () => {
                                                                 <Link to="#" className="avatar-group-item"
                                                                     data-bs-toggle="tooltip" data-bs-placement="top"
                                                                     title="" data-bs-original-title=" Ruby">
-                                                                    <div className="avatar-xs">
-                                                                        <div className="avatar-title rounded-circle bg-light text-primary">R</div>
-                                                                    </div>
+                                                                    <Box className="avatar-xs">
+                                                                        <Box className="avatar-title rounded-circle bg-light text-primary">R</Box>
+                                                                    </Box>
                                                                 </Link>
                                                                 <Link to="#" className="avatar-group-item"
                                                                     data-bs-toggle="tooltip" data-bs-placement="top"
                                                                     title="" data-bs-original-title="more">
-                                                                    <div className="avatar-xs">
-                                                                        <div className="avatar-title rounded-circle">
+                                                                    <Box className="avatar-xs">
+                                                                        <Box className="avatar-title rounded-circle">
                                                                             2+
-                                                                        </div>
-                                                                    </div>
+                                                                        </Box>
+                                                                    </Box>
                                                                 </Link>
-                                                            </div>
+                                                            </Box>
                                                             <small className="mb-0 text-muted">Yesterday</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0">
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
                                                             <img src={avatar2} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Natasha Carey <span className="badge bg-soft-success text-success align-middle">Completed</span>
                                                             </h6>
                                                             <p className="text-muted mb-2">Adding a new event with
                                                                 attachments</p>
-                                                            <Grid container spacing={4}>
-                                                                <Grid xxl={4}>
-                                                                    <div className="row border border-dashed gx-2 p-2 mb-2">
-                                                                        <div className="Grid-4">
+                                                            <Row >
+                                                                <Col xxl={4}>
+                                                                    <Box className="row border border-dashed gx-2 p-2 mb-2">
+                                                                        <Box className="col-4">
                                                                             <img src={smallImage2}
                                                                                 alt="" className="img-fluid rounded" />
-                                                                        </div>
+                                                                        </Box>
 
-                                                                        <div className="Grid-4">
+                                                                        <Box className="col-4">
                                                                             <img src={smallImage3}
                                                                                 alt="" className="img-fluid rounded" />
-                                                                        </div>
+                                                                        </Box>
 
-                                                                        <div className="Grid-4">
+                                                                        <Box className="col-4">
                                                                             <img src={smallImage4}
                                                                                 alt="" className="img-fluid rounded" />
-                                                                        </div>
+                                                                        </Box>
 
-                                                                    </div>
+                                                                    </Box>
 
-                                                                </Grid>
-                                                            </Grid>
+                                                                </Col>
+                                                            </Row>
                                                             <small className="mb-0 text-muted">25 Nov</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0">
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
                                                             <img src={avatar6} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Bethany Johnson</h6>
                                                             <p className="text-muted mb-2">added a new member to velzon
                                                                 dashboard</p>
                                                             <small className="mb-0 text-muted">19 Nov</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0">
-                                                            <div className="avatar-xs acitivity-avatar">
-                                                                <div
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <Box className="avatar-xs acitivity-avatar">
+                                                                <Box
                                                                     className="avatar-title rounded-circle bg-soft-danger text-danger">
                                                                     <i className="ri-shopping-bag-line"></i>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Your order is placed <span
                                                                 className="badge bg-soft-danger text-danger align-middle ms-1">Out
                                                                 of Delivery</span></h6>
                                                             <p className="text-muted mb-2">These customers can rest assured
                                                                 their order has been placed.</p>
                                                             <small className="mb-0 text-muted">16 Nov</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0">
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
                                                             <img src={avatar7} alt=""
                                                                 className="avatar-xs rounded-circle acitivity-avatar" />
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Lewis Pratt</h6>
                                                             <p className="text-muted mb-2">They all have something to say
                                                                 beyond the words on the page. They can come across as
                                                                 casual or neutral, exotic or graphic. </p>
                                                             <small className="mb-0 text-muted">22 Oct</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item py-3 d-flex">
-                                                        <div className="flex-shrink-0">
-                                                            <div className="avatar-xs acitivity-avatar">
-                                                                <div
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <Box className="avatar-xs acitivity-avatar">
+                                                                <Box
                                                                     className="avatar-title rounded-circle bg-soft-info text-info">
                                                                     <i className="ri-line-chart-line"></i>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">Monthly sales report</h6>
                                                             <p className="text-muted mb-2"><span className="text-danger">2 days
                                                                 left</span> notification to submit the monthly sales
                                                                 report. <Link to="#" className="link-warning text-decoration-underline">Reports
                                                                     Builder</Link></p>
                                                             <small className="mb-0 text-muted">15 Oct</small>
-                                                        </div>
-                                                    </div>
-                                                    <div className="acitivity-item d-flex">
-                                                        <div className="flex-shrink-0">
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item d-flex">
+                                                        <Box className="flex-shrink-0">
                                                             <img src={avatar8} alt=""
                                                                 className="avatar-xs rounded-circle acitivity-avatar" />
-                                                        </div>
-                                                        <div className="flex-grow-1 ms-3">
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
                                                             <h6 className="mb-1">New ticket received <span
                                                                 className="badge bg-soft-success text-success align-middle">Completed</span>
                                                             </h6>
@@ -2208,187 +2319,342 @@ const Profil = () => {
                                                                 className="text-secondary">Erica245</span> submitted a
                                                                 ticket.</p>
                                                             <small className="mb-0 text-muted">26 Aug</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
+                                                        </Box>
+                                                    </Box> */}
+                                                </Box>
+                                            </CardBody>
                                         </Card>
-                                    </TabPanel>
+                                    </TabPane>
 
-                                    <TabPanel value={null} index={null} tabId="3">
+                                    {/* <TabPane tabId="3">
                                         <Card>
-                                            <CardContent>
-                                                <Grid container spacing={4}>
+                                            <CardBody>
+                                                <h5 className="card-title mb-3">Activities</h5>
+                                                <Box className="acitivity-timeline">
+                                                    <Box className="acitivity-item d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <img src={avatar1} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Oliver Phillips <span
+                                                                className="badge bg-soft-primary text-primary align-middle">New</span>
+                                                            </h6>
+                                                            <p className="text-muted mb-2">We talked about a project on linkedin.</p>
+                                                            <small className="mb-0 text-muted">Today</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0 avatar-xs acitivity-avatar">
+                                                            <Box className="avatar-title bg-soft-success text-success rounded-circle"> N </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Nancy Martino <span
+                                                                className="badge bg-soft-secondary text-secondary align-middle">In
+                                                                Progress</span></h6>
+                                                            <p className="text-muted mb-2"><i
+                                                                className="ri-file-text-line align-middle ms-2"></i>
+                                                                Create new project Buildng product</p>
+                                                            <Box className="avatar-group mb-2">
+                                                                <Link to="#" className="avatar-group-item"
+                                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                    title="" data-bs-original-title="Christi">
+                                                                    <img src={avatar4} alt=""
+                                                                        className="rounded-circle avatar-xs" />
+                                                                </Link>
+                                                                <Link to="#" className="avatar-group-item"
+                                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                    title="" data-bs-original-title="Frank Hook">
+                                                                    <img src={avatar3} alt=""
+                                                                        className="rounded-circle avatar-xs" />
+                                                                </Link>
+                                                                <Link to="#" className="avatar-group-item"
+                                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                    title="" data-bs-original-title=" Ruby">
+                                                                    <Box className="avatar-xs">
+                                                                        <Box className="avatar-title rounded-circle bg-light text-primary">R</Box>
+                                                                    </Box>
+                                                                </Link>
+                                                                <Link to="#" className="avatar-group-item"
+                                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                    title="" data-bs-original-title="more">
+                                                                    <Box className="avatar-xs">
+                                                                        <Box className="avatar-title rounded-circle">
+                                                                            2+
+                                                                        </Box>
+                                                                    </Box>
+                                                                </Link>
+                                                            </Box>
+                                                            <small className="mb-0 text-muted">Yesterday</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <img src={avatar2} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Natasha Carey <span className="badge bg-soft-success text-success align-middle">Completed</span>
+                                                            </h6>
+                                                            <p className="text-muted mb-2">Adding a new event with
+                                                                attachments</p>
+                                                            <Row >
+                                                                <Col xxl={4}>
+                                                                    <Box className="row border border-dashed gx-2 p-2 mb-2">
+                                                                        <Box className="col-4">
+                                                                            <img src={smallImage2}
+                                                                                alt="" className="img-fluid rounded" />
+                                                                        </Box>
+
+                                                                        <Box className="col-4">
+                                                                            <img src={smallImage3}
+                                                                                alt="" className="img-fluid rounded" />
+                                                                        </Box>
+
+                                                                        <Box className="col-4">
+                                                                            <img src={smallImage4}
+                                                                                alt="" className="img-fluid rounded" />
+                                                                        </Box>
+
+                                                                    </Box>
+
+                                                                </Col>
+                                                            </Row>
+                                                            <small className="mb-0 text-muted">25 Nov</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <img src={avatar6} alt="" className="avatar-xs rounded-circle acitivity-avatar" />
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Bethany Johnson</h6>
+                                                            <p className="text-muted mb-2">added a new member to velzon
+                                                                dashboard</p>
+                                                            <small className="mb-0 text-muted">19 Nov</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <Box className="avatar-xs acitivity-avatar">
+                                                                <Box
+                                                                    className="avatar-title rounded-circle bg-soft-danger text-danger">
+                                                                    <i className="ri-shopping-bag-line"></i>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Your order is placed <span
+                                                                className="badge bg-soft-danger text-danger align-middle ms-1">Out
+                                                                of Delivery</span></h6>
+                                                            <p className="text-muted mb-2">These customers can rest assured
+                                                                their order has been placed.</p>
+                                                            <small className="mb-0 text-muted">16 Nov</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <img src={avatar7} alt=""
+                                                                className="avatar-xs rounded-circle acitivity-avatar" />
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Lewis Pratt</h6>
+                                                            <p className="text-muted mb-2">They all have something to say
+                                                                beyond the words on the page. They can come across as
+                                                                casual or neutral, exotic or graphic. </p>
+                                                            <small className="mb-0 text-muted">22 Oct</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item py-3 d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <Box className="avatar-xs acitivity-avatar">
+                                                                <Box
+                                                                    className="avatar-title rounded-circle bg-soft-info text-info">
+                                                                    <i className="ri-line-chart-line"></i>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">Monthly sales report</h6>
+                                                            <p className="text-muted mb-2"><span className="text-danger">2 days
+                                                                left</span> notification to submit the monthly sales
+                                                                report. <Link to="#" className="link-warning text-decoration-underline">Reports
+                                                                    Builder</Link></p>
+                                                            <small className="mb-0 text-muted">15 Oct</small>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box className="acitivity-item d-flex">
+                                                        <Box className="flex-shrink-0">
+                                                            <img src={avatar8} alt=""
+                                                                className="avatar-xs rounded-circle acitivity-avatar" />
+                                                        </Box>
+                                                        <Box className="flex-grow-1 ms-3">
+                                                            <h6 className="mb-1">New ticket received <span
+                                                                className="badge bg-soft-success text-success align-middle">Completed</span>
+                                                            </h6>
+                                                            <p className="text-muted mb-2">User <span
+                                                                className="text-secondary">Erica245</span> submitted a
+                                                                ticket.</p>
+                                                            <small className="mb-0 text-muted">26 Aug</small>
+                                                        </Box>
+                                                    </Box>
+                                                </Box>
+                                            </CardBody>
+                                        </Card>
+                                    </TabPane>
+
+                                    <TabPane tabId="4">
+                                        <Card>
+                                            <CardBody>
+                                                <Row>
                                                     {(projects || []).map((item, key) => (
-                                                        <Grid xxl={3} sm={6} key={key}>
-                                                            <Card className={`profile-project-card shadow-none profile-project-${item.cardBorderGridor}`}>
-                                                                <CardContent className="p-4">
-                                                                    <div className="d-flex">
-                                                                        <div className="flex-grow-1 text-muted overflow-hidden">
+                                                        <Col xxl={3} sm={6} key={key}>
+                                                            <Card className={`profile-project-card shadow-none profile-project-${item.cardBorderColor}`}>
+                                                                <CardBody className="p-4">
+                                                                    <Box className="d-flex">
+                                                                        <Box className="flex-grow-1 text-muted overflow-hidden">
                                                                             <h5 className="fs-14 text-truncate"><Link to="#"
                                                                                 className="text-dark">{item.title}</Link>
                                                                             </h5>
                                                                             <p className="text-muted text-truncate mb-0">Last
                                                                                 Update : <span
                                                                                     className="fw-semibold text-dark">{item.updatedTime}</span></p>
-                                                                        </div>
-                                                                        <div className="flex-shrink-0 ms-2">
-                                                                            <div className={`badge badge-soft-${item.badgeClass} fs-10`}>
-                                                                                {item.badgeText}</div>
-                                                                        </div>
-                                                                    </div>
+                                                                        </Box>
+                                                                        <Box className="flex-shrink-0 ms-2">
+                                                                            <Box className={`badge badge-soft-${item.badgeClass} fs-10`}>
+                                                                                {item.badgeText}</Box>
+                                                                        </Box>
+                                                                    </Box>
 
-                                                                    <div className="d-flex mt-4">
-                                                                        <div className="flex-grow-1">
-                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                <div>
+                                                                    <Box className="d-flex mt-4">
+                                                                        <Box className="flex-grow-1">
+                                                                            <Box className="d-flex align-items-center gap-2">
+                                                                                <Box>
                                                                                     <h5 className="fs-12 text-muted mb-0">
                                                                                         Members :</h5>
-                                                                                </div>
-                                                                                <div className="avatar-group">
+                                                                                </Box>
+                                                                                <Box className="avatar-group">
                                                                                     {(item.member || []).map((subitem, key) => (
-                                                                                        <div className="avatar-group-item" key={key}>
-                                                                                            <div className="avatar-xs">
+                                                                                        <Box className="avatar-group-item" key={key}>
+                                                                                            <Box className="avatar-xs">
                                                                                                 <img src={subitem.img} alt="" className="rounded-circle img-fluid" />
-                                                                                            </div>
-                                                                                        </div>
+                                                                                            </Box>
+                                                                                        </Box>
                                                                                     ))}
 
                                                                                     {(item.memberName || []).map((element, key) => (
-                                                                                        <div className="avatar-group-item" key={key}>
-                                                                                            <div className="avatar-xs">
-                                                                                                <div
+                                                                                        <Box className="avatar-group-item" key={key}>
+                                                                                            <Box className="avatar-xs">
+                                                                                                <Box
                                                                                                     className="avatar-title rounded-circle bg-light text-primary">
                                                                                                     {element.memberText}
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
+                                                                                                </Box>
+                                                                                            </Box>
+                                                                                        </Box>
                                                                                     ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </CardContent>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </Box>
+                                                                    </Box>
+                                                                </CardBody>
                                                             </Card>
-                                                        </Grid>
+                                                        </Col>
                                                     ))}
-                                                    <Grid lg={12}>
-                                                    <Pagination
-                                                        classes={{ ul: 'justify-content-center', separator: 'pagination-separated mb-0' }}
-                                                        >
-                                                        <PaginationItem disabled>
-                                                            <Link  href="#">
-                                                            <i className="mdi mdi-chevron-left" />
-                                                            </Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem active>
-                                                            <Link  href="#">1</Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem>
-                                                            <Link  href="#">2</Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem>
-                                                            <Link  href="#">3</Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem>
-                                                            <Link  href="#">4</Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem>
-                                                            <Link  href="#">5</Link >
-                                                        </PaginationItem>
-                                                        <PaginationItem>
-                                                            <Link  href="#">
-                                                            <i className="mdi mdi-chevron-right" />
-                                                            </Link >
-                                                        </PaginationItem>
+                                                    <Col lg={12}>
+                                                        <Pagination listClassName="justify-content-center" className="pagination-separated mb-0">
+                                                            <PaginationItem disabled> <PaginationLink to="#"> <i className="mdi mdi-chevron-left" /> </PaginationLink> </PaginationItem>
+                                                            <PaginationItem active> <PaginationLink to="#"> 1 </PaginationLink> </PaginationItem>
+                                                            <PaginationItem> <PaginationLink to="#"> 2 </PaginationLink> </PaginationItem>
+                                                            <PaginationItem> <PaginationLink to="#"> 3 </PaginationLink> </PaginationItem>
+                                                            <PaginationItem> <PaginationLink to="#"> 4 </PaginationLink> </PaginationItem>
+                                                            <PaginationItem> <PaginationLink to="#"> 5 </PaginationLink> </PaginationItem>
+                                                            <PaginationItem> <PaginationLink to="#"> <i className="mdi mdi-chevron-right" /> </PaginationLink> </PaginationItem>
                                                         </Pagination>
-                                                    </Grid>
-                                                </Grid>
-                                            </CardContent>
+                                                    </Col>
+                                                </Row>
+                                            </CardBody>
                                         </Card>
-                                    </TabPanel>
+                                    </TabPane>
 
-                                    <TabPanel value={null} index={null} tabId="4">
+                                    <TabPane tabId="5">
                                         <Card>
-                                            <CardContent>
-                                                <div className="d-flex align-items-center mb-4">
+                                            <CardBody>
+                                                <Box className="d-flex align-items-center mb-4">
                                                     <h5 className="card-title flex-grow-1 mb-0">Documents</h5>
-                                                    <div className="flex-shrink-0">
+                                                    <Box className="flex-shrink-0">
                                                         <Input className="form-control d-none" type="file" id="formFile" />
-                                                        <Typography variant="subtitle1" htmlFor="formFile" className="btn btn-danger"><i className="ri-upload-2-fill me-1 align-bottom"></i> Upload
-                                                            File</Typography >
-                                                    </div>
-                                                </div>
-                                                <Grid container spacing={4}>
-                                                    <Grid lg={12}>
-                                                        <div className="table-responsive">
+                                                        <Label htmlFor="formFile" className="btn btn-danger"><i className="ri-upload-2-fill me-1 align-bottom"></i> Upload
+                                                            File</Label>
+                                                    </Box>
+                                                </Box>
+                                                <Row>
+                                                    <Col lg={12}>
+                                                        <Box className="table-responsive">
                                                             <Table className="table-borderless align-middle mb-0">
                                                                 <thead className="table-light">
                                                                     <tr>
-                                                                        <th scope="Grid">File Name</th>
-                                                                        <th scope="Grid">Type</th>
-                                                                        <th scope="Grid">Size</th>
-                                                                        <th scope="Grid">Upload Date</th>
-                                                                        <th scope="Grid">Action</th>
+                                                                        <th scope="col">File Name</th>
+                                                                        <th scope="col">Type</th>
+                                                                        <th scope="col">Size</th>
+                                                                        <th scope="col">Upload Date</th>
+                                                                        <th scope="col">Action</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
                                                                     {(document || []).map((item, key) => (
                                                                         <tr key={key}>
                                                                             <td>
-                                                                                <div className="d-flex align-items-center">
-                                                                                    <div className="avatar-sm">
-                                                                                        <div
+                                                                                <Box className="d-flex align-items-center">
+                                                                                    <Box className="avatar-sm">
+                                                                                        <Box
                                                                                             className={`avatar-title bg-soft-${item.iconBackgroundClass} text-${item.iconBackgroundClass} rounded fs-20`}>
                                                                                             <i className={item.icon}></i>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="ms-3 flex-grow-1">
+                                                                                        </Box>
+                                                                                    </Box>
+                                                                                    <Box className="ms-3 flex-grow-1">
                                                                                         <h6 className="fs-15 mb-0"><Link to="#">{item.fileName}</Link>
                                                                                         </h6>
-                                                                                    </div>
-                                                                                </div>
+                                                                                    </Box>
+                                                                                </Box>
                                                                             </td>
                                                                             <td>{item.fileType}</td>
                                                                             <td>{item.fileSize}</td>
                                                                             <td>{item.updatedDate}</td>
                                                                             <td>
-                                                                                <Select direction='start'>
-                                                                                    <IconButton tag="a" className="btn btn-light btn-icon" id="MenuListLink15" role="button">
+                                                                                <UncontrolledDropdown direction='start'>
+                                                                                    <DropdownToggle tag="a" className="btn btn-light btn-icon" id="dropdownMenuLink15" role="button">
                                                                                         <i className="ri-equalizer-fill"></i>
-                                                                                    </IconButton>
-                                                                                    <MenuList>
-                                                                                        <MenuItem><i className="ri-eye-fill me-2 align-middle text-muted" />View</MenuItem>
-                                                                                        <MenuItem><i className="ri-download-2-fill me-2 align-middle text-muted" />Download</MenuItem>
-                                                                                        <MenuItem divider />
-                                                                                        <MenuItem><i className="ri-delete-bin-5-line me-2 align-middle text-muted" />Delete</MenuItem>
-                                                                                    </MenuList>
-                                                                                </Select>
+                                                                                    </DropdownToggle>
+                                                                                    <DropdownMenu>
+                                                                                        <DropdownItem><i className="ri-eye-fill me-2 align-middle text-muted" />View</DropdownItem>
+                                                                                        <DropdownItem><i className="ri-download-2-fill me-2 align-middle text-muted" />Download</DropdownItem>
+                                                                                        <DropdownItem divider />
+                                                                                        <DropdownItem><i className="ri-delete-bin-5-line me-2 align-middle text-muted" />Delete</DropdownItem>
+                                                                                    </DropdownMenu>
+                                                                                </UncontrolledDropdown>
                                                                             </td>
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>
                                                             </Table>
-                                                        </div>
-                                                        <div className="text-center mt-3">
+                                                        </Box>
+                                                        <Box className="text-center mt-3">
                                                             <Link to="#" className="text-success "><i
                                                                 className="mdi mdi-loading mdi-spin fs-20 align-middle me-2"></i>
                                                                 Load more </Link>
-                                                        </div>
-                                                    </Grid>
-                                                </Grid>
-                                            </CardContent>
+                                                        </Box>
+                                                    </Col>
+                                                </Row>
+                                            </CardBody>
                                         </Card>
-                                    </TabPanel>
-                                </TabContext>
-                            </div>
-                        </Grid>
-                    </Grid>
+                                    </TabPane> */}
+                                </TabContent>
+                            </Box>
+                        </Col>
+                    </Row>
 
                 </Container>
-            </div>
+            </Box>
         </>
     );
 };
 
-export default Profil;
+export default SimplePage;

@@ -5,6 +5,8 @@
 .table {
     th {
         font-weight: $font-weight-semibold;
+        white-space: nowrap;
+
     }
 
     .table-light {

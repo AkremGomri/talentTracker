@@ -65,7 +65,7 @@ exports.Delete = Model => catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (!myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Model.deleteMany(filter)
+    if (myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Model.deleteMany(filter)
     else result = await Model.updateMany(
         filter,
         { $set: { "deleted": true } }
@@ -94,10 +94,11 @@ function extractAllowedFields (data, allowedFields) { // this function extracts 
 
 function getMyPermissions (req, subject, next) { // this function extracts the users permissions related to a specific subject and a specific action. For example: ['name', 'permissions'] of the 'fields' subject and 'Get' action.
     const  method = req.method[0].charAt(0).toUpperCase() + req.method.slice(1).toLowerCase();
+    const myPermissions = req.user.role.permissions.find(p => {
+        console.log("subject: ",subject);
+        console.log("p.subject: ",p.subject);
+        return p.subject === subject});
 
-    const myPermissions = req.user.role.permissions.find(p => p.subject === subject);
-    // console.log("myPermissions: ",myPermissions);
-    // console.log("method: ",method);
     if(!myPermissions){
         return next(new AppError('You do not have permission to access this resource', 403));
     }
