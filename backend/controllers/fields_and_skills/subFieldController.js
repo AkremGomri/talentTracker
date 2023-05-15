@@ -2,13 +2,13 @@ const { default: mongoose } = require('mongoose');
 const SubField = require('../../models/fields_and_skills/subFieldModel');
 const catchAsync = require('../../utils/catchAsync');
 const factory = require('../handleFactory');
+const { fields } = require('../../utils/constants/users_abilities');
 
 exports.createSubFields = catchAsync(async (req, res, next) => {
     
     const  modelsToCreate = req.body[`${SubField.collection.name}`] || req.body[`${SubField.collection.name.slice(0, -1)}`] || req.body;
     const myPermissions = factory.getMyPermissions(req, 'subfields', next);
     const dataToStore = factory.extractAllowedFields(modelsToCreate, myPermissions);
-
     const subFields = await SubField.insertMany(dataToStore);
     res.status(201).json({
         status: 'success',
@@ -31,10 +31,12 @@ exports.getSubFields = catchAsync(async (req, res, next) => {
 
     const subFields = await SubField.find(filter, mysubFieldPermit).populate({
         path: 'childrenItems',
-        select: myskillsPermit
+        select: myskillsPermit,
+        match: { deleted: { $ne: true } }
     }).populate({
         path: 'parentItem',
-        select: myfieldPermit
+        select: myfieldPermit,
+        match: { deleted: { $ne: true } }
       })
 
     // const subFields = factory.Read(req, SubField, myPermissions);
@@ -81,7 +83,7 @@ exports.deleteSubFields = catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (!myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await SubField.deleteMany(filter);
+    if (myPermissions.includes(fields.hardDelete) && req.query.hard || req.body.delete === 'hard') result = await SubField.deleteMany(filter);
     else result = await SubField.updateMany(
         filter,
         { $set: { "deleted": true } }

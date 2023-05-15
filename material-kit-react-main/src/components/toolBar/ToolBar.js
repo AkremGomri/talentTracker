@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-unreachable */
 import PropTypes from 'prop-types';
 // @mui
@@ -73,8 +74,6 @@ export default function ToolBar(props) {
 
   const selectedItem = useSelector(selectSelectedItem);
 
-  console.log("selectedItem: ",selectedItem);
-
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openAddCategory, setOpenAddCategory] = useState(false);
   const [openAddItem, setOpenAddItem] = useState(false);
@@ -91,7 +90,7 @@ export default function ToolBar(props) {
   };
 
   const handleOpenAddItem = (data = null) => {
-    if(!selectedItem._id) return;
+    if(!selectedItem._id) return alert('please select a category or a field first');
     if (typeof data === 'boolean') setOpenAddItem(data);
     else setOpenAddItem(!openAddItem);
   };
@@ -153,10 +152,11 @@ export default function ToolBar(props) {
   );
 
   async function deleteSelectedItem(item) {
+    console.log('item: ', item);
     try {
-      if (item.type === 'field') await request.send('DELETE', `/api/fields/${item._id}`);
-      else if (item.type === 'subField') await request.send('DELETE', `/api/subFields/${item._id}`);
-      else if (item.type === 'skill') await request.send('DELETE', `/api/skills/${item._id}`);
+      if (item.type === 'field') await request.send('DELETE', `/api/fields/${item._id}/?hard=true`);
+      else if (item.type === 'subField') await request.send('DELETE', `/api/subFields/${item._id}/?hard=true`);
+      else if (item.type === 'skill') await request.send('DELETE', `/api/skills/${item._id}/?hard=true`);
       // else if(item.type === 'skill') await request.send('DELETE', `/api/skills/${item._id}`);
       dispatch(deleteItem(item));
     } catch (error) {

@@ -1,5 +1,6 @@
 const Field = require('../../models/fields_and_skills/fieldModel');
 const catchAsync = require('../../utils/catchAsync');
+const { fields } = require('../../utils/constants/users_abilities');
 const factory = require('../handleFactory');
 
 exports.createFields = catchAsync(async (req, res, next) => {
@@ -24,14 +25,9 @@ exports.getFields = catchAsync(async (req, res, next) => {
     const filter = name? { name } : id? { _id: id } : {};
     filter.deleted = false;
 
-    console.log("filter: ",filter);
     const myfieldPermit = factory.getMyPermissions(req, 'fields', next).join(' ');
     const mysubFieldPermit = factory.getMyPermissions(req, 'subfields', next).join(' ');
     const mySkillsPermit = factory.getMyPermissions(req, 'skills', next).join(' ');
-
-    console.log("myfieldPermit: ",myfieldPermit);
-    console.log("mysubFieldPermit: ",mysubFieldPermit);
-    console.log("mySkillsPermit: ",mySkillsPermit);
 
     const fields = await Field.find(filter, myfieldPermit).populate({
         path: 'childrenItems',
@@ -39,8 +35,10 @@ exports.getFields = catchAsync(async (req, res, next) => {
         populate: {
             path: 'childrenItems',
             select: mySkillsPermit,
+            match: { deleted: { $ne: true } },
             populate: {
                 path: 'childrenItems',
+                match: { deleted: { $ne: true } }
             }
         }
       });
@@ -99,7 +97,7 @@ exports.deleteFields = catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Field.deleteMany(filter);
+    if (myPermissions.includes(fields.hardDelete) && req.query.hard || req.body.delete === 'hard') result = await Field.deleteMany(filter);
     else result = await Field.updateMany(
         filter,
         { $set: { "deleted": true } }

@@ -192,16 +192,19 @@ exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
 exports.getProfil = catchAsync(async(req, res, next) => {
   const filter = (req.params.id || req.body._id)? { "_id": req.params.id || req.body._id } : req.body.email? { "email": req.body.email } : {};
 
-  console.log('filter: ',filter);
   const user = await User.find(filter).select('-password -deleted -__v').populate({
     path: 'jobTitle role',
-    select: "name description"
+    select: "name description",
+    deleted: { $ne: true }
 }).populate({
   path: 'skills.skill',
+  deleted: { $ne: true }
 }).populate({
   path: 'skills.skill',
+  deleted: { $ne: true },
   populate: {
-    path: 'parentItem'
+    path: 'parentItem',
+    deleted: { $ne: true }
   }
 });
 

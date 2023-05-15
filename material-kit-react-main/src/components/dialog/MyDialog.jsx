@@ -4,10 +4,8 @@ import ErrorBoundary from './Error';
 
 export default function MyDialog(props) {
     const { open, setOpen, message, action=null, title='Confirmation' } = props;
-    console.log("open: ", open);
     useEffect(() => {
-        console.log("open: ", open);
-        console.log("message: ", message);
+
     }, [open, message])
   return (
     <ErrorBoundary>

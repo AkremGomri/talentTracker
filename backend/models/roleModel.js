@@ -31,10 +31,25 @@ const permissionSchema = Joi.object({
         Joi.string().valid(
           ...Object.entries(constants.permissions).map(([key, value]) => {
             return value.fields;
-          }).flat(Infinity)
+          }).flat(Infinity), constants.fields.hardDelete
         )
-      ).required()
-    )
+      )
+      .required()
+      )
+  // actions: Joi.object().pattern(
+  //   Joi.string().valid(...Object.values(constants.actions)).required(),
+  //   Joi.when('subject', {
+  //     is: 'Delete',
+  //     then: Joi.array().items(Joi.string().valid('hardDelete')).required(),
+  //     otherwise: Joi.array().items(
+  //       Joi.string().valid(
+  //         ...Object.entries(constants.permissions).map(([key, value]) => {
+  //           return value.fields;
+  //         }).flat(Infinity)
+  //       )
+  //     ).required()
+  //   })
+  // )
     // actions: Joi.array().items(Joi.string().valid(...Object.values(constants.actions))).required(),
 });
 

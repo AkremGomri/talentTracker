@@ -29,7 +29,7 @@ const styles = {
   flexDirection: "row"
 }
 
-export default function AddSelectPermissionModal({ actions, permissions, addPermission }) {
+export default function AddSelectPermissionModal({ actions, permissions, addPermission, fields }) {
   const [open, setOpen] = useState(false);
 
   const [ permissionSelected, selectPermission ] = useState('');
@@ -44,6 +44,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
   const handleClick = (event) => {
     return setOpen(Boolean(event.currentTarget));
   };
+
   const handleClose = () => {
     setOpen(true);
   };
@@ -61,6 +62,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
   const handleChangePermissionType = (event, action) => {
     let newActionTypesSelected;
     let newResult;
+    console.log("actionTypesSelected", actionTypesSelected);
     if(actionTypesSelected.includes(action)){
       newActionTypesSelected = actionTypesSelected.filter(actionType => actionType !== action);
       newResult = {
@@ -80,7 +82,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
         actions: 
           {
             ...result.actions,
-            [action]: permissionSelected.fields
+            [action]: action === actions.Delete? [fields.hardDelete] : permissionSelected.fields // if the action is delete, then the fields are hardDelete, else the fields are all the fields of the subject
           }
       }
       setResult(newResult);
@@ -174,7 +176,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
           >
             <MenuItem value='' key='None' sx={{ display: 'none' }}>None</MenuItem>
 
-            {Object.values(actions).map((action) => (
+            {Object.values(actions).map((action, index) => (
               <NestedMenuItem
                 // {actionTypesSelected.includes(action) && sx={{background: "red"}} }
                 sx= { actionTypesSelected.includes(action) && {background: "#EDF4FB"} }
@@ -186,17 +188,25 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
                 parentMenuOpen={open}
               >
                   {
+                    action === actions.Delete? <MenuItem value={action} key={`${action} - ${fields.hardDelete}`}
+                    // style={{ display: 'flex', flexDirection: 'column', paddingLeft: "5px", width: 250, alignContent: "flexStart"}}
+                    data-value={action}
+                    onClick={(e) => handleChangeNestedSelect(e, action, fields.hardDelete)}
+              >
+                    <Checkbox key={`${fields.hardDelete} - ${index}`} checked={result.actions[action]?.includes(fields.hardDelete) } />
+                    <ListItemText key={fields.hardDelete} primary={fields.hardDelete} />
+                  </MenuItem> :
                     permissionSelected.fields.map((field, elem) => (
                       <MenuItem value={action} key={`${action} - ${field} - ${elem}`}
                         // style={{ display: 'flex', flexDirection: 'column', paddingLeft: "5px", width: 250, alignContent: "flexStart"}}
                         data-value={action}
                         onClick={(e) => handleChangeNestedSelect(e, action, field)}
                   >
-                          <Checkbox key={`${field} - ${elem}`} checked={result.actions[action]?.includes(field) } />
-                          <ListItemText key={field} primary={field} />
-                          </MenuItem>
-                    ))
-                  }
+                        <Checkbox key={`${field} - ${elem}`} checked={result.actions[action]?.includes(field) } />
+                        <ListItemText key={field} primary={field} />
+                      </MenuItem>
+                    )
+                  )}
               </NestedMenuItem>
             ))}
           </Select>

@@ -39,6 +39,50 @@ const subFieldSchema = new mongoose.Schema({
 //     }
 // });
 
+// !!!! attention, works only for insertMany
+//['save', 'insertMany', /^insert/, /^.*update.*$/i] //attention do not use on save, because it will trigure the onsave function of the parentItem or the children elements
+subFieldSchema.post('insertMany', async function (docs, next) {
+    for(const doc of docs){
+        let childItem;
+        let parentItem;
+        
+        // loop over the childrenItems array
+        if(doc.childrenItems){
+            for (const childItemId of doc.childrenItems) {
+                // console.log("*******childItemId: ",childItemId);
+                try {
+                // find the child item in the database
+                childItem = await mongoose.model('Skill').findById(childItemId);
+                if (!childItem) {
+                    // the child item was not found, skip it
+                    continue;
+                }
+                // update the parentItem field of the child item
+                // console.log("*******childItem.parentItem: ",childItem.parentItem);
+                childItem.parentItem = doc._id;
+                // console.log("*******childItem.parentItem: ",childItem.parentItem);
+                await childItem.save();
+                // add doc subfield item to the childrenItems array of the parentItem of the child item    
+                } catch (err) {
+                console.error(err);
+                // continue to the next child item even if there was an error
+                continue;
+                }
+            }
+        }
+        if(doc.parentItem){
+            parentItem = await mongoose.model('Field').findById(doc.parentItem);
+            // console.log("*******parentItem.childrenItems: ",parentItem.childrenItems);
+                // the parent item was not found, skip it
+            parentItem.childrenItems.push(doc._id);
+            // console.log("*******parentItem.childrenItems: ",parentItem.childrenItems);
+            await parentItem.save();
+        }
+    }
+
+    next();
+  });
+
 subFieldSchema.pre(/^find/, function () {
     this.where({ deleted: false });
 });

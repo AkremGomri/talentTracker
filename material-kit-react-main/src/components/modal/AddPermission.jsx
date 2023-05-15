@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { transformDate } from '../../services/date';
 import { addOneRole } from '../../redux/features/role';
 import AddSelectPermission from './AddSelectPermission';
-import { actions, permissions } from '../../utils/constants/permissions'
+import { actions, fields, permissions } from '../../utils/constants/permissions'
 import request from '../../services/request';
 
 export default function AddPermission({ open, handleClose}) {
@@ -103,7 +103,7 @@ export default function AddPermission({ open, handleClose}) {
 
             {
                Object.values(permissions).map((permission, index) => (
-                  <AddSelectPermission key={`${permission} - ${index}`} addPermission={(data) => addPermission(data)} actions={actions} permissions={permissions} />
+                  <AddSelectPermission key={`${permission} - ${index}`} addPermission={(data) => addPermission(data)} actions={actions} permissions={permissions} fields={fields} />
                   )
                 )
             }

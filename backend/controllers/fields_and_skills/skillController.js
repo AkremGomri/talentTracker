@@ -2,6 +2,7 @@ const { default: mongoose } = require('mongoose');
 const Skill = require('../../models/fields_and_skills/skillModel');
 const catchAsync = require('../../utils/catchAsync');
 const factory = require('../handleFactory');
+const { fields } = require('../../utils/constants/users_abilities');
 
 exports.createSkills = catchAsync(async (req, res, next) => {
     console.log("************************************************************************************");
@@ -36,10 +37,12 @@ exports.getSkills = catchAsync(async (req, res, next) => {
 
     const skills = await Skill.find(filter, myskillsPermit).populate({
         path: 'childrenItems',
-        select: mysubFieldPermit
+        select: mysubFieldPermit,
+        match: { deleted: { $ne: true } }
       }).populate({
         path: 'childrenItems',
-        select: myfieldPermit
+        select: myfieldPermit,
+        match: { deleted: { $ne: true } }
       })
 
     // const skills = factory.Read(req, Skill, myPermissions);
@@ -65,9 +68,6 @@ exports.updateSkill = catchAsync(async (req, res, next) => {
         const myPermissions = factory.getMyPermissions(req, 'skills', next);
         const dataToStore = factory.extractAllowedFields(updates, myPermissions);
 
-        console.log("filter: ", filter);
-        console.log("dataToStore: ", dataToStore);
-
         const result = await Skill.updateOne(filter, dataToStore);
     
         res.status(200).json({
@@ -88,7 +88,7 @@ exports.deleteSkills = catchAsync(async (req, res, next) => {
     
     let result;
 
-    if (myPermissions.includes('hardDelete') && req.body.delete === 'hard') result = await Skill.deleteMany(filter);
+    if (myPermissions.includes(fields.hardDelete) && req.query.hard || req.body.delete === 'hard') result = await Skill.deleteMany(filter);
     else result = await Skill.updateMany(
         filter,
         { $set: { "deleted": true } }

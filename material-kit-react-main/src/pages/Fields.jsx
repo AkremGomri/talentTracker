@@ -69,12 +69,12 @@ export default function FieldsPage() {
     const fetchData = async () => {
       const { data } = await request.get('/api/fields');
       data.map((field) => {
-        field.subFields &&
-          field.subFields.map((subField) => {
-            subField.skills.length &&
-              subField.skills.map((skill) => {
-                skill.skillElements &&
-                  skill.skillElements.map((skillElement) => {
+        field.childrenItems &&
+          field.childrenItems.map((subField) => {
+            subField.childrenItems.length &&
+              subField.childrenItems.map((skill) => {
+                skill.childrenItems &&
+                  skill.childrenItems.map((skillElement) => {
                     skillElement.type = 'skillElement';
                     return skillElement;
                   });
@@ -154,8 +154,8 @@ export default function FieldsPage() {
                       name={el.name}
                       expanded={expanded}
                     >
-                      {el.subFields &&
-                        el.subFields.map((e, i) => {
+                      {el.childrenItems &&
+                        el.childrenItems.map((e, i) => {
                           allTreeItems.push(`${e._id}-${e.name}-${e.type}-${index}-${i}`);
                           return (
                             <MyTreeItem
@@ -166,8 +166,8 @@ export default function FieldsPage() {
                               name={e.name}
                               expanded={expanded}
                             >
-                              {e.skills &&
-                                e.skills.map((elem, ind) => {
+                              {e.childrenItems &&
+                                e.childrenItems.map((elem, ind) => {
                                   allTreeItems.push(`${elem._id}-${elem.name}-${elem.type}-${index}-${i}-${ind}`);
                                   return (
                                     <MyTreeItem
@@ -177,8 +177,8 @@ export default function FieldsPage() {
                                       name={elem.name}
                                       expanded={expanded}
                                     >
-                                      {elem.skillElements &&
-                                        elem.skillElements.map((element, inde) => {
+                                      {elem.childrenItems &&
+                                        elem.childrenItems.map((element, inde) => {
                                           allTreeItems.push(
                                             `${element._id}-${element.name}-${element.type}-${index}-${i}-${ind}-${inde}`
                                           );

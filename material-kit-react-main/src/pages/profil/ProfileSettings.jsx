@@ -140,7 +140,7 @@ const ProfileSettings = () => {
                                                 </Label>
                                             </div>
                                         </div>
-                                        <h5 className="fs-16 mb-1">{`${profile?.name?.first} ${profile?.name?.last}`}</h5>
+                                        <h5 className="fs-16 mb-1">{profile?.name? `${profile?.name?.first} ${profile?.name?.last}` : "Not set"}</h5>
                                         <p className="text-muted mb-0">{profile?.jobTitle?.name}</p>
                                     </div>
                                 </CardBody>
@@ -277,7 +277,12 @@ const ProfileSettings = () => {
                                                             <Label htmlFor="firstnameInput" className="form-label">First
                                                                 Name</Label>
                                                             <Input type="text" className="form-control" id="firstnameInput"
-                                                                placeholder="Enter your firstname" onChange={(e) => setProfile(produce(profile, draft => {draft.name.first = e.target.value}))}
+                                                                placeholder="Enter your firstname" onChange={
+                                                                    (e) => setProfile(produce(profile, draft => {   
+                                                                        draft.name ??= {}; 
+                                                                        draft.name.first = e.target.value
+                                                                    })
+                                                                )}
                                                                 defaultValue={profile?.name?.first} />
                                                         </div>
                                                     </Col>
@@ -346,8 +351,8 @@ const ProfileSettings = () => {
                                                                 className="form-label">Designation</Label>
                                                             <Input type="text" className="form-control"
                                                                 id="designationInput" placeholder="Designation"
-                                                                defaultValue={profile?.jobTitle?.name}
-                                                                // onChange={(e) => setProfile(produce(profile, draft => {draft.jobTitle.name = e.target.value}))} 
+                                                                onChange={e => setProfile(produce(profile, draft => {draft.designation = e.target.value}))}
+                                                                defaultValue={profile?.designation}
                                                                 />
                                                         </div>
                                                     </Col>

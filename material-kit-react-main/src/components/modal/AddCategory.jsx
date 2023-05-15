@@ -4,7 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import { useDispatch } from 'react-redux';
 // import { transformDate } from '../../services/date';
-import { addFields } from '../../redux/features/skillMatrix';
+import { addField } from '../../redux/features/skillMatrix';
 import AddSelectPermission from './AddSelectPermission';
 import { actions, permissions } from '../../utils/constants/permissions'
 import request from '../../services/request';
@@ -67,21 +67,21 @@ export default function AddCategory({ open, setOpen}) {
       };
 
       // eslint-disable-next-line spaced-comment
-      function AddCategory(data){ //tnajem tzid t7assen
-        let test = false;
-        const newCategory = category.map(p => {
-          if(p.subject === data.subject) {
-            test = true;
-            return {...p, ...data}
-          };
-          return p;
-        });
-        if(!test){
-          setCategory([...newCategory, data])
-        } else {
-          setCategory([...newCategory])
-        }
-      }
+      // function AddCategory(data){ //tnajem tzid t7assen
+      //   let test = false;
+      //   const newCategory = category.map(p => {
+      //     if(p.subject === data.subject) {
+      //       test = true;
+      //       return {...p, ...data}
+      //     };
+      //     return p;
+      //   });
+      //   if(!test){
+      //     setCategory([...newCategory, data])
+      //   } else {
+      //     setCategory([...newCategory])
+      //   }
+      // }
 
       let requestStatus = 'None';
 
@@ -154,18 +154,20 @@ export default function AddCategory({ open, setOpen}) {
   
     try{
       const response = await request.post('/api/fields/', data);
-      const category = response.data;
+      const category = response.data[0];
       requestStatus = 'Success';
-      dispatch(addFields(category));
+      console.log("bfore dispatching ", category);
+      dispatch(addField(category));
+      console.log("after dispatching ", category);
       handleCloseModal();
     } catch (error) {
-      if(error.code.includes("ERR_NETWORK")){
+      if(error?.code?.includes("ERR_NETWORK")){
         setError({
           message: "Check your network",
           type: "network error"
         })
         setOpenDialogError(true)
-      }else if(error.response.data.message.includes("duplicate key error")){
+      }else if(error?.response?.data?.message?.includes("duplicate key error")){
         setError({
           message: "Field name already exists",
           type: "categoryName"

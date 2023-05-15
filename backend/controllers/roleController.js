@@ -310,11 +310,14 @@ exports.getAllRoles = catchAsync(async (req, res, next) => {
 
   myPermissions.some(p => {
     if (p.subject === permissions.Role.name) {
-      if(p.actions.Delete?.length > 0){
+      if(p.actions.Get?.length > 0){
         return isAuthorized = true;
       }
     }
   });
+
+  console.log("myPermissions: ",myPermissions);
+  console.log("permissions.Role.name: ",permissions.Role.name);
 
   if(!isAuthorized){
     return res.status(401).json({

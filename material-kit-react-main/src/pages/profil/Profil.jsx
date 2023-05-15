@@ -78,19 +78,19 @@ const SimplePage = () => {
                     setProfile(profiles);
                     setSkills({
                         ...skills, 
-                        labels: profiles.skills.map(skill => skill.skill.name),
-                        ListOflevelISets: profiles.skills.map(skill => skill.levelISet), 
-                        ListOflevelMyManagerSet: profiles.skills.map(skill => skill.levelMyManagerSet),
-                        average: profiles.skills.map(skill => (skill.levelISet + skill.levelMyManagerSet) / 2)
+                        labels: profiles.skills.map(skill => skill?.skill?.name),
+                        ListOflevelISets: profiles?.skills.map(skill => skill?.levelISet), 
+                        ListOflevelMyManagerSet: profiles?.skills.map(skill => skill?.levelMyManagerSet),
+                        average: profiles?.skills.map(skill => (skill?.levelISet + skill?.levelMyManagerSet) / 2)
                     });
                     setSkillsRadar({
                         ...skillsRadar,
-                        Analytical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Creative: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Soft: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Managerial: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Interpersonal: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Technical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Analytical: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Creative: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Soft: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Managerial: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Interpersonal: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Technical: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
                     });
                 }
             } catch(e) {
@@ -849,8 +849,7 @@ const SimplePage = () => {
                                                                     </Box>
                                                                     <Box className="flex-grow-1 overflow-hidden">
                                                                         <p className="mb-1">Designation :</p>
-                                                                        <h6 className="text-truncate mb-0">Lead Designer /
-                                                                            Developer</h6>
+                                                                        <h6 className="text-truncate mb-0"> { profile?.designation } </h6>
                                                                     </Box>
                                                                 </Box>
                                                             </Col>
@@ -866,7 +865,7 @@ const SimplePage = () => {
                                                                     </Box>
                                                                     <Box className="flex-grow-1 overflow-hidden">
                                                                         <p className="mb-1">Website :</p>
-                                                                        <Link to="#" className="fw-semibold">www.velzon.com</Link>
+                                                                        <Link to="#" className="fw-semibold">{ profile?.contact?.website }</Link>
                                                                     </Box>
                                                                 </Box>
                                                             </Col>

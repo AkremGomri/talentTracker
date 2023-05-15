@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable camelcase */
 import { createAction } from "@reduxjs/toolkit";
 import produce from "immer";
@@ -9,10 +10,33 @@ export const setSelected_skill_item_id = createAction(
     })
 );
 
-export const addFields = createAction(
+export const addField = createAction(
     'field/add',
     (field) => ({
-        payload: field,
+        payload: {
+            ...field,
+            type: "field"
+        },
+    })
+);
+
+export const addSubField = createAction(
+    'subField/add',
+    (subField) => ({
+        payload: {
+            ...subField,
+            type: "subField"
+        },
+    })
+);
+
+export const addSkill = createAction(
+    'skill/add',
+    (skill) => ({
+        payload: {
+            ...skill,
+            type: "skill"
+        },
     })
 );
 
@@ -42,9 +66,37 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
                 draft.all = action.payload
                 break;
 
-            case addFields.toString():
-                draft.all.push(...action.payload)
+            case addField.toString():
+                console.log('action.payload: ', action.payload);
+                console.log('draft.all: ', draft.all[0]);
+                draft.all = [...draft.all, action.payload]
                 break;
+
+            case addSubField.toString():
+                draft.all = draft.all.map(field => {
+                    if(field._id === action.payload.parentItem){
+                        field.childrenItems.push(action.payload);
+                    }
+                    return field
+                    
+                });
+                break;
+
+                case addSkill.toString():
+                    draft.all = draft.all.map(field => {
+                        if (field._id === action.payload.parentItem) {
+                            field.childrenItems = [...field.childrenItems, action.payload];
+                        } else if (field.childrenItems) {
+                            field.childrenItems = field.childrenItems.map(subField => {
+                                if (subField._id === action.payload.parentItem) {
+                                    subField.childrenItems = [...subField.childrenItems, action.payload];
+                                }
+                                return subField;
+                            });
+                        }
+                        return field;
+                    });
+                    break;
             
             case deleteItem.toString():
                 // eslint-disable-next-line no-case-declarations
@@ -52,11 +104,11 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
 
                 draft.all = draft.all.filter(field => {
                     if(type !== 'field'){
-                        field.subFields = field.subFields.filter(subField => {
+                        field.childrenItems = field.childrenItems.filter(subField => {
                             if(type !== 'subField'){
-                                subField.skills = subField.skills.filter(skill => {
+                                subField.childrenItems = subField.childrenItems.filter(skill => {
                                     if(type !== 'skill'){
-                                        skill.skillElements = skill.skillElements.filter(skillElement => {
+                                        skill.childrenItems = skill.childrenItems.filter(skillElement => {
                                             if(type === "skillElement") {
                                                 return skillElement._id !== _id;
                                             }

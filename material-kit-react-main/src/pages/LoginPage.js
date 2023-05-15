@@ -1,7 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 // @mui
+import { useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import { Link, Container, Typography, Divider, Stack, Button } from '@mui/material';
+import localforage from 'localforage';
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -43,6 +45,16 @@ const StyledContent = styled('div')(({ theme }) => ({
 export default function LoginPage() {
   const mdUp = useResponsive('up', 'md');
 
+  useEffect(() => {
+    // const token = localStorage.getItem('token');
+    // if (token) {
+    //   window.location.href = '/dashboard';
+    // }
+    console.log("login page");
+    localforage.clear();
+    // localStorage.setItem('userId', '');
+    console.log("login page");
+  }, []);
   return (
     <>
       <Helmet>

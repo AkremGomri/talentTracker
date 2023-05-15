@@ -11,20 +11,27 @@ const skills = "skills";
 const name = "name";
 const permissions = "permissions";
 const deleted = "deleted";
-const subFields = "subFields";
 const parentItem = "parentItem";
 const childrenItems = "childrenItems";
+const subFields = "subFields";
+const options = "options";
+const question = "question";
 const parentField = "parentField";
 const skillElements = "skillElements";
 const nbUsers = "nbUsers";
 const parentSubField="parentSubField";
+const description = "description";
+const designation = "designation";
+const hardDelete = "hardDelete"
 
 /* fields grouped together */
-const userFields = [name, email, password, role, manager, manages, skills, deleted];
-const fieldFields = [name, parentItem, childrenItems, subFields, nbUsers, deleted];
+const userFields = [name, email, password, role, manager, manages, skills, designation, deleted];
+const fieldFields = [name, childrenItems, subFields, nbUsers, deleted];
 const subFieldFields = [name, parentItem, childrenItems, parentField, skills, nbUsers, deleted];
 const skillFields = [name, parentItem, childrenItems, parentSubField, skillElements, nbUsers, deleted];
+const skillElementFields = [name, parentItem, options, question, deleted];
 const roleFields = [name, permissions, nbUsers, deleted];
+const JobTitleFields = [name, description, nbUsers, deleted];
 
 /* subjects */
 const User = {
@@ -36,6 +43,11 @@ const User = {
 const Role = {
   name: "roles",
   fields: roleFields
+};
+
+const JobTitle = {
+  name: "jobtitles",
+  fields: JobTitleFields
 };
 
 const Field = {
@@ -51,6 +63,11 @@ const SubField = {
 const Skill = {
   name: "skills",
   fields: skillFields
+}
+
+const SkillElement = {
+  name: "skillElements",
+  fields: skillElementFields
 }
 /* actions */
 const MANAGE = "All";
@@ -69,15 +86,22 @@ exports.fields = {
   skills,
   name,
   permissions,
+  description,
+  nbUsers,
+  // deleted,
   all,
+  
+  hardDelete,
 };
 
 exports.permissions = {
   User,
   Role,
+  JobTitle,
   Field,
   SubField,
-  Skill
+  Skill,
+  SkillElement
 };
 
 exports.actions = {

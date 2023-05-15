@@ -1,19 +1,20 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-undef */
+/* eslint-disable no-case-declarations */
 import React, {useEffect, useMemo, useState} from 'react'
 import { Modal, Box, Typography, TextField, Button, Alert, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import { useDispatch } from 'react-redux';
 // import { transformDate } from '../../services/date';
-import { addFields } from '../../redux/features/skillMatrix';
-import AddSelectPermission from './AddSelectPermission';
-import { actions, permissions } from '../../utils/constants/permissions'
+import { addField, addSkill, addSubField } from '../../redux/features/skillMatrix';
 import request from '../../services/request';
 import MyDialog from '../dialog/MyDialog';
 
-export default function AddItem({ open, setOpen}) {
+export default function AddItem({ open, setOpen, selected}) {
     const [skillItem, setSkillItem] = useState([]);
-    const [categoryName, setCategoryName] = useState("");
-    const [categoryDiscription, setCategoryDiscription] = useState("");
+    const [itemName, setItemName] = useState("");
+    const [itemDiscription, setItemDiscription] = useState("");
 
     const [error, setError] = useState('');
     const [openDialogError, setOpenDialogError] = useState(JSON.stringify(error) === '{}');
@@ -67,21 +68,21 @@ export default function AddItem({ open, setOpen}) {
       };
 
       // eslint-disable-next-line spaced-comment
-      function AddCategory(data){ //tnajem tzid t7assen
-        let test = false;
-        const newCategory = skillItem.map(p => {
-          if(p.subject === data.subject) {
-            test = true;
-            return {...p, ...data}
-          };
-          return p;
-        });
-        if(!test){
-          setSkillItem([...newCategory, data])
-        } else {
-          setSkillItem([...newCategory])
-        }
-      }
+      // function AddItem(data){ //tnajem tzid t7assen
+      //   let test = false;
+      //   const newCategory = skillItem.map(p => {
+      //     if(p.subject === data.subject) {
+      //       test = true;
+      //       return {...p, ...data}
+      //     };
+      //     return p;
+      //   });
+      //   if(!test){
+      //     setSkillItem([...newCategory, data])
+      //   } else {
+      //     setSkillItem([...newCategory])
+      //   }
+      // }
 
   return (
     <>
@@ -89,23 +90,23 @@ export default function AddItem({ open, setOpen}) {
         <Box sx={style.container} >
           <Box sx={style.main} >
             <Typography variant="h2" gutterBottom sx={{ mb: 6, textAlign: 'center' }}>
-                add skillItem
+                add item
             </Typography>
 
             <Typography variant="h6" gutterBottom >
-              Add the skillItem name: { categoryName }
+              Add the item name:
             </Typography>
 
-            <TextField required id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setCategoryName(e.target.value)} />
-            { error.type === 'categoryName' && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.message}</Box>}
+            <TextField required id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setItemName(e.target.value)} />
+            { error.type === 'itemName' && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.message}</Box>}
 
             <Typography variant="h6" gutterBottom sx={{ mt: "20px" }} >
-              Add the skillItem description: { categoryDiscription }
+              Add the item description:
             </Typography>
           
 
-            <TextField required id="Discription label" label="Discription" sx={{ width: "100%" }} onChange={(e) => setCategoryDiscription(e.target.value)} />
-            {/* { error.categoryDiscription && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.categoryDiscription}</Box>} */}
+            <TextField required id="Discription label" label="Discription" sx={{ width: "100%" }} onChange={(e) => setItemDiscription(e.target.value)} />
+            {/* { error.itemDiscription && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.itemDiscription}</Box>} */}
 
 
  
@@ -136,46 +137,78 @@ export default function AddItem({ open, setOpen}) {
   )
 
   async function sendRequest(){
-    if(!categoryName){
+    if(!itemName){
       setError({
-        message: "name already exists",
-        type: "categoryName"
+        message: "please enter the item name",
+        type: "itemName"
       })
       return;
     }
 
-    // if(!categoryDiscription){
-    //   setError({categoryDiscription: "at least one description is required"});
+    // if(!itemDiscription){
+    //   setError({itemDiscription: "at least one description is required"});
     //   return;
     // }
 
     const data = {
-      name: categoryName,
+      name: itemName,
+      description: itemDiscription,
+      // childrenItems: ,
+      parentItem: selected._id,
       categorys: skillItem
     }
   
     try{
-      const response = await request.post('/api/fields/', data);
-      const skillItem = response.data;
+      let response;
+      let skillItem;
+      console.log("selected.type: ",selected.type);
+      switch(selected.type){
+        // case "skills":
+        //   response = await request.post('/api/skills/', data);
+        //   skillItem = response.data;
+        //   dispatch(addSkills(skillItem));
+        //   break;
+        
+        case "field":
+          console.log("data: ",data);
+          response = await request.post('/api/subFields/', data);
+          skillItem = response.data[0];
+          dispatch(addSubField(skillItem));
+          break;
+        
+        case "subField":
+          response = await request.post('/api/skills/', data);
+          skillItem = response.data[0];
+          console.log("skillItem: ",skillItem);
+          dispatch(addSkill(skillItem));
+          break;
+        case "skill":
 
-      dispatch(addFields(skillItem));
+        break;
+        default:
+          break;
+      }
+      // const response = await request.post('/api/fields/', data);
+      // const skillItem = response.data;
+
+      // dispatch(addFields(skillItem));
       handleCloseModal();
     } catch (error) {
-      if(error.code.includes("ERR_NETWORK")){
+      if(error?.code?.includes("ERR_NETWORK")){
         setError({
           message: "Check your network",
           type: "network error"
         })
         setOpenDialogError(true)
-      }else if(error.response.data.message.includes("duplicate key error")){
+      }else if(error?.response?.data?.message?.includes("duplicate key error")){
         setError({
           message: "Field name already exists",
-          type: "categoryName"
+          type: "itemName"
         })
         setOpenDialogError(true)
       } else {
         setError({
-          message: "could not add the field",
+          message: "could not add the item",
           type: "Unknown"
         })
         setOpenDialogError(true)
@@ -186,7 +219,7 @@ export default function AddItem({ open, setOpen}) {
   async function handleCloseModal(){
     setError({});
     setSkillItem([]);
-    setCategoryName("");
+    setItemName("");
     setOpen(false);
   }
 }

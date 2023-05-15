@@ -3,7 +3,11 @@ const router = express.Router();
 const skillController = require('../../controllers/fields_and_skills/skillController');
 const factory = require('../../controllers/handleFactory');
 const Skill = require('../../models/fields_and_skills/skillModel');
+const SkillElementRoutes = require('../../routes/fields_and_skills/skillElementRoutes');
 const { protect } = require('../../middlewares/auth');
+
+router
+    .use('/:userId?/skillElement', SkillElementRoutes)
 
 router
     .route('/:id?')

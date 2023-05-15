@@ -1,18 +1,23 @@
-const SkillElement = require('../../models/fields_and_skills/skillElementModel');
+const Skill = require('../../models/fields_and_skills/skillModel');
+const catchAsync = require('../../utils/catchAsync');
 const factory = require('../handleFactory');
 
-// exports.createSkills = catchAsync(async (req, res, next) => {
+exports.createElementSkills = catchAsync(async (req, res, next) => {
+    const filter = req.params.skillId? { _id: req.params.skillId } : { _id: req.body.parentItem };
+    if(!filter._id) return next(new AppError('No parent item specified', 400));
+    console.log("here we areeeeeeee ***************** ",filter);
+    const  modelsToCreate = req.body[`${Skill.collection.name}`] || req.body[`${Skill.collection.name.slice(0, -1)}`] || req.body;
+    const myPermissions = factory.getMyPermissions(req, 'skillElements', next);
+    if(!myPermissions) return;
+    const dataToStore = factory.extractAllowedFields(modelsToCreate, myPermissions);
+    console.log("data To store: ", dataToStore);
+    const skillElements = await Skill.findOneAndUpdate( filter, { $push: { childrenItems: dataToStore }});
+    return res.status(201).json({
+        status: 'success',
+        data: skillElements
+    });
 
-//     const  modelsToCreate = req.body[`${Skill.collection.name}`] || req.body[`${Skill.collection.name.slice(0, -1)}`] || req.body;
-//     const myPermissions = factory.getMyPermissions(req, 'skills', next);
-//     const dataToStore = factory.extractAllowedFields(modelsToCreate, myPermissions);
-//     const skills = await Skill.insertMany(dataToStore);
-//     res.status(201).json({
-//         status: 'success',
-//         data: skills
-//     });
-
-// }); // 
+}); // 
 
 // exports.getSkills = catchAsync(async (req, res, next) => {
 

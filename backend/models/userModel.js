@@ -59,6 +59,7 @@ const userSchema = mongoose.Schema({
     }
   }],
   jobTitle: { type: mongoose.Schema.ObjectId, ref: 'JobTitle', default: null },
+  designation: { type: String },
   about: { type: String },
   profilImage: { type: String, default: 'default.jpg' },
   profilCover: { type: String, default: 'default.jpg' },
