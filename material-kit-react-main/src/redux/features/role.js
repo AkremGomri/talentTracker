@@ -75,7 +75,6 @@ export default function roleReducer(state = {selectedRole: {}, all: []}, action)
                 break;
                     
             case addManyRoles.toString():
-                // console.log('addManyRoles: ', action.payload);
                 const draftIds = draft.all.map((role) => role._id);
 
                 action.payload.forEach((role, index) => {

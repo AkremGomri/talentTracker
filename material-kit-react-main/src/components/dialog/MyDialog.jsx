@@ -3,10 +3,8 @@ import React, { useEffect } from 'react'
 import ErrorBoundary from './Error';
 
 export default function MyDialog(props) {
-    const { open, setOpen, message, action=null, title='Confirmation' } = props;
-    useEffect(() => {
+    const { open, setOpen, message, action=null, title='Confirmation', type="delete" } = props;
 
-    }, [open, message])
   return (
     <ErrorBoundary>
     <Dialog open={open} onClose={() => setOpen(false)}>
@@ -18,9 +16,15 @@ export default function MyDialog(props) {
           { action? 
           <>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={action} color="error">
-                Delete
-            </Button> 
+            {
+              type === "delete" ?  
+                <Button onClick={action} color="error">
+                    Delete
+                </Button>  : type === "submit" ?
+                <Button onClick={action} color="success">
+                  confirm
+                </Button> : null
+            }
           </> : <Button onClick={() => setOpen(false)}>
             Ok
           </Button>

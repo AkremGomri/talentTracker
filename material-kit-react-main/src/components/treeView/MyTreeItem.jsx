@@ -14,10 +14,7 @@ import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import StarIcon from '@mui/icons-material/Star';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
-const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, children }) => {
-  useEffect(() => {
-    // console.log(canModify, ": ", expanded);
-  }, [expanded]);
+const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, children, onToggle }) => {
 
   if (!children) {
     return (
@@ -27,6 +24,7 @@ const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, child
             icon={<StarIcon sx={{ color: "yellow" }} />}
             style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             nodeId={id}
+            onClick={onToggle}
             label={<Typography variant="caption">{name}</Typography>}
           />
           {canModify && 
@@ -34,13 +32,11 @@ const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, child
             <IconButton
               sx={{ position: "absolute", right: "-40px", mt: "5px" }}
               onClick={async () => {
-                console.log("remove cercle: ", id, " name: ", name);
                 try {
                   const result = await axios.delete("" + id, {
                     data: { name },
                     headers: { Authorization: "***" }
                   });
-                  console.log("result:", result);
                 } catch (e) {
                   console.log("error: ", e);
                 }
@@ -95,13 +91,11 @@ const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, child
             <IconButton
               sx={{ position: "absolute", right: "-40px", mt: "5px" }}
               onClick={async () => {
-                console.log("remove cercle: ", id, " name: ", name);
                 try {
                   const result = await axios.delete("" + id, {
                     data: { name },
                     headers: { Authorization: "***" }
                   });
-                  console.log("result:", result);
                 } catch (e) {
                   console.log("error: ", e);
                 }

@@ -75,7 +75,6 @@ export default function userReducer(state = {selectedUser: {}, all: []}, action)
                 break;
                     
             case addManyUsers.toString():
-                // console.log('addManyUsers: ', action.payload);
                 const draftIds = draft.all.map((user) => user._id);
 
                 action.payload.forEach((user, index) => {
@@ -86,10 +85,6 @@ export default function userReducer(state = {selectedUser: {}, all: []}, action)
                 break;
 
             case deleteManyUsersByName.toString():
-                console.log("hhhh: ",action.payload);
-                console.log("eyeyyeyeyeyye: ", state.all.filter((user) => !action.payload.includes(user.email)));
-                console.log("state: ", state.all);
-                console.log("draft: ", draft.all);
                 draft.all = state.all.filter((user) => !action.payload.includes(user.email));
                 break;
 

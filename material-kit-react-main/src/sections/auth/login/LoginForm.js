@@ -32,6 +32,7 @@ export default function LoginForm() {
       localforage.setItem('token', response.data.token);
       localforage.setItem('myRole', response.data.role);
       localforage.setItem('userId', response.data.userId);
+      localforage.setItem('fullName', response.data.fullName);
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.log("errro: ",error);

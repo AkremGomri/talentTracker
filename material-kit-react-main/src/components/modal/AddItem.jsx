@@ -2,12 +2,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-case-declarations */
 import React, {useEffect, useMemo, useState} from 'react'
-import { Modal, Box, Typography, TextField, Button, Alert, Stack } from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, Alert, Stack, Select, MenuItem, Checkbox, ListItemText, FormControl, InputLabel } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import { useDispatch } from 'react-redux';
 // import { transformDate } from '../../services/date';
-import { addField, addSkill, addSubField } from '../../redux/features/skillMatrix';
+import { addField, addSkill, addSkillElement, addSubField, updateSkill } from '../../redux/features/skillMatrix';
 import request from '../../services/request';
 import MyDialog from '../dialog/MyDialog';
 
@@ -15,6 +15,7 @@ export default function AddItem({ open, setOpen, selected}) {
     const [skillItem, setSkillItem] = useState([]);
     const [itemName, setItemName] = useState("");
     const [itemDiscription, setItemDiscription] = useState("");
+    const [itemType, setItemType] = useState("");
 
     const [error, setError] = useState('');
     const [openDialogError, setOpenDialogError] = useState(JSON.stringify(error) === '{}');
@@ -66,7 +67,6 @@ export default function AddItem({ open, setOpen, selected}) {
           width: ["100%", "100%", "100%", "100%", "100%"],
         }
       };
-
       // eslint-disable-next-line spaced-comment
       // function AddItem(data){ //tnajem tzid t7assen
       //   let test = false;
@@ -103,11 +103,44 @@ export default function AddItem({ open, setOpen, selected}) {
             <Typography variant="h6" gutterBottom sx={{ mt: "20px" }} >
               Add the item description:
             </Typography>
-          
 
             <TextField required id="Discription label" label="Discription" sx={{ width: "100%" }} onChange={(e) => setItemDiscription(e.target.value)} />
             {/* { error.itemDiscription && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.itemDiscription}</Box>} */}
 
+            { selected && selected.type === 'subField' &&
+              <>
+                <Typography variant="h6" gutterBottom sx={{ mt: "20px" }} >
+                  Add the item description:
+                </Typography>
+                <FormControl sx={{ width: "100%" }}>
+                  <InputLabel>Type</InputLabel>
+                  <Select
+                    label="select"
+                    renderValue={(selected) => selected}
+                    onChange={(e) => setItemType(e.target.value)}
+                  >
+                    <MenuItem key="Analytical" value="Analytical">
+                      <ListItemText primary="Analytical" />
+                    </MenuItem>
+                    <MenuItem key="Creative" value="Creative">
+                      <ListItemText primary="Creative" />
+                    </MenuItem>
+                    <MenuItem key="Soft" value="Soft">
+                      <ListItemText primary="Soft" />
+                    </MenuItem>
+                    <MenuItem key="Managerial" value="Managerial">
+                      <ListItemText primary="Managerial" />
+                    </MenuItem>
+                    <MenuItem key="Interpersonal" value="Interpersonal">
+                      <ListItemText primary="Interpersonal" />
+                    </MenuItem>
+                    <MenuItem key="Technical" value="Technical">
+                      <ListItemText primary="Technical" />
+                    </MenuItem>
+                  </Select> 
+                </FormControl>            
+              </>           
+            }
 
  
 
@@ -153,7 +186,7 @@ export default function AddItem({ open, setOpen, selected}) {
     const data = {
       name: itemName,
       description: itemDiscription,
-      // childrenItems: ,
+      type: itemType,
       parentItem: selected._id,
       categorys: skillItem
     }
@@ -161,30 +194,31 @@ export default function AddItem({ open, setOpen, selected}) {
     try{
       let response;
       let skillItem;
-      console.log("selected.type: ",selected.type);
+      let skillElementItem;
+
       switch(selected.type){
-        // case "skills":
-        //   response = await request.post('/api/skills/', data);
-        //   skillItem = response.data;
-        //   dispatch(addSkills(skillItem));
-        //   break;
         
         case "field":
-          console.log("data: ",data);
           response = await request.post('/api/subFields/', data);
+          if(response.status !== "success") throw new Error("could not add the item");
           skillItem = response.data[0];
           dispatch(addSubField(skillItem));
           break;
         
         case "subField":
           response = await request.post('/api/skills/', data);
+          if(response.status !== "success") throw new Error("could not add the item");
           skillItem = response.data[0];
-          console.log("skillItem: ",skillItem);
           dispatch(addSkill(skillItem));
           break;
-        case "skill":
 
+        case "skill":
+          response = await request.post('/api/skills/skillElement/', data);
+          if(response.status !== "success") throw new Error("could not add the item");
+          skillElementItem = response.data;
+          dispatch(updateSkill(skillElementItem));
         break;
+
         default:
           break;
       }

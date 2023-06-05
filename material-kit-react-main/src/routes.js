@@ -9,10 +9,11 @@ import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
-import PermissionsPage from './pages/PermissionsPage';
+import PermissionsPage from './pages/Permissions/PermissionsPage';
 import FieldsPage from './pages/Fields';
 import Profil from './pages/profil/Profil';
 import ProfileSettings from './pages/profil/ProfileSettings';
+import TestPage from './pages/Test/TestPage';
 
 // ----------------------------------------------------------------------
 
@@ -25,12 +26,13 @@ export default function Router() {
         { element: <Navigate to="/dashboard/app" />, index: true },
         { path: 'app', element: <DashboardAppPage /> },
         { path: 'user', element: <UserPage /> },
-        { path: 'permissions', element: <PermissionsPage />},
-        { path: 'fields', element: <FieldsPage />},
+        { path: 'permissions', element: <PermissionsPage /> },
+        { path: 'fields', element: <FieldsPage /> },
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
-        { path: 'profil', element: <Profil />},
-        { path: 'profil/settings', element: <ProfileSettings />} 
+        { path: 'profil', element: <Profil /> },
+        { path: 'profil/settings', element: <ProfileSettings /> },
+        { path: 'test', element: <TestPage /> },
       ],
     },
     {

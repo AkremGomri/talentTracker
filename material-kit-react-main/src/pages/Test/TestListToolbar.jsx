@@ -1,13 +1,17 @@
+/* eslint-disable prefer-template */
+/* eslint-disable no-else-return */
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Alert } from '@mui/material';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 // component
-import { deleteManyRolesByName } from '../../../redux/features/role';
-import Iconify from '../../../components/iconify';
-import request from '../../../services/request';
+import { deleteManyRolesByName } from '../../redux/features/role';
+import Iconify from '../../components/iconify';
+import request from '../../services/request';
+import MyDialog from '../../components/dialog/MyDialog';
 
 // ----------------------------------------------------------------------
 
@@ -36,28 +40,29 @@ const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-RoleListToolbar.propTypes = {
-  selectedRoles: PropTypes.array,
+TestListToolbar.propTypes = {
+  selectedTests: PropTypes.array,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
+  deleteTests: PropTypes.func,
 };
 
-export default function RoleListToolbar({ selectedRoles, filterName, onFilterName }) {
+export default function TestListToolbar({ selectedTests, filterName, onFilterName, deleteTests }) {
 
-  const dispatch = useDispatch();
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   return (
     <StyledRoot
       sx={{
-        ...(selectedRoles.length > 0 && {
+        ...(selectedTests.length > 0 && {
           color: 'primary.main',
           bgcolor: 'primary.lighter',
         }),
       }}
     >
-      {selectedRoles.length > 0 ? (
+      {selectedTests.length > 0 ? (
         <Typography component="div" variant="subtitle1">
-          {selectedRoles.length} selected
+          {selectedTests.length} selected
         </Typography>
       ) : (
         <StyledSearch
@@ -72,9 +77,9 @@ export default function RoleListToolbar({ selectedRoles, filterName, onFilterNam
         />
       )}
 
-      {selectedRoles.length > 0 ? ( // akrem badel lenna
+      {selectedTests.length > 0 ? ( // akrem badel lenna
         <Tooltip title="Delete">
-          <IconButton onClick={() => dispatch(deleteAllSelectedRoles)}>
+          <IconButton onClick={() => setOpenDeleteDialog(true)}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -85,13 +90,20 @@ export default function RoleListToolbar({ selectedRoles, filterName, onFilterNam
           </IconButton>
         </Tooltip>
       )}
+
+      <MyDialog
+        open={openDeleteDialog}
+        setOpen={setOpenDeleteDialog}
+        action={deleteAllSelectedTests}
+        message={`are you sure you want to delete: ${selectedTests.reduce((acc, test) => `${acc} "${test}",` , "")} ?`}
+      />
     </StyledRoot>
   );
 
-  async function deleteAllSelectedRoles() {
+  async function deleteAllSelectedTests() {
     try{
-      await request.send('delete', '/api/admin/roles', selectedRoles);
-      dispatch(deleteManyRolesByName(selectedRoles));
+      deleteTests(selectedTests);
+      setOpenDeleteDialog(false);
     } catch (error) {
       console.log("error: ", error);
       alert("error deleting roles")

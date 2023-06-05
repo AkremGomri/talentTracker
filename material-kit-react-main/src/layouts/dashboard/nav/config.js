@@ -12,9 +12,19 @@ export const navSections = [
     icon: icon('ic_analytics'),
   },
   {
+    title: 'profile',
+    path: '/dashboard/profil',
+    icon: icon('ic_profile'),
+  },
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: icon('ic_user'),
+  },
+  {
+    title: 'test',
+    path: '/dashboard/test',
+    icon: icon('ic_test'),
   },
   {
     title: 'product',
@@ -49,5 +59,5 @@ export const navFields = {
   title: 'fields',
   // permissions: {},
   path: '/dashboard/fields',
-  icon: icon('ic_fields'),
+  icon: icon('ic_skill'),
 }

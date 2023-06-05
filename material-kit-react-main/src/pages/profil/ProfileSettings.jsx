@@ -6,13 +6,16 @@ import { Card, CardBody, CardHeader, Col, Container, Form, Input, Label, Nav, Na
 import classnames from "classnames";
 import Flatpickr from "react-flatpickr";
 import localforage from 'localforage';
-import produce from 'immer';
+import { useNavigate } from "react-router-dom";
+import produce from 'immer';        //        const profiles = await localforage.getItem('profile');
+
 import request from '../../services/request';
 
 import progileBg from '../../assets/images/profile-bg.jpg';
 import avatar1 from '../../assets/images/users/avatar-1.jpg';
 
 const ProfileSettings = () => {
+    let navigate = useNavigate(); 
     const [activeTab, setActiveTab] = useState("1");
     const [ profile, setProfile ] = useState({});
     const [ password, setPassword ] = useState({});
@@ -48,17 +51,16 @@ const ProfileSettings = () => {
     function handleUpdateProfil(){
         async function updateProfile(){
             const formData = new FormData();
-            // if(profileImage.name) formData.append('profileImage', profileImage);
-            // if(coverImage.name) formData.append('coverImage', coverImage);
             formData.append('profile', JSON.stringify(profile));
-            // formData.append('password', JSON.stringify(password));
-
-            // eslint-disable-next-line prefer-template
-            const data = await request.put('/api/user/me/', profile);
-            console.log("profile: ", profile);
-            console.log("data: ", data);
-            await localforage.setItem('profile', profile);
-            setProfile(profile);
+            try{
+                // eslint-disable-next-line prefer-template
+                const data = await request.put('/api/user/me/', profile);
+                navigate('/dashboard/profil/');
+                await localforage.setItem('profile', profile);
+                setProfile(profile);
+            } catch(e){ 
+                console.log("error: ",e);
+            }
         }
         updateProfile();
     }
@@ -117,7 +119,6 @@ const ProfileSettings = () => {
                                                     // accept='/image/*'
                                                     onChange={async (event) => {
                                                         const file = event.target.files[0];
-                                                        console.log("clickeeed: ",file);
 
                                                         const formData = new FormData();
                                                         formData.append('image', file, 'profileImage');
@@ -126,7 +127,6 @@ const ProfileSettings = () => {
 
                                                         const data = {profileImage: file};
 
-                                                        console.log("formdata: ",formData);
                                                         await request.put('/api/user/my-photo/'+Date.now(), formData);
                                                         if(file && file.type.substr(0, 5) === 'image') setProfileImage(file);
                                                         else setProfileImage({});
@@ -140,7 +140,7 @@ const ProfileSettings = () => {
                                                 </Label>
                                             </div>
                                         </div>
-                                        <h5 className="fs-16 mb-1">{profile?.name? `${profile?.name?.first} ${profile?.name?.last}` : "Not set"}</h5>
+                                        <h5 className="fs-16 mb-1">{profile?.fullName? `${profile?.fullName}` : "Not set"}</h5>
                                         <p className="text-muted mb-0">{profile?.jobTitle?.name}</p>
                                     </div>
                                 </CardBody>
@@ -283,7 +283,7 @@ const ProfileSettings = () => {
                                                                         draft.name.first = e.target.value
                                                                     })
                                                                 )}
-                                                                defaultValue={profile?.name?.first} />
+                                                                defaultValue={profile?.fullName} />
                                                         </div>
                                                     </Col>
                                                     <Col lg={6}>
@@ -670,7 +670,7 @@ const ProfileSettings = () => {
                                             </form>
                                         </TabPane>
 
-                                        {/* <TabPane tabId="4">
+                                        <TabPane tabId="4">
                                             <div className="mb-4 pb-2">
                                                 <h5 className="card-title text-decoration-underline mb-3">Security:</h5>
                                                 <div className="d-flex flex-column flex-sm-row mb-4 mb-sm-0">
@@ -817,7 +817,7 @@ const ProfileSettings = () => {
                                                     <Link to="#" className="btn btn-light">Cancel</Link>
                                                 </div>
                                             </div>
-                                        </TabPane> */}
+                                        </TabPane>
                                     </TabContent>
                                 </CardBody>
                             </Card>

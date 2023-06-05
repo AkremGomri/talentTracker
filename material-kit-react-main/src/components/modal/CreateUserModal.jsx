@@ -14,13 +14,14 @@ import { permissions, fields, actions } from "../../utils/constants/permissions"
 
 
 /* ***** */
-export default function CreateUserModal({ open, handleClose, onCreateUser, setDisplaySnackBar }) {
+export default function CreateTestModal({ open, handleClose, onCreateUser, setDisplaySnackBar }) {
   const [ accessTo, setAccessTo ] = useState([]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [role, setRole] = useState("");
+  const [users, setUsers] = useState([]);
   const [manager, setManager] = useState([]);
   const [manages, setManages] = useState([]);
   const [skills, setSkills] = useState([]);
@@ -34,7 +35,6 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
   const style = {
     container: {
       borderRadius: '5px',
-      overflow : "scroll",
       border: '2px solid #fff',
       backgroundColor: "#fff",
       // opacity: [0.9, 0.8, 0.7],
@@ -64,7 +64,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
         lg: "40%", // theme.breakpoints.up('lg')
         xl: "40%", // theme.breakpoints.up('xl')
       },
-      height: 4/5,
+      height: 4.2/5,
       fontWeight: 'bold',
       fontSize: 14,
 
@@ -93,6 +93,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
       setPassword("");
       setPasswordConfirm("");
       setRole("");
+      setUsers({});
       setManager([]);
       setManages([]);
       setSkills([]);
@@ -114,9 +115,11 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
             });
         }
       });
+      request.get('/api/user/names').then(({users}) => {
+        setUsers(users);
+      });
     }
     if(open){
-      console.log("opeeeeeeeeeeeeeeeeeeeeeeeeeeeen");
       getRoleNames();
     }
   }, [open])
@@ -162,7 +165,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
 
                 {
                   accessTo?.includes(fields.role) ? 
-                    (<FormControl sx={{ width: "32%", my: 1, mr: 1 }}>
+                    (<FormControl sx={{ width: "49%", my: 1, mr: 1 }}>
                         <InputLabel id="role-label">Role</InputLabel>
                         <Select
                             required
@@ -179,21 +182,21 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                         </Select>
                     </FormControl>) : null
                 }
-                <FormControl sx={{ width: "32%", my: 1, mr: 1 }}>
+                <FormControl sx={{ width: "49%", my: 1 }}>
                     <InputLabel id="manager-label">Manager</InputLabel>
                     <Select
                         labelId="manager-label"
                         label="Manager"
                         id="manager"
-                        multiple
                         value={manager}
                         onChange={(e) => setManager(e.target.value)}
                     >
-                        <MenuItem value="manager1">Manager 1</MenuItem>
-                        <MenuItem value="manager2">Manager 2</MenuItem>
+                      {
+                        users?.map((manage) => ( <MenuItem key={manage._id} value={manage._id}>{manage.email}</MenuItem> ) )
+                      }
                     </Select>
                 </FormControl>
-                <FormControl sx={{ width: "32%", my: 1 }}>
+                {/* <FormControl sx={{ width: "32%", my: 1 }}>
                     <InputLabel id="manages-label">Manages</InputLabel>
                     <Select
                         labelId="manages-label"
@@ -206,7 +209,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
                         <MenuItem value="employee1">Employee 1</MenuItem>
                         <MenuItem value="employee2">Employee 2</MenuItem>
                     </Select>
-                </FormControl>
+                </FormControl> */}
                 {/* <FormControl sx={{ width: "32%", my: 1 }}>
                     <InputLabel id="manages-label">Manages</InputLabel>
                     <Select
@@ -279,10 +282,7 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
           //   message: response
           // });
 
-          console.log("user: ",user);
-
           dispatch(addOneUser(user));
-          console.log("here we are");
           handleCloseModal();
 
         } catch (error) {
@@ -310,7 +310,6 @@ export default function CreateUserModal({ open, handleClose, onCreateUser, setDi
             alert("error adding email")
           }
         }
-        console.log("finished request");
       }
       
     

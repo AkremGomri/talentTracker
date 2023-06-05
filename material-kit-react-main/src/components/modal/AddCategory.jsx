@@ -156,9 +156,7 @@ export default function AddCategory({ open, setOpen}) {
       const response = await request.post('/api/fields/', data);
       const category = response.data[0];
       requestStatus = 'Success';
-      console.log("bfore dispatching ", category);
       dispatch(addField(category));
-      console.log("after dispatching ", category);
       handleCloseModal();
     } catch (error) {
       if(error?.code?.includes("ERR_NETWORK")){

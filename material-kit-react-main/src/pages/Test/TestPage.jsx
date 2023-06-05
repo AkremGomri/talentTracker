@@ -1,9 +1,11 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable consistent-return */
+/* eslint-disable no-else-return */
 /* eslint-disable prefer-template */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 // @mui
 import {
   Card,
@@ -25,28 +27,29 @@ import {
   TablePagination,
 } from '@mui/material';
 // components
-import Label from '../components/label';
-import Iconify from '../components/iconify';
-import Scrollbar from '../components/scrollbar';
-import CreateUserModal from '../components/modal/CreateUserModal';
+import Label from '../../components/label';
+import Iconify from '../../components/iconify';
+import Scrollbar from '../../components/scrollbar';
+import CreateTestModal from '../../components/modal/CreateTestModal';
 // sections
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+// eslint-disable-next-line import/no-useless-path-segments
+import { TestListHead, TestListToolbar } from '../../pages/Test/';
 // mock
-import { deleteOneUserById, setUsers, setSelectedUser } from '../redux/features/user';
 
-import request from '../services/request';
-import SnackBar from '../components/others/SnackBar';
-// import USERLIST from '../_mock/user';
-import { selectAllUsers } from '../redux/utils/user';
+import request from '../../services/request';
+import SnackBar from '../../components/others/SnackBar';
+// import USERLIST from '../../_mock/user';
+import { selectAllUsers } from '../../redux/utils/user';
+import MyDialog from '../../components/dialog/MyDialog';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'email', label: 'Email', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false, childrenIds: ["name"] },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'name', label: 'Name', alignRight: false },
+  { id: 'creator', label: 'Creator', alignRight: false, childrenIds: ["fullName"]},
+  { id: 'AssignedToUsers', label: 'Assigned to Users', alignRight: false },
+  { id: 'skills', label: 'Number OF Skills', alignRight: false },
+  { id: 'number of questions', label: 'Number Of Questions', alignRight: false },
   { id: '' },
 ];
 
@@ -55,6 +58,10 @@ const TABLE_HEAD = [
 function descendingComparator(a, b, orderBy) {
   let x1;
   let x2;
+  if(orderBy === 'number of questions') { 
+    x1 = a.skills.reduce((acc, curr) => acc + curr.childrenItems.length, 0);
+    x2 = b.skills.reduce((acc, curr) => acc + curr.childrenItems.length, 0);
+  }
   if((typeof a[orderBy] === 'string' || typeof a[orderBy] === 'number') && (typeof b[orderBy] === 'string' || typeof b[orderBy] === 'number')) {
     x1 = a[orderBy];
     x2 = b[orderBy];
@@ -101,8 +108,7 @@ export default function UserPage() {
 
   const currentUser = useRef();
 
-  const dispatch = useDispatch();
-  const users = useSelector(selectAllUsers);
+  const [tests, setTests] = useState([]);
 
   const [open, setOpen] = useState(null);
 
@@ -120,6 +126,8 @@ export default function UserPage() {
 
   const [ openAddUserModal, setOpenAddUserModal] = useState(false);
 
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
   const  [displaySnackBar, setDisplaySnackBar] = useState({
     open: false,
     message: '',
@@ -128,7 +136,6 @@ export default function UserPage() {
   const handleOpenMenu = (event, data) => {
     setOpen(event.currentTarget);
     currentUser.current = data._id;
-    dispatch(setSelectedUser(data));  
   };
 
   const handleCloseMenu = () => {
@@ -143,7 +150,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = users.map((n) => n.name);
+      const newSelecteds = tests.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -179,36 +186,49 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const deleteRole = async (userId) => {
+  const handleConfirm = () => {
+    // Do something on confirmation
+    deleteTest(currentUser.current)
+    setOpenDeleteDialog(false);
+  };
+
+  const deleteTests = async (names) => {
     setOpen(false);
       // axios POST request
       try{
-        await request.send('DELETE', `/api/user/${userId}`);
-        dispatch(deleteOneUserById(userId));
+        await request.send('DELETE', `/api/test/Many`, names);
+        setTests(tests.filter(test => !names.includes(test.name))); 
       } catch (error) {
         console.log("error: ", error);
         alert(error.code)
       }
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
+  const deleteTest = async (userId) => {
+    setOpen(false);
+      // axios POST request
+      try{
+        await request.send('DELETE', `/api/test/${userId}`);
+        setTests(tests.filter(test => test._id !== currentUser.current)); 
+      } catch (error) {
+        console.log("error: ", error);
+        alert(error.code)
+      }
+  };
 
-  const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tests.length) : 0;
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const filteredTests = applySortFilter(tests, getComparator(order, orderBy), filterName);
+
+  const isNotFound = !filteredTests.length && !!filterName;
 
   useEffect(() => {
     async function getUsers() {
-      const response = await request.get(`/api/user/all`);
-      let USERSLIST = response.data.users;
-      USERSLIST = USERSLIST.map((user) => ({
-          ...user,
-        })
-      );
-      dispatch(setUsers(USERSLIST))
+      const { tests } = await request.get(`/api/test/`);
+      setTests(tests)
     }
     getUsers()
-  }, [])
+  }, []);
 
   return (
     <>
@@ -219,62 +239,58 @@ export default function UserPage() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Users
+            Tests
           </Typography>
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={() => setOpenAddUserModal(true)}>
-            New User
+            New Test
           </Button>
         </Stack>
 
         <Card>
-          <UserListToolbar selectedUsers={selected} filterName={filterName} onFilterName={handleFilterByName} />
+          <TestListToolbar selectedTests={selected} filterName={filterName} onFilterName={handleFilterByName} deleteTests={deleteTests} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead
+                <TestListHead
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={users.length}
+                  rowCount={tests.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => {
-                    const { _id: id, email, role, manager, company, avatarUrl, isVerified } = user;
-                    const selectedUser = selected.indexOf(email) !== -1;
+                  {filteredTests.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((test) => {
+                    const { _id: id, name, creator, AssignedToUsers, skills, manager, company, avatarUrl, isVerified } = test;
+                    const selectedUser = selected.indexOf(name) !== -1;
 
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, email)} />
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
 
+                        <TableCell align="left">{name}</TableCell>
+     
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={email} src={avatarUrl} />
+                            <Avatar alt={creator?.fullName} src={avatarUrl} />
                             <Typography variant="subtitle2" noWrap>
-                              {email}
+                            {creator?.fullName? `${creator.fullName}` : "Not set"}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">still not set</TableCell>
+                        <TableCell align="left" sx={{pl: 9}}>{AssignedToUsers? AssignedToUsers.reduce((acc) => acc+1, 0) : "Not set"}</TableCell>
 
-                        <TableCell align="left">{role? role.name : "Not set"}</TableCell>
+                        <TableCell align="left" sx={{pl: 9}}>{skills? skills.reduce((acc) => acc+1, 0) : "Not set"}</TableCell>
 
-                      {
-                        manager?.name ? <TableCell align="left">{manager.name}</TableCell> : <TableCell align="left">No Manager</TableCell>
-                      } 
-                        <TableCell align="left">
-                          {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          <Label color={(null === 'banned' && 'error') || 'success'}>not set</Label>
-                        </TableCell>
+                        <TableCell align="left" sx={{pl: 9}}>{skills? skills.reduce((skillAcc, skill) => skillAcc + (skill.childrenItems? skill.childrenItems.reduce((acc, question)=> acc + 1, 0) : 0), 0) : "Not set"}</TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, user)}>
+                          <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, test)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -318,7 +334,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={users.length}
+            count={tests.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -329,7 +345,7 @@ export default function UserPage() {
 
       </Container>
 
-      <CreateUserModal open={openAddUserModal} handleClose={() => setOpenAddUserModal(false)} openSnackBar={setDisplaySnackBar} />
+      <CreateTestModal open={openAddUserModal} handleClose={() => setOpenAddUserModal(false)} openSnackBar={setDisplaySnackBar} restrictedNames={tests.map(test => test.name)} setTests={setTests} />
 
       <Popover
         open={Boolean(open)}
@@ -349,16 +365,23 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem>
+        {/* <MenuItem>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
+            Edit
+          </MenuItem> */}
 
-        <MenuItem onClick={() => deleteRole(currentUser.current)} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => setOpenDeleteDialog(true)} sx={{ color: 'error.main' }}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
-        </MenuItem>
+            Delete
+          </MenuItem>
       </Popover>
+
+      <MyDialog
+        open={openDeleteDialog}
+        setOpen={setOpenDeleteDialog}
+        action={handleConfirm}
+        message={`are you sure you want to delete "${tests.reduce((acc, test) => { if(test._id === currentUser.current) return acc + test.name; else return acc } , "")}" ?`}
+      />
     </>
   );
 }

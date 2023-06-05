@@ -22,13 +22,14 @@ const nbUsers = "nbUsers";
 const parentSubField="parentSubField";
 const description = "description";
 const designation = "designation";
+const type = "type"
 const hardDelete = "hardDelete"
 
 /* fields grouped together */
 const userFields = [name, email, password, role, manager, manages, skills, designation, deleted];
 const fieldFields = [name, childrenItems, subFields, nbUsers, deleted];
 const subFieldFields = [name, parentItem, childrenItems, parentField, skills, nbUsers, deleted];
-const skillFields = [name, parentItem, childrenItems, parentSubField, skillElements, nbUsers, deleted];
+const skillFields = [name, parentItem, childrenItems, parentSubField, skillElements,type, nbUsers, deleted];
 const skillElementFields = [name, parentItem, options, question, deleted];
 const roleFields = [name, permissions, nbUsers, deleted];
 const JobTitleFields = [name, description, nbUsers, deleted];

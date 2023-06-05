@@ -36,7 +36,6 @@ const BasicColumn = ({ dataColors, categories=[], data=[[]], names=[], title="y 
             name: names[index],
             data: data
     }});
-
     var options = {
         chart: {
             height: 350,
@@ -63,11 +62,21 @@ const BasicColumn = ({ dataColors, categories=[], data=[[]], names=[], title="y 
         colors: ["#f06548", "#4b38b3" , "#45CB85"],
         xaxis: {
             categories: categories,
+            labels: {
+                formatter: function (value) {
+                    return value.length > 10 ? value.slice(0, 10) + "..." : value;
+                }
+            }
         },
         yaxis: {
             title: {
                 text: title
-            }
+            },
+            labels: {
+                formatter: function (value) {
+                    return parseInt(value).toString();
+                }
+            } 
         },
         grid: {
             borderColor: '#f1f1f1',
@@ -79,7 +88,7 @@ const BasicColumn = ({ dataColors, categories=[], data=[[]], names=[], title="y 
         tooltip: {
             y: {
                 formatter: function (val) {
-                    return "$ " + val + " thousands";
+                    return parseFloat(val?.toFixed(3));
                 }
             }
         }

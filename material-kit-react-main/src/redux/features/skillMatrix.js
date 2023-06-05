@@ -40,6 +40,26 @@ export const addSkill = createAction(
     })
 );
 
+export const updateSkill = createAction(
+    'skill/update',
+    (skill) => ({
+        payload: {
+            ...skill,
+            type: "skill"
+        },
+    })
+);
+
+export const addSkillElement = createAction(
+    'skillElement/add',
+    (skillElement) => ({
+        payload: {
+            ...skillElement,
+            type: "skillElement"
+        },
+    })
+);
+
 export const setFields = createAction(
     'fields/set',
     (fields) => ({
@@ -58,6 +78,7 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
     // eslint-disable-next-line consistent-return
     return produce(state, draft => {
         switch(action.type) {
+
             case setSelected_skill_item_id.toString():
                 draft.selectedItem = action.payload
                 break;
@@ -67,8 +88,6 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
                 break;
 
             case addField.toString():
-                console.log('action.payload: ', action.payload);
-                console.log('draft.all: ', draft.all[0]);
                 draft.all = [...draft.all, action.payload]
                 break;
 
@@ -82,23 +101,63 @@ export default function FieldReducer(state = {selectedItem: {}}, action) {
                 });
                 break;
 
-                case addSkill.toString():
-                    draft.all = draft.all.map(field => {
-                        if (field._id === action.payload.parentItem) {
-                            field.childrenItems = [...field.childrenItems, action.payload];
-                        } else if (field.childrenItems) {
-                            field.childrenItems = field.childrenItems.map(subField => {
-                                if (subField._id === action.payload.parentItem) {
-                                    subField.childrenItems = [...subField.childrenItems, action.payload];
-                                }
-                                return subField;
-                            });
-                        }
-                        return field;
-                    });
-                    break;
+            case addSkill.toString():
+                draft.all = draft.all.map(field => {
+                    if (field._id === action.payload.parentItem) {
+                        field.childrenItems = [...field.childrenItems, action.payload];
+                    } else if (field.childrenItems) {
+                        field.childrenItems = field.childrenItems.map(subField => {
+                            if (subField._id === action.payload.parentItem) {
+                                subField.childrenItems = [...subField.childrenItems, action.payload];
+                            }
+                            return subField;
+                        });
+                    }
+                    return field;
+                });
+                break;
+
+            case updateSkill.toString():
+                draft.all = draft.all.map(field => {
+                    if (field.childrenItems) {
+                        field.childrenItems = field.childrenItems.map(subField => {
+                            if (subField._id === action.payload.parentItem) {
+                                subField.childrenItems = subField.childrenItems.map(skill => {
+                                    if (skill._id === action.payload._id) {
+                                        return action.payload;
+                                    }
+                                    return skill;
+                                });
+                            }
+                            return subField;
+                        });
+                    }
+                    return field;
+                });
+                break;
+
+            // case addSkillElement.toString():
+            //     console.log('action.payload: ', action.payload);
+            //     draft.all = draft.all.map(field => {
+            //         if (field.childrenItems) {
+            //             field.childrenItems = field.childrenItems.map(subField => {
+            //                 if(subField.childrenItems){
+            //                     subField.childrenItems = subField.childrenItems.map(skill => {
+            //                         if(skill._id === action.payload.parentItem){
+            //                             console.log("welyeeey: ",skill);
+            //                             skill.childrenItems = [...skill.childrenItems, action.payload];
+            //                         }
+            //                         return skill;
+            //                     })
+            //                 }
+            //                 return subField;
+            //             });
+            //         }
+            //         return field;
+            //     });
+            //     break;
             
-            case deleteItem.toString():
+                case deleteItem.toString():
                 // eslint-disable-next-line no-case-declarations
                 const { _id, type } = action.payload;
 

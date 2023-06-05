@@ -50,10 +50,8 @@ export default function LoginPage() {
     // if (token) {
     //   window.location.href = '/dashboard';
     // }
-    console.log("login page");
     localforage.clear();
     // localStorage.setItem('userId', '');
-    console.log("login page");
   }, []);
   return (
     <>

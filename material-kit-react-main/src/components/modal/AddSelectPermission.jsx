@@ -62,7 +62,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
   const handleChangePermissionType = (event, action) => {
     let newActionTypesSelected;
     let newResult;
-    console.log("actionTypesSelected", actionTypesSelected);
+
     if(actionTypesSelected.includes(action)){
       newActionTypesSelected = actionTypesSelected.filter(actionType => actionType !== action);
       newResult = {
@@ -192,7 +192,7 @@ export default function AddSelectPermissionModal({ actions, permissions, addPerm
                     // style={{ display: 'flex', flexDirection: 'column', paddingLeft: "5px", width: 250, alignContent: "flexStart"}}
                     data-value={action}
                     onClick={(e) => handleChangeNestedSelect(e, action, fields.hardDelete)}
-              >
+                    > 
                     <Checkbox key={`${fields.hardDelete} - ${index}`} checked={result.actions[action]?.includes(fields.hardDelete) } />
                     <ListItemText key={fields.hardDelete} primary={fields.hardDelete} />
                   </MenuItem> :

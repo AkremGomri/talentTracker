@@ -152,11 +152,11 @@ export default function ToolBar(props) {
   );
 
   async function deleteSelectedItem(item) {
-    console.log('item: ', item);
     try {
       if (item.type === 'field') await request.send('DELETE', `/api/fields/${item._id}/?hard=true`);
       else if (item.type === 'subField') await request.send('DELETE', `/api/subFields/${item._id}/?hard=true`);
       else if (item.type === 'skill') await request.send('DELETE', `/api/skills/${item._id}/?hard=true`);
+      else if (item.type === 'skillElement') await request.send('DELETE', `/api/skills/skillElement/?hard=true`, [item.name]);
       // else if(item.type === 'skill') await request.send('DELETE', `/api/skills/${item._id}`);
       dispatch(deleteItem(item));
     } catch (error) {
@@ -173,7 +173,6 @@ export default function ToolBar(props) {
       //   }
       //   console.log("selectedUsers ouii: ",selectedUsers);
       //   dispatch(deleteManyUsersByName(selectedUsers));
-      console.log('marja3nech');
     } catch (error) {
       console.log('error: ', error);
       alert('error deleting roles');

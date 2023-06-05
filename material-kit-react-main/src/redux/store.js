@@ -11,7 +11,7 @@ export default configureStore({
         // language: languageReducer
         roles: roleReducer,
         users: userReducer,
-        myProfile: myProfileReducer,
+        me: myProfileReducer,
         Field: FieldReducer,
     },
 })

@@ -42,7 +42,7 @@ const SimpleRadar = ({dataColors, categories, names, data}) => {
                 show: false
             }
         },
-        colors: ["#3d9ff5"],
+        colors: ["#f06548", "#4b38b3" , "#45CB85"],
         xaxis: {
             categories: categories
         }

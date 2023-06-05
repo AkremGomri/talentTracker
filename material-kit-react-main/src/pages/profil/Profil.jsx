@@ -1,15 +1,15 @@
-/* eslint-disable prefer-template */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable spaced-comment */
-/* eslint-disable react/self-closing-comp */
-import { Box } from '@mui/material';
+/* eslint-disable */
+
+import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, Col, Container, DropdownItem, DropdownMenu, DropdownToggle, Input, Label, Nav, NavItem, NavLink, Pagination, PaginationItem, PaginationLink, Progress, Row, TabContent, Table, TabPane, UncontrolledCollapse, UncontrolledDropdown } from 'reactstrap';
 import classnames from 'classnames';
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Autoplay } from "swiper";
 import localforage from 'localforage';
+import { FaFolder, FaBell } from 'react-icons/fa';
 
 //Images
 import profileBg from '../../assets/images/profile-bg.jpg';
@@ -33,66 +33,154 @@ import smallImage9 from '../../assets/images/small/img-9.jpg';
 import request from '../../services/request';
 import { MultipleRadar, SimpleRadar } from '../../components/chart/Radar';
 import { BasicColumn, ColumnWithLable } from '../../components/chart/Column';
+import TakeTestWindow from '../Test/TakeTestWindow';
 
+import { selectMyProfile } from '../../redux/utils/myProfile';
+import { setMyProfile } from '../../redux/features/myProfile';
+import TakeTestModal from '../../components/modal/TakeTestModal';
 
 const SimplePage = () => {
 
+    /** new  */
+    const [ selectedTest, setSelectedTest ] = useState(null);
+    const [showQuizWindow, setShowQuizWindow] = useState(false);
+    
+    // Function to open the quiz window
+    const openQuizWindow = () => {
+      setShowQuizWindow(!showQuizWindow);
+    };
+
+    const [selectedValues, setSelectedValues] = useState([]);
+    const [fields, setFields] = useState([]);
+
+    const myProfile = useSelector(selectMyProfile);
+    const dispatch = useDispatch()
+    // get the fields from the backend and assign them to selectedValues
+    useEffect(() => {
+        const getFields = async () => {
+            const { data } = await request.get('/api/fields');
+            setFields(data);
+        }
+        getFields();
+    }, []);
+
+    const handleFieldChange = (event) => {
+      setSelectedValues([event.target.value]);
+    };
+  
+    const handleSubFieldChange = (event) => {
+      setSelectedValues((prevValues) => [
+        ...prevValues.slice(0, 1),
+        event.target.value
+      ]);
+    };
+  
+    const handleChildrenItemsChange = (event) => {
+      setSelectedValues((prevValues) => [
+        ...prevValues.slice(0, 2),
+        event.target.value,
+        fields.reduce((accumulatedField, currentField) => {
+            if(selectedValues.length > 0 && currentField.name !== selectedValues[0] || !currentField.childrenItems.length) return accumulatedField;
+            return currentField.childrenItems.reduce((accumulatedSubField, currentSubField) => {
+                if( selectedValues.length > 0 && currentSubField.name !== selectedValues[1] || !currentSubField.childrenItems.length) return accumulatedSubField;
+                // eslint-disable-next-line prefer-const
+                return currentSubField.childrenItems.reduce((accumulatedSkill, currentSkill) => {
+                    if(currentSkill.name !== event.target.value || !currentSkill.childrenItems.length) return accumulatedSkill;
+                    return currentSkill;
+                }, {});
+            }, {})
+        }, [])
+      ]);
+    };
+
+    function handleStartTest(event, test){
+        setSelectedTest(test);
+    }
+
+    //**********************************************//
     const [profile, setProfile] = useState(null);
     const [skills, setSkills] = useState(null);
     const [skillsRadar, setSkillsRadar] = useState(null);
-    const [name, setName] = useState(null);
-    const [email, setemail] = useState(null);
+    const [ myAssignedTests, setMyAssignedTests ] = useState(profile?.myAssignedTests);
+    const [ toValidateTests, setToValidateTests ] = useState(profile?.myAssignedTests);
+
+    console.log("myAssignedTests: ", myAssignedTests);
+    console.log("toValidateTests", toValidateTests);
+    
+    const [numberOfPendingTests, setNumberOfPendingTests] = useState(myAssignedTests?.reduce((acc, curr) => (curr.AssignedToUsers[0].status === "pending")? acc++ : acc ,0));
 
     useEffect(() => {
         async function getData(){
             // Retrieve the profile data from LocalForage
             try{
-                const profiles = await localforage.getItem('profile');
+                // const profiles = await localforage.getItem('profile');
                 let data;
-                if(!profiles){
+                // if(!profiles){
                     // eslint-disable-next-line prefer-template
                     data = await request.get('/api/user/profile/' + await localforage.getItem('userId'));
                     
-                    await localforage.setItem('profile data', data[0]);
+                    // await localforage.setItem('profile', data[0]);
                     
+                    dispatch(setMyProfile(data[0]));
                     setProfile(data[0]);
+                    setMyAssignedTests(data[0].myAssignedTests);
+                    setToValidateTests(data[0].MyEmployeesTests);
                     setSkills({
-                        ...skills, 
-                        labels: data[0].skills.map(skill => skill.skill.name),
+                        ...skills,
+                        labels: data[0].skills.map(skill => skill.name),
                         ListOflevelISets: data[0].skills.map(skill => skill.levelISet), 
                         ListOflevelMyManagerSet: data[0].skills.map(skill => skill.levelMyManagerSet),
                         averageList: data[0].skills.map(skill => (skill.levelISet + skill.levelMyManagerSet) / 2)
                     });
+                    setSkills(prev => ({
+                        ...prev,
+                        ListOflevelISets: prev.ListOflevelISets.filter((value, index) => prev.ListOflevelMyManagerSet[index] || value),
+                        ListOflevelMyManagerSet: prev.ListOflevelMyManagerSet.filter((value, index) => prev.ListOflevelISets[index] || value),
+                        averageList: prev.averageList.filter((value, index) => prev.ListOflevelISets[index] || prev.ListOflevelMyManagerSet[index]),
+                    }))
                     //['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']
                     setSkillsRadar({
                         ...skillsRadar,
-                        Analytical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Creative: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Soft: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Managerial: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Interpersonal: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Technical: data[0].skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        Average: [
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
+                        ],
+                        ManagerSets: [
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelMyManagerSet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelMyManagerSet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelMyManagerSet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelMyManagerSet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelMyManagerSet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelMyManagerSet: acc, 0),
+                        ],
+                        ISet: [
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelISet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelISet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelISet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelISet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelISet: acc, 0),
+                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelISet: acc, 0),
+                        ]
+
+
+                        // AnalyticalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelMyManagerSet: acc, 0),
+                        // CreativeManager: data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelMyManagerSet: acc, 0),
+                        // SoftManager: data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelMyManagerSet: acc, 0),
+                        // ManagerialManager: data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelMyManagerSet: acc, 0),
+                        // InterpersonalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelMyManagerSet: acc, 0),
+                        // TechnicalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelMyManagerSet: acc, 0),
+                        
+                        // AnalyticalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelISet: acc, 0),
+                        // CreativeMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelISet: acc, 0),
+                        // SoftMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelISet: acc, 0),
+                        // ManagerialMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelISet: acc, 0),
+                        // InterpersonalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelISet: acc, 0),
+                        // TechnicalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelISet: acc, 0),
                     });
-                } else {
-                    console.log("else: ",profiles);
-                    setProfile(profiles);
-                    setSkills({
-                        ...skills, 
-                        labels: profiles.skills.map(skill => skill?.skill?.name),
-                        ListOflevelISets: profiles?.skills.map(skill => skill?.levelISet), 
-                        ListOflevelMyManagerSet: profiles?.skills.map(skill => skill?.levelMyManagerSet),
-                        average: profiles?.skills.map(skill => (skill?.levelISet + skill?.levelMyManagerSet) / 2)
-                    });
-                    setSkillsRadar({
-                        ...skillsRadar,
-                        Analytical: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Creative: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Soft: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Managerial: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Interpersonal: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        Technical: profiles.skills.reduce((acc, skill) => skill.skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                    });
-                }
             } catch(e) {
                 console.log("error: ",e);
             }
@@ -483,7 +571,7 @@ const SimplePage = () => {
 
                             <Col>
                                 <Box className="p-2">
-                                    <h3 className="text-white mb-1">{profile?.name? `${profile?.name?.first} ${profile?.name?.last}` : `${profile?.email}`}</h3>
+                                    <h3 className="text-white mb-1">{profile?.fullName? `${profile?.fullName}` : `${profile?.email}`}</h3>
                                     <p className="text-white-75">{profile?.jobTitle? profile?.jobTitle?.name : "Not set"}</p>
                                     <Box className="hstack text-white-50 gap-1">
                                         <Box className="me-2"><i
@@ -571,6 +659,28 @@ const SimplePage = () => {
                                                     className="d-none d-md-inline-block">Documents</span>
                                             </NavLink>
                                         </NavItem>
+                                        <NavItem>
+                                            <NavLink
+                                                href="#addSkill"
+                                                className={classnames({ active: activeTab === '6' })}
+                                                onClick={() => { toggleTab('6'); }}
+                                            >
+                                                <FaFolder className="d-inline-block d-md-none" />
+                                                <span className="d-none d-md-inline-block">Tests</span>
+                                            </NavLink>
+                                                {
+                                                myAssignedTests?.length && (
+                                                <span className="notification-badge" style={{
+                                                    position: "relative",
+                                                    top: "-40px",
+                                                    left: "90px",
+                                                    color: "red"
+                                                }}>
+                                                    <FaBell />
+                                                    <span className="notification-count">{myAssignedTests.length}</span>
+                                                </span>
+                                                )}
+                                        </NavItem>
                                     </Nav>
                                     <Box className="flex-shrink-0">
                                         <Link to="settings" className="btn btn-success"><i
@@ -597,7 +707,7 @@ const SimplePage = () => {
                                                                 <tbody>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">Full Name :</th>
-                                                                        <td className="text-muted">{`${profile?.name?.first} ${profile?.name?.last}`}</td>
+                                                                        <td className="text-muted">{`${profile?.fullName}`}</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <th className="ps-0" scope="row">Mobile :</th>
@@ -622,7 +732,7 @@ const SimplePage = () => {
                                                     </CardBody>
                                                 </Card>
 
-                                                {/* <Card>
+                                                <Card>
                                                     <CardBody>
                                                         <h5 className="card-title mb-4">Portfolio</h5>
                                                         <Box className="d-flex flex-wrap gap-2">
@@ -660,9 +770,9 @@ const SimplePage = () => {
                                                             </Box>
                                                         </Box>
                                                     </CardBody>
-                                                </Card> */}
+                                                </Card>
 
-                                                {/* <Card>
+                                                <Card>
                                                     <CardBody>
                                                         <h5 className="card-title mb-4">Skills</h5>
                                                         <Box className="d-flex flex-wrap gap-2 fs-15">
@@ -682,9 +792,9 @@ const SimplePage = () => {
                                                                 className="badge badge-soft-primary">Python</Link>
                                                         </Box>
                                                     </CardBody>
-                                                </Card> */}
+                                                </Card>
 
-                                                {/* <Card>
+                                                <Card>
                                                     <CardBody>
                                                         <Box className="d-flex align-items-center mb-4">
                                                             <Box className="flex-grow-1">
@@ -762,10 +872,10 @@ const SimplePage = () => {
                                                             </Box>
                                                         </Box>
                                                     </CardBody>
-                                                </Card> */}
+                                                </Card>
 
 
-                                                {/* <Card>
+                                                <Card>
                                                     <CardBody>
                                                         <Box className="d-flex align-items-center mb-4">
                                                             <Box className="flex-grow-1">
@@ -824,7 +934,7 @@ const SimplePage = () => {
                                                             </Box>
                                                         </Box>
                                                     </CardBody>
-                                                </Card> */}
+                                                </Card>
                                             </Col>
                                             <Col xxl={9}>
                                                 <Card>
@@ -873,7 +983,7 @@ const SimplePage = () => {
                                                     </CardBody>
                                                 </Card>
 
-                                                {/* <Row>
+                                                <Row>
                                                     <Col lg={12}>
                                                         <Card>
                                                             <CardHeader className="align-items-center d-flex">
@@ -1774,9 +1884,9 @@ const SimplePage = () => {
                                                             </CardBody>
                                                         </Card>
                                                     </Col>
-                                                </Row> */}
+                                                </Row>
 
-                                                {/* <Card>
+                                                <Card>
                                                     <CardBody>
                                                         <h5 className="card-title">Projects</h5>
                                                         <Box className="d-flex justify-content-end gap-2 mb-2">
@@ -2095,7 +2205,7 @@ const SimplePage = () => {
                                                             </Box>
                                                         </Swiper>
                                                     </CardBody>
-                                                </Card> */}
+                                                </Card>
                                             </Col>
                                         </Row>
                                     </TabPane>
@@ -2125,7 +2235,7 @@ const SimplePage = () => {
                                                             <Card>
                                                                 <CardHeader>
                                                                     <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Specific Skills Chart</h4>
-                                                                    { skills && <BasicColumn 
+                                                                    { skills && <BasicColumn
                                                                         dataColors='["--vz-danger", "--vz-primary", "--vz-success"]' 
                                                                         title='level'
                                                                         categories={skills.labels}
@@ -2148,8 +2258,8 @@ const SimplePage = () => {
                                                                         <SimpleRadar
                                                                             categories={['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']}
                                                                             names={["Series 1", "Series 2", "Series 3"]} 
-                                                                            data={[[skillsRadar.Analytical, skillsRadar.Creative, skillsRadar.Soft, skillsRadar.Managerial, skillsRadar.Interpersonal, skillsRadar.Technical]]}
-                                                                            dataColors='["--vz-success"]'/>
+                                                                            data={[skillsRadar?.ISet, skillsRadar?.Average, skillsRadar?.ManagerSets]}
+                                                                            dataColors='["--vz-danger", "--vz-primary", "--vz-success"]'/>
                                                                     }                                                                
                                                                 </CardBody>
                                                             </Card>
@@ -2325,7 +2435,7 @@ const SimplePage = () => {
                                         </Card>
                                     </TabPane>
 
-                                    {/* <TabPane tabId="3">
+                                    <TabPane tabId="3">
                                         <Card>
                                             <CardBody>
                                                 <h5 className="card-title mb-3">Activities</h5>
@@ -2644,7 +2754,169 @@ const SimplePage = () => {
                                                 </Row>
                                             </CardBody>
                                         </Card>
-                                    </TabPane> */}
+                                    </TabPane>
+
+                                    <TabPane tabId="6">
+                                        <Card>
+                                            <CardBody>
+                                                <Box className="d-flex align-items-center mb-4">
+                                                    <h5 className="card-title flex-grow-1 mb-0">My Tests</h5>
+                                                    <Box className="flex-shrink-0">
+                                                        <Input className="form-control d-none" type="file" id="formFile" />
+                                                        {/* <Label htmlFor="formFile" className="btn btn-danger"><i className="ri-upload-2-fill me-1 align-bottom"></i> Upload
+                                                            File</Label> */}
+                                                    </Box>
+                                                </Box>
+                                                <Box>
+                                                    <Box className="table-responsive">
+                                                        <Table className="table-borderless align-middle mb-0">
+                                                            <thead className="table-light">
+                                                                <tr>
+                                                                    <th scope="col">Test Name</th>
+                                                                    <th scope="col">Created By</th>
+                                                                    {/* <th scope="col">Upload Date</th> */}
+                                                                    <th scope="col">Start date</th>
+                                                                    <th scope="col">days left</th>
+                                                                    <th scope="col">Status</th>
+                                                                    <th scope="col">Verified</th>
+                                                                    <th scope="col">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {(myAssignedTests || []).map((item, key) => (
+                                                                    <tr key={key}>
+                                                                        <td>
+                                                                            <Box className="d-flex align-items-center">
+                                                                                {/* <Box className="avatar-sm">
+                                                                                    <Box
+                                                                                        className={`avatar-title bg-soft-${item.iconBackgroundClass} text-${item.iconBackgroundClass} rounded fs-20`}>
+                                                                                        <i className={item.icon}></i>
+                                                                                    </Box>
+                                                                                </Box> */}
+                                                                                <Box className="ms-3 flex-grow-1">
+                                                                                    <h6 className="fs-15 mb-0"><Link to="#">{item.name}</Link>
+                                                                                    </h6>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </td>
+                                                                        <td>{item.creator.fullName === profile?.fullName ? "Myself" : item.creator.fullName}</td>
+                                                                        {/* <td>{item.updatedDate}</td> */}
+                                                                        <td>{transformDate(item.startDate)}</td>
+                                                                        { (transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now() > 0)? <td>{transformMillisecondsToDays(transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now())}</td> : <td> - </td>}
+                                                                        {
+                                                                            ((new Date(item.startDate).getTime() + item.duration * 24 * 60 * 60 * 1000) > Date.now() && (new Date(item.startDate).getTime() -1  <= Date.now()))
+                                                                                ? <td style={{ color: (item.AssignedToUsers[0]?.status === 'pending')? "orange" : (item.AssignedToUsers[0]?.status === 'completed')? "green" : 'black' }} >{item.AssignedToUsers[0]?.status}</td>
+                                                                                : (new Date(item.startDate).getTime() > Date.now()) ? <td style={{ color: 'blue' }}>Too soon</td> 
+                                                                                : <td style={{ color: 'red' }}>Expired</td>
+                                                                        }
+                                                                        {
+                                                                            item.AssignedToUsers[0]?.verifiedStatus === 'pending' ? <td style={{ color: 'black' }}>NO</td> : <td style={{ color: 'green' }}>YES</td>
+                                                                        }
+                                                                        <td>
+                                                                            <UncontrolledDropdown direction='start'>
+                                                                                <DropdownToggle tag="a" className="btn btn-light btn-icon" id="dropdownMenuLink15" role="button">
+                                                                                    <i className="ri-equalizer-fill"></i>
+                                                                                </DropdownToggle>
+                                                                                <DropdownMenu>
+                                                                                    <DropdownItem><i className="ri-eye-fill me-2 align-middle text-muted" />View</DropdownItem>
+                                                                                    <DropdownItem onClick={(e) => handleStartTest(e, item)} ><i className="ri-download-2-fill me-2 align-middle text-muted"/>Start</DropdownItem>
+                                                                                    <DropdownItem divider />
+                                                                                    <DropdownItem><i className="ri-delete-bin-5-line me-2 align-middle text-muted" />Delete</DropdownItem>
+                                                                                </DropdownMenu>
+                                                                            </UncontrolledDropdown>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+
+                                                        </Table>
+                                                        <TakeTestModal open={!!selectedTest} handleCloseModal={() => setSelectedTest(null)} selectedTest={selectedTest} initialSkills={profile?.skills} action={setMyAssignedTests} />
+                                                    </Box>
+                                                </Box>
+
+                                                <Box className="d-flex align-items-center mb-4" sx={{ marginTop: 5 }}>
+                                                    <h5 className="card-title flex-grow-1 mb-0">To Validate Tests</h5>
+                                                    <Box className="flex-shrink-0">
+                                                        <Input className="form-control d-none" type="file" id="formFile" />
+                                                
+                                                    </Box>
+                                                </Box>
+                                                {
+                                                    !!toValidateTests.length &&
+                                                    <Box>
+                                                        <Box className="table-responsive">
+                                                            <Table className="table-borderless align-middle mb-0">
+                                                                <thead className="table-light">
+                                                                    <tr>
+                                                                        <th scope="col">Test Name</th>
+                                                                        <th scope="col">Assigned To</th>
+                                                                        {/* <th scope="col">Upload Date</th> */}
+                                                                        <th scope="col">Start date</th>
+                                                                        <th scope="col">days left</th>
+                                                                        <th scope="col">Status</th>
+                                                                        <th scope="col">Verified</th>
+                                                                        <th scope="col">Action</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {(toValidateTests || []).map((item, key) => (
+                                                                        <tr key={key}>
+                                                                            <td>
+                                                                                <Box className="d-flex align-items-center">
+                                                                                    {/* <Box className="avatar-sm">
+                                                                                        <Box
+                                                                                            className={`avatar-title bg-soft-${item.iconBackgroundClass} text-${item.iconBackgroundClass} rounded fs-20`}>
+                                                                                            <i className={item.icon}></i>
+                                                                                        </Box>
+                                                                                    </Box> */}
+                                                                                    <Box className="ms-3 flex-grow-1">
+                                                                                        <h6 className="fs-15 mb-0"><Link to="#">{item.name}</Link>
+                                                                                        </h6>
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </td>
+                                                                            <td>{item?.AssignedToUsers[0]?.user.email}</td>
+                                                                            {/* <td>{item.updatedDate}</td> */}
+                                                                            <td>{transformDate(item.startDate)}</td>
+                                                                            { (transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now() > 0)? <td>{transformMillisecondsToDays(transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now())}</td> : <td> - </td>}
+                                                                            {
+                                                                                ((new Date(item.startDate).getTime() + item.duration * 24 * 60 * 60 * 1000) > Date.now() && (new Date(item.startDate).getTime() -1  <= Date.now()))
+                                                                                    ? <td style={{ color: (item.AssignedToUsers[0]?.status === 'pending')? "orange" : (item.AssignedToUsers[0]?.status === 'completed')? "green" : 'black' }} >{item.AssignedToUsers[0]?.status}</td>
+                                                                                    : (new Date(item.startDate).getTime() > Date.now()) ? <td style={{ color: 'blue' }}>Too soon</td> 
+                                                                                    : <td style={{ color: 'red' }}>Expired</td>
+                                                                            }
+                                                                            {
+                                                                                item.AssignedToUsers[0]?.verifiedStatus === 'pending' ? <td style={{ color: 'black' }}>NO</td> : <td style={{ color: 'green' }}>YES</td>
+                                                                            }
+                                                                    
+                                                                            <td>
+                                                                                <UncontrolledDropdown direction='start'>
+                                                                                    <DropdownToggle tag="a" className="btn btn-light btn-icon" id="dropdownMenuLink15" role="button">
+                                                                                        <i className="ri-equalizer-fill"></i>
+                                                                                    </DropdownToggle>
+                                                                                    <DropdownMenu>
+                                                                                        <DropdownItem><i className="ri-eye-fill me-2 align-middle text-muted" />View</DropdownItem>
+                                                                                        <DropdownItem onClick={(e) => handleStartTest(e, item)} ><i className="ri-download-2-fill me-2 align-middle text-muted"/>Start</DropdownItem>
+                                                                                        <DropdownItem divider />
+                                                                                        <DropdownItem><i className="ri-delete-bin-5-line me-2 align-middle text-muted" />Delete</DropdownItem>
+                                                                                    </DropdownMenu>
+                                                                                </UncontrolledDropdown>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+
+                                                            </Table>
+                                                            <TakeTestModal open={!!selectedTest && selectedTest.type==="toBeValidated"} handleCloseModal={() => setSelectedTest(null)} selectedTest={selectedTest} initialSkills={profile?.skills} type="validation" action={setToValidateTests} />
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                                <Row>
+    
+                                                </Row>
+                                            </CardBody>
+                                        </Card>
+                                    </TabPane>
                                 </TabContent>
                             </Box>
                         </Col>
@@ -2654,6 +2926,32 @@ const SimplePage = () => {
             </Box>
         </>
     );
+    function transformDate(dateString){
+        const date = new Date(dateString);
+    
+        // Extract the time
+        const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        // Extract the date
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = date.toLocaleDateString(undefined, options);
+        
+        return formattedDate
+    }
+
+    function transformDateToMilliseconds(date){
+        return new Date(date).getTime();
+    }
+
+    function transformMillisecondsToDays(dateInMilliseconds){
+        return Math.ceil(dateInMilliseconds / (1000 * 60 * 60 * 24));
+    }
+
+    
+    function transformDaysToMilliseconds(dateInDays){
+        const date = new Date(dateInDays);
+        return date * (1000 * 60 * 60 * 24);
+    }
 };
 
 export default SimplePage;

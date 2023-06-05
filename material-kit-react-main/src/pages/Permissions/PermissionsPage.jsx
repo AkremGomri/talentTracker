@@ -1,3 +1,4 @@
+/* eslint-disable import/no-useless-path-segments */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
@@ -26,16 +27,16 @@ import {
   Box,
 } from '@mui/material';
 // components
-import { transformDate } from '../services/date';
-import Scrollbar from '../components/scrollbar';
+import { transformDate } from '../../services/date';
+import Scrollbar from '../../components/scrollbar';
 // sections
-import { UserListHead, RoleListToolbar } from '../sections/@dashboard/user';
+import { PermissionListHead, RoleListToolbar } from '../../pages/Permissions/';
 // mock
-import RoleModal from '../components/modal/RoleModal';
-import { deleteOneRoleById, setRoles, setSelectedRole } from '../redux/features/role';
-import AddPermission from '../components/modal/AddPermission';
-import request from '../services/request';
-import Iconify from '../components/iconify/Iconify';
+import RoleModal from '../../components/modal/RoleModal';
+import { deleteOneRoleById, setRoles, setSelectedRole } from '../../redux/features/role';
+import AddPermission from '../../components/modal/AddPermission';
+import request from '../../services/request';
+import Iconify from '../../components/iconify/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -44,7 +45,6 @@ const TABLE_HEAD = [
   { id: 'nbUsers', label: 'Number Of Users', alignRight: false },
   { id: 'lastUpdated', label: 'Last Updated', alignRight: false },
   { id: 'permissions', label: 'Permissions', alignRight: false },
-  // { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
 
@@ -74,13 +74,12 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_permission) => _permission.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
 export default function PermissionsPage() {
-
   const currentRole = useRef();
 
   const dispatch = useDispatch();
@@ -172,15 +171,15 @@ export default function PermissionsPage() {
 
   const deleteRole = async (roleId) => {
     setOpen(false);
-      // axios POST request
+    // axios POST request
 
-      try{
-        await request.send('DELETE', `/api/admin/role/${roleId}`);
-        dispatch(deleteOneRoleById(roleId));
-      } catch (error) {
-        console.log("error: ", error);
-        alert(error.code)
-      }
+    try {
+      await request.send('DELETE', `/api/admin/role/${roleId}`);
+      dispatch(deleteOneRoleById(roleId));
+    } catch (error) {
+      console.log('error: ', error);
+      alert(error.code);
+    }
   };
 
   const [openEditRoleModel, setOpenEditRoleModel] = useState(false);
@@ -197,14 +196,13 @@ export default function PermissionsPage() {
       const response = await request.get(`/api/admin/roles`);
       let ROLESLIST = response.data.roles;
       ROLESLIST = ROLESLIST.map((role) => ({
-          ...role,
-          updatedAt: transformDate(role.updatedAt),
-        })
-      );
-      dispatch(setRoles(ROLESLIST))
+        ...role,
+        updatedAt: transformDate(role.updatedAt),
+      }));
+      dispatch(setRoles(ROLESLIST));
     }
-    getRoles()
-  }, [])
+    getRoles();
+  }, []);
 
   return (
     <>
@@ -228,7 +226,7 @@ export default function PermissionsPage() {
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead
+                <PermissionListHead
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
@@ -269,9 +267,11 @@ export default function PermissionsPage() {
                           </Typography>
                         </TableCell>
 
+                        <TableCell align="left">Not set</TableCell>
+
                         <TableCell align="left">
                           <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, role)}>
-                            <Iconify icon={'eva:more-vertical-fill'}/>
+                            <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -345,7 +345,7 @@ export default function PermissionsPage() {
         }}
       >
         <MenuItem onClick={handleOpenEditRoleModal}>
-          <Iconify  icon={'eva:edit-fill'} sx={{ mr: 2 }} />
+          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 

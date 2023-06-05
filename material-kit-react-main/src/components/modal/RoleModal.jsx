@@ -51,10 +51,6 @@ export default function RoleModal({ open, handleClose}) {
 
     const selectedRole = useSelector(selectRoleToModify);
 
-    useEffect(() => {
-      console.log("selectedRole: ", selectedRole);
-    }, [selectedRole])
-
       const [state, setState] = useState({
         gilad: true,
         jason: false,
@@ -83,7 +79,7 @@ export default function RoleModal({ open, handleClose}) {
                 <FormControl sx={{ m: 3, display: "block" }} component="fieldset" variant="standard">
                       {
                         selectedRole.permissions.map((permission, index) => (
-                          <>
+                          <Box key={index}>
                           {
                             permission.subject && 
                             <>
@@ -106,7 +102,7 @@ export default function RoleModal({ open, handleClose}) {
                               <FormHelperText sx={{ mb: 3, ml: 3 }}>Be careful</FormHelperText>
                             </>
                           }                     
-                          </>
+                          </Box>
                         ))  
                       }
                 </FormControl>

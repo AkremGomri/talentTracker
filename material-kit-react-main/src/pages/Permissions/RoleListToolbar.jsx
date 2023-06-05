@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Alert } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import axios from 'axios';
 // component
-import Iconify from '../../../components/iconify';
-import request from '../../../services/request';
-import { addManyUsers, deleteManyUsersByName } from '../../../redux/features/user';
+import { deleteManyRolesByName } from '../../redux/features/role';
+import Iconify from '../../components/iconify';
+import request from '../../services/request';
 
 // ----------------------------------------------------------------------
 
@@ -35,28 +36,27 @@ const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-UserListToolbar.propTypes = {
-  selectedUsers: PropTypes.array,
+RoleListToolbar.propTypes = {
+  selectedRoles: PropTypes.array,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
 };
 
-export default function UserListToolbar({ selectedUsers, filterName, onFilterName }) {
-
+export default function RoleListToolbar({ selectedRoles, filterName, onFilterName }) {
   const dispatch = useDispatch();
 
   return (
     <StyledRoot
       sx={{
-        ...(selectedUsers.length > 0 && {
+        ...(selectedRoles.length > 0 && {
           color: 'primary.main',
           bgcolor: 'primary.lighter',
         }),
       }}
     >
-      {selectedUsers.length > 0 ? (
+      {selectedRoles.length > 0 ? (
         <Typography component="div" variant="subtitle1">
-          {selectedUsers.length} selected
+          {selectedRoles.length} selected
         </Typography>
       ) : (
         <StyledSearch
@@ -71,9 +71,9 @@ export default function UserListToolbar({ selectedUsers, filterName, onFilterNam
         />
       )}
 
-      {selectedUsers.length > 0 ? ( // akrem badel lenna
+      {selectedRoles.length > 0 ? ( // akrem badel lenna
         <Tooltip title="Delete">
-          <IconButton onClick={() => deleteAllSelectedUsers()} >
+          <IconButton onClick={() => dispatch(deleteAllSelectedRoles)}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -87,16 +87,13 @@ export default function UserListToolbar({ selectedUsers, filterName, onFilterNam
     </StyledRoot>
   );
 
-  async function deleteAllSelectedUsers() {
-    try{
-      const response = await request.send('delete', '/api/user/many', selectedUsers);
-      if(response.result?.deletedCount <=0 ){
-        return;
-      }
-      dispatch(deleteManyUsersByName(selectedUsers));
+  async function deleteAllSelectedRoles() {
+    try {
+      await request.send('delete', '/api/admin/roles', selectedRoles);
+      dispatch(deleteManyRolesByName(selectedRoles));
     } catch (error) {
-      console.log("error: ", error);
-      alert("error deleting roles")
+      console.log('error: ', error);
+      alert('error deleting roles');
     }
   }
 }

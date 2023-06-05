@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable no-unused-expressions */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
@@ -46,7 +47,7 @@ import Iconify from '../components/iconify/Iconify';
 // import { Field } from '../components/treeView/MyTreeItem';
 import MyTreeView from '../components/treeView/MyTreeView';
 import MyTreeItem from '../components/treeView/MyTreeItem';
-import { setFields, deleteItem } from '../redux/features/skillMatrix';
+import { setFields, deleteItem, setSelected_skill_item_id } from '../redux/features/skillMatrix';
 import AddCategory from '../components/modal/AddCategory';
 import { selectAllFields, selectSelectedItem } from '../redux/utils/skillMatrix';
 import AddSkillItem from '../components/modal/AddItem';
@@ -59,7 +60,7 @@ export default function FieldsPage() {
   
 
   const [loading, setLoading] = useState(true);
-  const [canModify, setCanModify] = useState(false);
+  // const [canModify, setCanModify] = useState(false);
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState([]);
   
@@ -113,7 +114,7 @@ export default function FieldsPage() {
       </Helmet>
 
       <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+        {/* <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             Skill Matrix
           </Typography>
@@ -125,7 +126,7 @@ export default function FieldsPage() {
           >
             {canModify ? 'modify' : 'done'}
           </Button>
-        </Stack>
+        </Stack> */}
 
         {/* <div>
           {data? data.map((field) => <Field key={field._id} data={field} />): <CircularProgress />}
@@ -135,19 +136,19 @@ export default function FieldsPage() {
 
           <MyTreeView
             // onNodeSelect={handleNodeSelect}
-            canModify={canModify}
+            // canModify={canModify}
             open={open}
             setExpanded={setExpanded}
             expanded={expanded}
             // handleExpandClick={handleExpandClick}
           >
-            <Box sx={{ maxWidth: '200px' }}>
+            <Box sx={{ width: '100%' }}>
               {fields &&
                 fields.map((el, index) => {
                   allTreeItems.push(`${el._id}-${el.name}-${el.type}-${index}`);
                   return (
                     <MyTreeItem
-                      canModify={canModify}
+                      // canModify={canModify}
                       secret="ahh"
                       key={`${el._id}-${index}`}
                       id={`${el._id}-${el.name}-${el.type}-${index}`}
@@ -159,7 +160,7 @@ export default function FieldsPage() {
                           allTreeItems.push(`${e._id}-${e.name}-${e.type}-${index}-${i}`);
                           return (
                             <MyTreeItem
-                              canModify={canModify}
+                              // canModify={canModify}
                               secret="****"
                               key={`${e._id}-${i}`}
                               id={`${e._id}-${e.name}-${e.type}-${index}-${i}`}
@@ -171,7 +172,7 @@ export default function FieldsPage() {
                                   allTreeItems.push(`${elem._id}-${elem.name}-${elem.type}-${index}-${i}-${ind}`);
                                   return (
                                     <MyTreeItem
-                                      canModify={canModify}
+                                      // canModify={canModify}
                                       key={`${elem._id}-${ind}`}
                                       id={`${elem._id}-${elem.name}-${elem.type}-${index}-${i}-${ind}`}
                                       name={elem.name}
@@ -184,12 +185,22 @@ export default function FieldsPage() {
                                           );
                                           return (
                                             <MyTreeItem
-                                              canModify={canModify}
+                                              // canModify={canModify}
                                               secret="sdf"
+                                              onToggle={() => {
+                                                // if(expanded.length < nodeIds.length && nodeIds[0]){
+                                                  dispatch( setSelected_skill_item_id({
+                                                        _id: element._id,
+                                                        name: element.name,
+                                                        type: element.type,
+                                                      })
+                                                    );
+                                                  // } else dispatch( setSelected_skill_item_id({}) );
+                                              }}
                                               key={`${element._id}-${inde}`}
                                               id={`${element._id}-${el.element}-${element.type}-${index}-${i}-${ind}-${inde}`}
                                               name={element.name}
-                                              expanded={expanded}
+                                              // expanded={expanded}
                                             />
                                           );
                                         })}
