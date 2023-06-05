@@ -6,6 +6,14 @@ const subField = require('../../models/fields_and_skills/subFieldModel');
 const { protect } = require('../../middlewares/auth');
 
 router
+    .route('/update/:id')
+    .post(subFieldController.updateSubField)
+
+
+// Admin
+router.delete('/admin/', protect, subFieldController.deleteAllSubFieldsAsDataBaseAdmin);
+
+router
     .route('/:id?')
     // .get(subFieldController.getAllFields)
     .get(protect, subFieldController.getSubFields)
@@ -15,8 +23,5 @@ router
     .patch(protect, subFieldController.updateSubField)
     .put(protect, subFieldController.updateSubField);
 
-router
-    .route('/update/:id')
-    .post(subFieldController.updateSubField)
 
 module.exports = router;

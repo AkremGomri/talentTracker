@@ -7,8 +7,17 @@ const SkillElementRoutes = require('../../routes/fields_and_skills/skillElementR
 const { protect } = require('../../middlewares/auth');
 
 router
+    .route('/admin')
+    .delete(protect, skillController.deleteAllSkillsAsDataBaseAdmin)
+    
+router
     .use('/:userId?/skillElement', SkillElementRoutes)
-
+    
+router
+    .route('/update/:id')
+    .post(protect, skillController.updateSkill)
+    
+    // Admin
 router
     .route('/:id?')
     // .get(fieldController.getAllFields)
@@ -17,10 +26,6 @@ router
     // .delete(fieldController.deleteOneField)
     .delete(protect, skillController.deleteSkills)
     .put(protect, skillController.updateSkill)
-    .patch(protect, skillController.updateSkill);
+    .patch(protect, skillController.updateSkill)
 
-router
-    .route('/update/:id')
-    .post(protect, skillController.updateSkill)
-    
 module.exports = router;

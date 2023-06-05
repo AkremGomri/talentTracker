@@ -7,6 +7,27 @@ const validator = require('validator');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 
+const skillElementSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill'},
+  levelISet: { type: Number, default: 0, min: 0, max: 5, null: false },
+  levelMyManagerSet: { type: Number, default: 0, min: 0, max: 5, null: false },
+  date: { type: Date, default: Date.now },
+  deleted: { type: Boolean, default: false },
+});
+
+const skillSchema = mongoose.Schema({
+  sourceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill'},
+  name: { type: String ,required:true },
+  type: { type: String, enum: ['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical'], default: 'Technical'},
+  parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'SubField'},
+  levelISet: { type: Number, default: 0, min: 0, max: 5, null: false },
+  levelMyManagerSet: { type: Number, default: 0, min: 0, max: 5, null: false },
+  childrenItems: [skillElementSchema],
+  description: { type: String, default: "" },
+  deleted: { type: Boolean, default: false }
+});
+
 // mongoose schema
 const userSchema = mongoose.Schema({
   name: {
@@ -33,31 +54,9 @@ const userSchema = mongoose.Schema({
   },
   passwordChangedAt: Date,
   role: { type: mongoose.Schema.ObjectId, ref: 'Role', default: null },
-  manager: [{ type: mongoose.Schema.ObjectId, ref: 'User', default: null }],
+  manager: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
   manages: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-  skills: [{ 
-    skill: { type: mongoose.Schema.ObjectId, ref: 'Skill'},
-    // user: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    levelISet: { 
-      type: Number, 
-      default: 0, 
-      min: 0, max: 5,
-      validate: {
-        validator: Number.isInteger,
-        message: '{VALUE} is not an integer value'
-      },
-    },
-    levelMyManagerSet: { 
-      type: Number, 
-      default: 0, 
-      min: 0, max: 5,
-      validate: {
-        validator: Number.isInteger,
-        message: '{VALUE} is not an integer value'
-      },
-      date: { type: Date, default: Date.now },
-    }
-  }],
+  skills: [skillSchema],
   jobTitle: { type: mongoose.Schema.ObjectId, ref: 'JobTitle', default: null },
   designation: { type: String },
   about: { type: String },
@@ -72,20 +71,15 @@ const userSchema = mongoose.Schema({
   },
   join_date: { type: Date, default: Date.now()},
   deleted: { type: Boolean, default: false }
+}, {
+  toJSON:{virtuals:true}, // in options object we can pass virtuals:true to get virtual properties in json
+  toObject:{virtuals:true},
 });
 
-// userSchema.post(/^find/, function(docs, next){
-//   if( Array.isArray(docs)) {
-//     docs.forEach(function(doc) {
-//       doc.password = undefined;
-//     });
-//   } else {
-//     console.log("hellooooo: ",docs);
-//     docs.password = undefined;
-//   }
-//   console.log("hereeeee");
-//   next();
-// });
+userSchema.virtual('fullName').get(function () {
+  return `${this.name.first} ${this.name.last}`;
+});
+
 
 userSchema.virtual('fullName').get(function () {
   return _.startCase(`${this.name.first} ${this.name.last}`);

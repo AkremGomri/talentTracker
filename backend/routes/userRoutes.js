@@ -6,15 +6,18 @@ const { protect } = require('../middlewares/auth');
 const multer = require('multer');
 
 router
-.post('/signUp', authController.signup)
-.post('/login', authController.login)
+    .post('/signUp', authController.signup)
+    .post('/login', authController.login)
 
 /*              Me                */
 router
 .route('/me')
-    // .get(protect, userCtrl.getMe)
+    .get(protect, userCtrl.getMyProfile)
     .put(protect, userCtrl.updateMe)
-    // .delete(protect, userCtrl.deleteMe)
+    
+router.route('/my-skills')
+    .patch(protect, userCtrl.updateMySkills)
+// .delete(protect, userCtrl.deleteMe)
 
 const images = multer({ dest: 'public/images/avatar' });
 router
@@ -35,23 +38,25 @@ router
     .put(protect, userCtrl.updateManyUsers)
     .delete(protect, userCtrl.deleteManyUsers)
     
-    router
+router
     .route('/profile/:id?')
-.get(protect, userCtrl.getProfil)
+    .get(protect, userCtrl.getProfil)
 // .get(protect, userCtrl.getManyUsers) // I think any one connected no matter his role and permissions can do that.
 // .put(protect, userCtrl.updateManyUsers)
 // .delete(protect, userCtrl.deleteManyUsers)
 
 /*           missing something            */
 router
-.delete('/', protect, userCtrl.deleteUser)
-.delete('/:id', protect, userCtrl.deleteUserById)
+    .delete('/', protect, userCtrl.deleteUser)
+    .delete('/:id', protect, userCtrl.deleteUserById)
 
 /*           One User            */
 router
-.route('/')
-.get(protect, userCtrl.getOneUser)
+    .route('/')
+    .get(protect, userCtrl.getOneUser)
+    .put(protect, userCtrl.updateUser)
 
+router.get('/names', protect, userCtrl.getUsersNames)
 /*           test            */
 router.use('/test', protect, userCtrl.test)
 router.use('/testWithRole', protect, userCtrl.testWithRole)

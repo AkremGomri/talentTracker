@@ -138,3 +138,11 @@ exports.deleteFields = catchAsync(async (req, res, next) => {
 // });
 
 // exports.updateField = catchAsync(async (req, res, next) => {
+
+exports.deleteAllFieldsAsDataBaseAdmin = catchAsync(async (req, res, next) => {
+    const result = await Field.deleteMany();
+    return res.status(200).json({
+        status: 'success',
+        data: result
+    });
+}); //verified

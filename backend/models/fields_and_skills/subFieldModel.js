@@ -5,7 +5,6 @@ const subFieldSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Field', required: true },
     childrenItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skill' }],
-    type: [{ type: String, enum: ['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical'] }],
     description: { type: String, default: "" },
     nbUsers: {type: Number, default: 0},
     deleted: { type: Boolean, default: false }

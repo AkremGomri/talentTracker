@@ -6,6 +6,7 @@ const  constants  = require('../utils/constants/users_abilities');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const xlsx = require('xlsx');
+const Test = require('../models/testModel');
 
 /*            me                 */
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -29,7 +30,7 @@ exports.updateProfilePhoto = catchAsync(async (req, res, next) => {
 /*           one user            */
 exports.getOneUser = catchAsync(async (req, res, next) => {
   const filter = req.params.id? { "_id": req.params.id } : { "email": req.body.email };
-  const user = await User.findOne(filter).select('-firstName -lastName').lean({ virtuals: true });
+  const user = await User.findOne(filter).select('-name');
   // console.log("user Name: ", user.fullName);
   // console.log("user Name: ", user.name);
   if(!user) return next(new AppError('User not found', 404));
@@ -57,6 +58,12 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   const result = await User.updateOne(filter, req.body);
   if(result.deletedCount <= 0) next(new AppError('User not found', 404));
   return res.status(200).json({message:"deleted successfully", result});
+});
+
+exports.getUsersNames = catchAsync(async (req, res, next) => {
+  const users = await User.find({}).select('name.first name.last email');
+  if(!users) return next(new AppError('User not found', 404));
+  return res.status(200).json({users});
 });
 /*           test            */
 exports.test = (req, res, next) => {
@@ -152,7 +159,7 @@ exports.deleteManyUsers = catchAsync(async (req, res, next) => {
 
 /* All users */
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find().populate('role');
+  const users = await User.find().populate('role jobTitle').select('-name');
   
   return res.status(201).json({
       status: 'success',
@@ -189,24 +196,180 @@ exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
     });
 });
 
+exports.updateMySkills = catchAsync(async (req, res, next) => {
+
+  const user = await User.findById(req.auth.userId);
+  if(!user) return next(new AppError('User not found', 404));
+  
+  const skills = req.body;
+  if(!skills) return next(new AppError('Skills not found', 404));
+
+  skills.map(skill => {
+    skill.date = Date.now();
+    
+    var SkillIndex = user.skills.findIndex(function (s) {
+      console.log("s.sourceId: " + s.sourceId);
+      return s.sourceId?.toString() === skill.sourceId;
+    });
+    console.log("SkillIndex: " + SkillIndex);
+    if (SkillIndex !== -1) {
+      // If the skills exists, replace it
+      user.skills[SkillIndex] = skill;
+    } else {
+      // If the skills doesn't exist, push it to the array
+      user.skills.push(skill);
+    }
+  });
+  user.passwordConfirm = user.password
+  // const skillsArray = skills.map(skill => {
+  //   return {
+  //     skill: skill,
+  //     date: Date.now()
+  //   }
+  // });
+  console.log("user: ",user);
+
+  
+  await user.save();
+
+  return res.status(200).json({message:"updated successfully", user});
+});
+
 exports.getProfil = catchAsync(async(req, res, next) => {
   const filter = (req.params.id || req.body._id)? { "_id": req.params.id || req.body._id } : req.body.email? { "email": req.body.email } : {};
 
-  const user = await User.find(filter).select('-password -deleted -__v').populate({
+  let myAssignedTests = await Test.find({ "assignedTo": { $in: req.auth.userId }, "status": { $ne: "completed" } })
+    .populate({
+      path: 'creator',
+      select: 'name email'
+    }).populate({
+      path: 'AssignedToUsers.user',
+      select: 'name email'
+    })
+    .populate({
+      path: 'skills',
+      populate: {
+          path: 'childrenItems',
+      }
+    });
+
+    myAssignedTests = myAssignedTests?.filter(test => test.AssignedToUsers = test.AssignedToUsers?.find( a => a.user?._id.toString() === req.auth.userId))
+
+    let MyEmployeesTests = await Test.find({
+      "assignedTo": { $in: req.user.manages }, // Assuming the managed employees' IDs are stored in req.auth.manages
+      "status": { $ne: "completed" }
+    })
+    .populate({
+      path: 'creator',
+      select: 'name email'
+    })
+    .populate({
+      path: 'AssignedToUsers.user',
+      select: 'name email'
+    })
+    .populate({
+      path: 'skills',
+      populate: {
+        path: 'childrenItems',
+      }
+    });
+
+    // console.log("MyEmployeesTests: ",MyEmployeesTests);
+
+    MyEmployeesTests = MyEmployeesTests.flatMap(test => {
+      const filteredUsers = test.AssignedToUsers.filter(a => {
+        if (req.user.manages.includes(a.user?._id.toString())) {
+          return true;
+        }
+        return false;
+      });
+      
+      if (filteredUsers.length > 0) {
+        return filteredUsers.map(a => {
+          return {
+            ...test._doc,
+            AssignedToUsers: [a],
+            type:"toBeValidated"
+          };
+            });
+      } else {
+        return [];
+      }
+    });
+
+    console.log("MyEmployeesTests2: ",MyEmployeesTests);
+
+  let user = await User.find(filter).select('-password -deleted -__v').populate({
     path: 'jobTitle role',
     select: "name description",
     deleted: { $ne: true }
-}).populate({
-  path: 'skills.skill',
-  deleted: { $ne: true }
-}).populate({
-  path: 'skills.skill',
-  deleted: { $ne: true },
-  populate: {
-    path: 'parentItem',
-    deleted: { $ne: true }
+    })
+    // .populate({
+    //   path: 'skills.skill',
+    //   deleted: { $ne: true },
+    //   populate: {
+    //     path: 'parentItem',         //maybe only this is intresting to get the parent for charts
+    //     deleted: { $ne: true }
+    //   }
+    // })
+  
+    // console.log("user[0].fullName: ",user[0].fullName);
+
+  user[0] = {
+    ...user[0]._doc,
+    myAssignedTests,
+    MyEmployeesTests
   }
+  user[0].fullName = `${user[0].name?.first} ${user[0].name?.last}`
+
+  if(!user) return next(new AppError('User not found', 404));
+  return res.status(200).json(user);
 });
+
+exports.getMyProfile = catchAsync(async(req, res, next) => {
+  console.log("hereeeeeeeeeeeeeeeeeeeee");
+  let myAssignedTests = await Test.find({ "assignedTo": { $in: req.auth.userId }, "status": { $ne: "completed" } })
+    .populate({
+      path: 'creator',
+      select: 'name email'
+    }).populate({
+      path: 'AssignedToUsers.user',
+      select: 'name email'
+    })
+    .populate({
+      path: 'skills',
+      populate: {
+          path: 'childrenItems',
+      }
+    });
+
+    console.log("myAssignedTests: ",myAssignedTests);
+    myAssignedTests = myAssignedTests?.filter(test => test.AssignedToUsers = test.AssignedToUsers?.find( a =>  a.user?._id.toString() === req.auth.userId))
+    console.log("naarech");
+  
+
+  let user = await User.find({_id: req.auth.userId}).select('-password -deleted -__v').populate({
+      path: 'jobTitle role',
+      select: "name description",
+      deleted: { $ne: true }
+    })
+    console.log("hene");
+    // .populate({
+    //   path: 'skills.skill',
+    //   deleted: { $ne: true },
+    //   populate: {
+    //     path: 'parentItem',         //maybe only this is intresting to get the parent for charts
+    //     deleted: { $ne: true }
+    //   }
+    // })
+  
+    // console.log("user[0].fullName: ",user[0].fullName);
+
+  user[0] = {
+    ...user[0]._doc,
+    myAssignedTests
+  }
+  user[0].fullName = `${user[0].name?.first} ${user[0].name?.last}`
 
   if(!user) return next(new AppError('User not found', 404));
   return res.status(200).json(user);

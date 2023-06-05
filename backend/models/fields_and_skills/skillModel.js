@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 const skillElementSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    question: { type: String, default: "" },
-    options: [{ 
-        answear: { type: String, default: "" }, 
-        correct: { type: Boolean, default: false} 
-    }],
+    // question: { type: String, default: "" },
+    // options: [{ 
+    //     answear: { type: String, default: "" }, 
+    //     correct: { type: Boolean, default: false} 
+    // }],
     parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill'},
     deleted: { type: Boolean, default: false },
     // parentItem : { type: mongoose.Schema.Types.ObjectId, ref: 'Skill' },
@@ -14,13 +14,12 @@ const skillElementSchema = new mongoose.Schema({
 
 const skillSchema = mongoose.Schema({
     name:{ type: String ,required:true,unique:true },
-    // level :{type:Number ,default: 0, min: [0, "level must be equal or greater than 0"], max: [5, "level must be equal or less than 5"]},
+    type: { type: String, enum: ['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical'], default: 'Technical'},
     parentItem: { type: mongoose.Schema.Types.ObjectId, ref: 'SubField'},
     childrenItems: [skillElementSchema],
     description: { type: String, default: "" },
     nbUsers: {type: Number, default: 0},
     deleted: { type: Boolean, default: false }
-
 });
 
 skillSchema.post('insertMany', async function (docs, next) {

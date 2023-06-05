@@ -10,14 +10,6 @@ const router = express.Router({ mergeParams: true });
 router
     .route('/:id?')
         .post(protect, skillElementController.createElementSkills)
-//     .get(protect, skillElementController.getSkills)
-//     // .delete(fieldController.deleteOneField)
-//     .delete(protect, skillElementController.deleteSkills)
-//     .put(protect, skillElementController.updateSkill)
-//     .patch(protect, skillElementController.updateSkill);
-
-// router
-//     .route('/update/:id')
-//     .post(protect, skillElementController.updateSkill)
+        .delete(protect, skillElementController.deleteElementSkills)
     
 module.exports = router;

@@ -6,6 +6,13 @@ const Field = require('../../models/fields_and_skills/fieldModel');
 const { protect } = require('../../middlewares/auth');
 
 router
+    .route('/update/:id')
+    .post(fieldController.updateField)
+
+// Admin
+router.delete('/admin/', protect, fieldController.deleteAllFieldsAsDataBaseAdmin);
+
+router
     .route('/:id?')
     // .get(fieldController.getAllFields)
     .get(protect, fieldController.getFields)
@@ -15,8 +22,5 @@ router
     .patch(protect, fieldController.updateField)
     .put(protect, fieldController.updateField);
 
-router
-    .route('/update/:id')
-    .post(fieldController.updateField)
 
 module.exports = router;

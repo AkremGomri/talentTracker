@@ -13,6 +13,7 @@ const userRoutes = require('./routes/userRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const jobTitleRoutes = require('./routes/jobTitleRoutes');
 const fieldRoutes = require('./routes/fields_and_skills/fieldRoutes');
+const testRoutes = require('./routes/testRoutes');
 const subFieldRoutes = require('./routes/fields_and_skills/subFieldRoutes');
 const skillRoutes = require('./routes/fields_and_skills/skillRoutes');
 const configRoutes = require('./routes/configRoutes');
@@ -74,11 +75,13 @@ app.use('/api', (req, res, next) => {
     next();
 })
 
+app.use('/api/test/', testRoutes);
+
 app.use('/api/fields/', fieldRoutes);
 app.use('/api/skills/', skillRoutes);
 app.use('/api/subFields/', subFieldRoutes);
 
-app.use('/api/jobTitle/', jobTitleRoutes)
+app.use('/api/jobTitle/', jobTitleRoutes);
 
 app.use('/api/user/', userRoutes);
 app.use('/api/admin/', protect, roleRoutes);

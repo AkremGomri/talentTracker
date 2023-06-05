@@ -46,5 +46,20 @@ fieldSchema.pre(/^find/, function () {
     this.where({ deleted: false });
 });
 
+// fieldSchema.pre('deleteMany', async function (next) {
+//   // Retrieve the conditions used for the deleteMany operation
+//   const conditions = this.getFilter();
+//     console.log("conditions: ",conditions);
+//   try {
+//     // Perform pre-deletion operations
+//     // For example, delete associated child items
+//     await ChildItem.deleteMany({ field: conditions._id });
+
+//     next();
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 const Field = mongoose.model('Field', fieldSchema);
 module.exports = Field;
