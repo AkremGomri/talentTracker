@@ -10,6 +10,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Autoplay } from "swiper";
 import localforage from 'localforage';
 import { FaFolder, FaBell } from 'react-icons/fa';
+import produce from 'immer';        //        const profiles = await localforage.getItem('profile');
 
 //Images
 import profileBg from '../../assets/images/profile-bg.jpg';
@@ -38,6 +39,7 @@ import TakeTestWindow from '../Test/TakeTestWindow';
 import { selectMyProfile } from '../../redux/utils/myProfile';
 import { setMyProfile } from '../../redux/features/myProfile';
 import TakeTestModal from '../../components/modal/TakeTestModal';
+import { BasicLineCharts } from 'src/components/chart/LineCharts';
 
 const SimplePage = () => {
 
@@ -101,11 +103,9 @@ const SimplePage = () => {
     const [profile, setProfile] = useState(null);
     const [skills, setSkills] = useState(null);
     const [skillsRadar, setSkillsRadar] = useState(null);
+    const [myHistory, setMyHistory] = useState(null);
     const [ myAssignedTests, setMyAssignedTests ] = useState(profile?.myAssignedTests);
     const [ toValidateTests, setToValidateTests ] = useState(profile?.myAssignedTests);
-
-    console.log("myAssignedTests: ", myAssignedTests);
-    console.log("toValidateTests", toValidateTests);
     
     const [numberOfPendingTests, setNumberOfPendingTests] = useState(myAssignedTests?.reduce((acc, curr) => (curr.AssignedToUsers[0].status === "pending")? acc++ : acc ,0));
 
@@ -115,12 +115,9 @@ const SimplePage = () => {
             try{
                 // const profiles = await localforage.getItem('profile');
                 let data;
-                // if(!profiles){
-                    // eslint-disable-next-line prefer-template
+
                     data = await request.get('/api/user/profile/' + await localforage.getItem('userId'));
-                    
-                    // await localforage.setItem('profile', data[0]);
-                    
+  
                     dispatch(setMyProfile(data[0]));
                     setProfile(data[0]);
                     setMyAssignedTests(data[0].myAssignedTests);
@@ -139,47 +136,102 @@ const SimplePage = () => {
                         averageList: prev.averageList.filter((value, index) => prev.ListOflevelISets[index] || prev.ListOflevelMyManagerSet[index]),
                     }))
                     //['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']
+                    const types = ['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical'];
+                    const max = Math.max(...types.map(type => {
+                        const total = data[0].skills.reduce((acc, skill) => (skill.type === type ? acc + 1 : acc), 0);
+                        return total ;
+                    }));
+
+                    let ManagerSets = types.map(type => {
+                        const totalCount = data[0].skills.reduce((acc, skill) => (skill.type === type ? skill.levelMyManagerSet ? acc + 1 : acc : acc), 0) ;
+                        const totalValue = data[0].skills.reduce((acc, skill) => (skill.type === type ? skill.levelMyManagerSet ? acc + skill.levelMyManagerSet : acc : acc), 0);
+                        const total = totalValue / (totalCount * max);
+                        return total? total : 0;
+                    });                     
+
+                    const Average = types.map(type => {
+                        const totalCount = data[0].skills.reduce((acc, skill) => (skill.type === type ? (skill.levelMyManagerSet && skill.levelISet) ? acc + 1 : acc : acc), 0) ;
+                        const totalValue = data[0].skills.reduce((acc, skill) => (skill.type === type ? (skill.levelMyManagerSet && skill.levelISet) ? acc + (skill.levelMyManagerSet + skill.levelISet)/2 : acc : acc), 0);
+                        const total = totalValue / (totalCount * max);
+                        return total? total : 0;
+                    });
+
+                    const ISet = types.map(type => {
+                        const totalCount = data[0].skills.reduce((acc, skill) => (skill.type === type ? skill.levelISet ? acc + 1 : acc : acc), 0) ;
+                        const totalValue = data[0].skills.reduce((acc, skill) => (skill.type === type ? skill.levelISet ? acc + skill.levelISet : acc : acc), 0);
+                        const total = totalValue / (totalCount * max);
+
+                        return total? total : 0;                    
+                    });
+
+
                     setSkillsRadar({
                         ...skillsRadar,
-                        Average: [
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + (skill.levelISet + skill.levelMyManagerSet) / 2 : acc, 0),
-                        ],
-                        ManagerSets: [
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelMyManagerSet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelMyManagerSet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelMyManagerSet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelMyManagerSet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelMyManagerSet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelMyManagerSet: acc, 0),
-                        ],
-                        ISet: [
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelISet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelISet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelISet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelISet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelISet: acc, 0),
-                            data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelISet: acc, 0),
-                        ]
+                        Average,
+                        ManagerSets,
+                        ISet
+                    });
 
+                    /*
+                    x = x.sort((a, b) => new Date(a?.ValidatedDate) - new Date(b?.ValidatedDate));
+                    console.log("x: ",x);
+                    a.forEach(item => {
+                        const month = extractTimeProperties(item?.ValidatedDate).month;
+                        if (!month || month =="Invalid Date") return;
+                        const calculateCurrentItemValue = item?.myCurrentSkills?.reduce((acc, skill) => skill?.levelMyManagerSet? acc + skill.levelMyManagerSet : acc ,0);
+                        monthMaxValues[month] = calculateCurrentItemValue;
+                    });
 
-                        // AnalyticalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelMyManagerSet: acc, 0),
-                        // CreativeManager: data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelMyManagerSet: acc, 0),
-                        // SoftManager: data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelMyManagerSet: acc, 0),
-                        // ManagerialManager: data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelMyManagerSet: acc, 0),
-                        // InterpersonalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelMyManagerSet: acc, 0),
-                        // TechnicalManager: data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelMyManagerSet: acc, 0),
-                        
-                        // AnalyticalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Analytical' ? acc + skill.levelISet: acc, 0),
-                        // CreativeMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Creative' ? acc + skill.levelISet: acc, 0),
-                        // SoftMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Soft' ? acc + skill.levelISet: acc, 0),
-                        // ManagerialMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Managerial' ? acc + skill.levelISet: acc, 0),
-                        // InterpersonalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Interpersonal' ? acc + skill.levelISet: acc, 0),
-                        // TechnicalMySelf: data[0].skills.reduce((acc, skill) => skill.type === 'Technical' ? acc + skill.levelISet: acc, 0),
+                    console.log("monthMaxValues: ",monthMaxValues);
+                    
+                    // Populate the values array using the monthMaxValues object
+                    // months.forEach((month) => {
+                    //   values.push(monthMaxValues[month]);
+                    //   console.log("values: ",values);
+                    // });
+                    values = Object.values(monthMaxValues)
+                    console.log("values: ",values);
+                    */
+
+                    const x = data[0].history;
+                    const months = [];
+                    const exactDates = [];
+                    const managerValues = [];
+                    const myValues = [];
+                    const monthMaxValues = {}; 
+                    
+                    x.forEach((item) => {
+                        const month = extractTimeProperties(item?.ValidatedDate).month;
+                        if (!month || month =="Invalid Date") return ;
+                        const exists = months.findIndex(m => m === month);
+                        const currentValueOfManager = item?.myCurrentSkills?.reduce((acc, skill) => skill?.levelMyManagerSet? acc + skill.levelMyManagerSet : acc ,0);
+                        const currentValueOfMyself = item?.myCurrentSkills?.reduce((acc, skill) => skill?.levelISet? acc + skill.levelISet : acc ,0);
+                        if (exists < 0) {
+                            exactDates.push(item.ValidatedDate);
+                            months.push(month);
+                        } else {
+                            if(exactDates[exists] > item?.ValidatedDate) return;
+                            exactDates[exists] = item?.ValidatedDate;
+                        }
+                        monthMaxValues[month] = {
+                            manager: currentValueOfManager,
+                            myself: currentValueOfMyself
+                        } ?? [];
+                    });
+
+                    
+                    
+                    // Populate the values array using the monthMaxValues object
+                    months.forEach((month) => {
+                        managerValues.push(monthMaxValues[month].manager);
+                        myValues.push(monthMaxValues[month].myself)
+                    });
+
+                    
+                    setMyHistory({
+                        months: months,
+                        managerValues: managerValues,
+                        myValues: myValues 
                     });
             } catch(e) {
                 console.log("error: ",e);
@@ -2215,22 +2267,42 @@ const SimplePage = () => {
                                             <CardBody>
                                                 <h5 className="card-title mb-3">Statistics</h5>
                                                 <Box className="acitivity-timeline">
-                                                                                                    
-                                                    {/* <Box>
-                                                    { skills && <BasicColumn 
-                                                            dataColors='["--vz-danger", "--vz-primary", "--vz-success"]' 
-                                                            title='level'
-                                                            categories={skills.labels}
-                                                            names={[skills.ListOflevelISets && "self score", skills.averageList && "Average score", skills.ListOflevelMyManagerSet && "Manager's score"]}
-                                                            data={[skills.ListOflevelISets ? skills.ListOflevelISets : [] ,skills.averageList? skills.averageList : [] ,skills.ListOflevelMyManagerSet? skills.ListOflevelMyManagerSet: []]}
-                                                            />}
-                                                    </Box>
-                                                    <Box>
-                                                        { skills && 
-                                                        <SimpleRadar dataColors='["--vz-success"]'/>}
-                                                    </Box> */}
-
                                                     <Row>
+                                                    <Col xl={8}>
+                                                        <Card>
+                                                            <CardHeader>
+                                                                <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Core Competencies Chart</h4>
+                                                            </CardHeader>
+                                                            <CardBody>
+                                                                { myHistory && 
+                                                                    <BasicLineCharts
+                                                                        title="My performance over time"
+                                                                        x_Axis={myHistory.months}
+                                                                        names={["My evaluation", "My manager's evaluation"]}
+                                                                        data={[myHistory.myValues, myHistory.managerValues]}
+                                                                        dataColors='["--vz-danger", "--vz-primary", "--vz-success"]'
+
+                                                                        />
+                                                                }                                                                
+                                                            </CardBody>
+                                                        </Card>
+                                                        </Col>
+                                                        <Col xl={4}>
+                                                            <Card>
+                                                                <CardHeader>
+                                                                    <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Core Competencies Chart</h4>
+                                                                </CardHeader>
+                                                                <CardBody>
+                                                                    { skills && 
+                                                                        <SimpleRadar
+                                                                            categories={['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']}
+                                                                            names={["My Score", "Average Score", "Manager's Score"]} 
+                                                                            data={[skillsRadar?.ISet, skillsRadar?.Average, skillsRadar?.ManagerSets]}
+                                                                            dataColors='["--vz-danger", "--vz-primary", "--vz-success"]'/>
+                                                                    }                                                                
+                                                                </CardBody>
+                                                            </Card>
+                                                        </Col>
                                                         <Col xl={8}>
                                                             <Card>
                                                                 <CardHeader>
@@ -2245,22 +2317,6 @@ const SimplePage = () => {
                                                                 </CardHeader>
 
                                                                 <CardBody>
-                                                                </CardBody>
-                                                            </Card>
-                                                        </Col>
-                                                        <Col xl={4}>
-                                                            <Card>
-                                                                <CardHeader>
-                                                                    <h4 className="card-title mb-0" style={{textAlign: "center", color: "#433884"}}>Core Competencies Chart</h4>
-                                                                </CardHeader>
-                                                                <CardBody>
-                                                                    { skills && 
-                                                                        <SimpleRadar
-                                                                            categories={['Analytical', 'Creative', 'Soft', 'Managerial', 'Interpersonal', 'Technical']}
-                                                                            names={["Series 1", "Series 2", "Series 3"]} 
-                                                                            data={[skillsRadar?.ISet, skillsRadar?.Average, skillsRadar?.ManagerSets]}
-                                                                            dataColors='["--vz-danger", "--vz-primary", "--vz-success"]'/>
-                                                                    }                                                                
                                                                 </CardBody>
                                                             </Card>
                                                         </Col>
@@ -2799,7 +2855,7 @@ const SimplePage = () => {
                                                                                 </Box>
                                                                             </Box>
                                                                         </td>
-                                                                        <td>{item.creator.fullName === profile?.fullName ? "Myself" : item.creator.fullName}</td>
+                                                                        <td>{item.creator?.email === profile?.email ? "Myself" : item.creator?.email}</td>
                                                                         {/* <td>{item.updatedDate}</td> */}
                                                                         <td>{transformDate(item.startDate)}</td>
                                                                         { (transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now() > 0)? <td>{transformMillisecondsToDays(transformDateToMilliseconds(item.startDate) + transformDaysToMilliseconds(item.duration) - Date.now())}</td> : <td> - </td>}
@@ -2951,6 +3007,13 @@ const SimplePage = () => {
     function transformDaysToMilliseconds(dateInDays){
         const date = new Date(dateInDays);
         return date * (1000 * 60 * 60 * 24);
+    }
+
+    function extractTimeProperties(item){
+        const date = new Date(item);
+        const month = date.toLocaleString('default', { month: 'short' });
+        const year = date.getFullYear();
+        return {month, year}
     }
 };
 

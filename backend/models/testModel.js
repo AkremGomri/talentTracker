@@ -6,7 +6,7 @@ const testSchema = new mongoose.Schema({
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     startDate: { type: Date, required: true },
     duration: { type: Number, required: true },
-    skills: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skill' }],
+    s: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skill' }],
     AssignedToUsers: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         status: { type: String, enum: ['pending', 'started', 'completed', 'outdated'], default: 'pending' },

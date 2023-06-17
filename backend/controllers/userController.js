@@ -7,6 +7,8 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const xlsx = require('xlsx');
 const Test = require('../models/testModel');
+const roleModel = require('../models/roleModel');
+const sendEmailAsync = require('../utils/nodeMailer');
 
 /*            me                 */
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -45,7 +47,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
 exports.deleteUserById = catchAsync(async (req, res, next) => {
   const result = await User.deleteOne({"_id": req.params.id});
-  if(result.deletedCount <= 0) next(new AppError('User not found', 404));
+  if(result.deletedCount <= 0) return next(new AppError('User not found', 404));
   return res.status(200).json({message:"deleted successfully", result});
 });
 
@@ -159,7 +161,10 @@ exports.deleteManyUsers = catchAsync(async (req, res, next) => {
 
 /* All users */
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find().populate('role jobTitle').select('-name');
+  const users = await User.find().select('-name').populate({
+    path: 'manager',
+    select: 'email'
+  }).populate('role jobTitle');
   
   return res.status(201).json({
       status: 'success',
@@ -183,18 +188,106 @@ exports.deleteAllUsers = async (req, res, next) => {
 
 /*          Others            */
 exports.ExcelSaveUsers = catchAsync(async (req, res, next) => {
-    const workbook = xlsx.readFile(req.file.path);
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const usersData = xlsx.utils.sheet_to_json(worksheet);
-    User.insertMany(usersData, (error, docs) => {
-      if (error) {
-        console.error(error);
-        res.status(500).send('Internal server error');
-      } else {
-        res.status(201).json({ message: 'Data inserted successfully!' });
+  let now = new Date();
+  console.log("now: ", now);
+  const workbook = xlsx.readFile(req.file.path);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const usersData = xlsx.utils.sheet_to_json(worksheet);
+
+  // Create an array to store the promises for save operations
+  const savePromises = [];
+  for (const userData of usersData) {
+    const user = new User(userData);
+
+    if (user.password) {
+      user.passwordConfirm = user.password;
+    } else {
+      user.password = "new";
+      user.passwordConfirm = "new";
+    }
+
+    let rolePromise;
+    if (userData.role) {
+      rolePromise = roleModel.findOne({ name: userData.role });
+    } else {
+      rolePromise = roleModel.findOne({ name: "default" });
+    }
+
+    const role = await rolePromise;
+    if (role) {
+      user.role = role._id;
+    }
+
+    let manager;
+    if (userData.manager) {
+      manager = await User.findOne({ email: userData.manager });
+      if (manager) {
+        user.manager = manager._id;
       }
+    }
+
+    // send an email
+    user.isConfirmed = false;
+    const emailVerificationtoken = user.createEmailVerificationToken(
+      { email: user.email },
+      '1d'
+    );
+
+    const verificationURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/user/verifyEmail/${emailVerificationtoken}`;
+    sendEmailAsync({
+      email: user.email,
+      subject: 'Email verification',
+      message: `Thank you for using our service. Please verify your email by clicking on the link below: ${verificationURL}`,
+      html: `<h1>Please verify your email by clicking on the link below:</h1> <a href="${verificationURL}">${verificationURL}</a>`,
+    }).catch(async (err) => {
+      console.log(err);
+      user.emailVerificationToken = undefined;
+      await User.deleteOne({ email: user.email });
+      return console.log(`User ${user.email} deleted because of email-confirmation sending error`);
     });
+    // end of send an email
+
+    savePromises.push(user.save());
+  }
+
+  try {
+    // Execute all the save operations concurrently using Promise.all()
+    let savedUsers = await Promise.all(savePromises);
+
+    savedUsers = savedUsers.map(user => {
+      user.password = undefined;
+      user.passwordConfirm = undefined;
+      const userDate = usersData.find(u => u.email === user.email);
+      if (userDate.role) {
+        user.role = userDate.role;
+        console.log("user.role: ", user.role);
+      } else {
+        user.role = "default";
+      }
+      if (userDate.manager) {
+        user.manager = userDate.manager;
+      }
+      return user;
+    });
+
+    console.log("savedUsers: ", savedUsers);
+    const now2 = new Date();
+    console.log("now2: ", now2);
+
+    console.log("now2 - now: ", now2 - now);
+    return res.status(201).json({
+      message: 'Data inserted successfully!',
+      data: { users: savedUsers },
+      status: 'success',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error', status: 'error' });
+  }
 });
+
 
 exports.updateMySkills = catchAsync(async (req, res, next) => {
 

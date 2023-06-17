@@ -1,6 +1,7 @@
 const mongoose=require('mongoose');
 const uniqueValidator=require('mongoose-unique-validator');
 const Joi = require('joi');
+const jwt=require('jsonwebtoken'); // Encrypting token
 const { joiPasswordExtendCore } = require('joi-password');
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 const validator = require('validator');
@@ -25,6 +26,7 @@ const skillSchema = mongoose.Schema({
   levelMyManagerSet: { type: Number, default: 0, min: 0, max: 5, null: false },
   childrenItems: [skillElementSchema],
   description: { type: String, default: "" },
+  date: { type: Date, default: Date.now },
   deleted: { type: Boolean, default: false }
 });
 
@@ -44,7 +46,7 @@ const userSchema = mongoose.Schema({
   password: { type: String, required: [true, 'Please write a valid password'] },
   passwordConfirm: {
     type: String,
-    required: [true, 'Please confirm your password'],
+    required: [false, 'Please confirm your password'],
     validate: {
       validator: function (el) {
         return el === this.password;
@@ -70,6 +72,15 @@ const userSchema = mongoose.Schema({
     website: { type: String, default: '' },
   },
   join_date: { type: Date, default: Date.now()},
+  history: [{
+    _id: { type: mongoose.Schema.ObjectId, ref: 'Test', default: null },
+    TakenDate: { type: Date },
+    ValidatedDate: { type: Date },
+    answears: Array,
+    myCurrentSkills: Array,
+  }],
+  isConfirmed: { type: Boolean, default: false },
+  emailVerificationToken: String,
   deleted: { type: Boolean, default: false }
 }, {
   toJSON:{virtuals:true}, // in options object we can pass virtuals:true to get virtual properties in json
@@ -96,9 +107,24 @@ userSchema.pre('save', function(next) {
     this.passwordConfirm = undefined;
 });
 
+
 // chechk if the password is correct
 userSchema.methods.isPasswordCorrect = async function(candidatePassword, userPassword) {
     return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.createEmailVerificationToken = function(data, expiresIn = process.env.JWT_EXPIRES_IN) {
+    const verificationToken = jwt.sign(data, process.env.JWT_SECRET, { expiresIn });
+    console.log("this.emailVerificationToken", this.emailVerificationToken);
+    this.emailVerificationToken = verificationToken;
+    console.log("this.emailVerificationToken", this.emailVerificationToken);
+    return verificationToken;
+};
+userSchema.methods.createPasswordResetToken = function() {
+    const resetToken = jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+    this.passwordResetToken = resetToken;
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    return resetToken;
 };
 
 // check if the password is changed after the token was issued

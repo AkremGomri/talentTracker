@@ -23,6 +23,8 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Box,
+  Tooltip,
 } from '@mui/material';
 // components
 import Label from '../components/label';
@@ -32,12 +34,13 @@ import CreateUserModal from '../components/modal/CreateUserModal';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import { deleteOneUserById, setUsers, setSelectedUser } from '../redux/features/user';
+import { deleteOneUserById, addManyUsers, setUsers, setSelectedUser } from '../redux/features/user';
 
 import request from '../services/request';
 import SnackBar from '../components/others/SnackBar';
 // import USERLIST from '../_mock/user';
 import { selectAllUsers } from '../redux/utils/user';
+import FileUpload from '../components/inputs/FileUpload';
 
 // ----------------------------------------------------------------------
 
@@ -45,8 +48,8 @@ const TABLE_HEAD = [
   { id: 'email', label: 'Email', alignRight: false },
   { id: 'company', label: 'Company', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false, childrenIds: ["name"] },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'manager', label: 'Manager', alignRight: false, childrenIds: ["email"] },
+  { id: 'isConfirmed', label: 'Verified', alignRight: false },
   { id: '' },
 ];
 
@@ -55,7 +58,7 @@ const TABLE_HEAD = [
 function descendingComparator(a, b, orderBy) {
   let x1;
   let x2;
-  if((typeof a[orderBy] === 'string' || typeof a[orderBy] === 'number') && (typeof b[orderBy] === 'string' || typeof b[orderBy] === 'number')) {
+  if((typeof a[orderBy] === 'string' || typeof a[orderBy] === 'number' || typeof a[orderBy] === 'boolean') && (typeof b[orderBy] === 'string' || typeof b[orderBy] === 'number' || typeof b[orderBy] === 'boolean')) {
     x1 = a[orderBy];
     x2 = b[orderBy];
   } else if(Array.isArray(a[orderBy]) && Array.isArray(b[orderBy])) {
@@ -64,9 +67,9 @@ function descendingComparator(a, b, orderBy) {
   } else if(typeof a[orderBy] === 'object' && typeof b[orderBy] === 'object') {
     const x = TABLE_HEAD.find((item) => item.id === orderBy);
     if(x?.childrenIds) {
-      x2 = x.childrenIds.reduce((acc, curr) => acc + " " + a[orderBy][curr], "");
-      x1 = x.childrenIds.reduce((acc, curr) => acc + " " + b[orderBy][curr], "");
-    }
+      x2 = x.childrenIds.reduce((acc, curr) => a[orderBy]? acc + " " + a[orderBy][curr] : acc, "");
+      x1 = x.childrenIds.reduce((acc, curr) => b[orderBy]? acc + " " + b[orderBy][curr] : acc, "") ;
+    } 
   }
 
   if (x2 < x1) {
@@ -92,7 +95,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.email.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -125,6 +128,30 @@ export default function UserPage() {
     message: '',
   });
 
+  const handleFileUpload = async (files) => {
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file); // Make sure the file is appended to the FormData object
+  
+    try {
+      const response = await request.post('/api/user/upload-excel', formData,'multipart/form-data', // Set the appropriate content type for file upload
+      );
+
+      if (response.status === 'success') {
+        setDisplaySnackBar({
+          open: true,
+          message: 'File uploaded successfully',
+        });
+
+        dispatch(addManyUsers(response.data.users));
+      }
+    } catch (error) {
+      // Handle any errors that occur during the upload
+      console.error('Error uploading file:', error);
+    }
+  };
+  
+  
   const handleOpenMenu = (event, data) => {
     setOpen(event.currentTarget);
     currentUser.current = data._id;
@@ -143,7 +170,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = users.map((n) => n.name);
+      const newSelecteds = users.map((n) => n.email);
       setSelected(newSelecteds);
       return;
     }
@@ -208,7 +235,9 @@ export default function UserPage() {
       dispatch(setUsers(USERSLIST))
     }
     getUsers()
-  }, [])
+  }, []);
+
+  console.log("filteredUsers: ", filteredUsers);
 
   return (
     <>
@@ -221,9 +250,18 @@ export default function UserPage() {
           <Typography variant="h4" gutterBottom>
             Users
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={() => setOpenAddUserModal(true)}>
-            New User
-          </Button>
+          <Box sx={{ display: 'flex', gap: '16px' }}>
+            <Button 
+              variant="contained" 
+              startIcon={<Iconify icon="eva:plus-fill" />} 
+              onClick={() => setOpenAddUserModal(true)}
+              sx={{ height: '35px' }}
+              >
+                New User
+            </Button>
+            <FileUpload handleFileUpload={handleFileUpload}/>
+
+          </Box>
         </Stack>
 
         <Card>
@@ -243,7 +281,7 @@ export default function UserPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => {
-                    const { _id: id, email, role, manager, company, avatarUrl, isVerified } = user;
+                    const { _id: id, email, role, manager, company, avatarUrl, isConfirmed } = user;
                     const selectedUser = selected.indexOf(email) !== -1;
 
                     return (
@@ -266,11 +304,11 @@ export default function UserPage() {
                         <TableCell align="left">{role? role.name : "Not set"}</TableCell>
 
                       {
-                        manager?.name ? <TableCell align="left">{manager.name}</TableCell> : <TableCell align="left">No Manager</TableCell>
+                        manager?.email ? <TableCell align="left">{manager.email}</TableCell> : <TableCell align="left">Not set</TableCell>
                       } 
                         <TableCell align="left">
                           {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          <Label color={(null === 'banned' && 'error') || 'success'}>not set</Label>
+                          <Label color={(!isConfirmed  && 'error') || 'success'}>{!!isConfirmed ? "Yes" : "No"}</Label>
                         </TableCell>
 
                         <TableCell align="right">

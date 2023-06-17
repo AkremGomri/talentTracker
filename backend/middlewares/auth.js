@@ -23,7 +23,7 @@ exports.protect = catchAsync(async(req,res ,next)=> {
         const freshUser = await User.findOne({_id:userId}).populate({
             path: 'role',
             match: { deleted: { $ne: true } }
-    });
+        });
 
         if(!freshUser) return next(new AppError('the user belonging to this token does no longer exist', 401));
         if(freshUser.hasPasswordChangedAfter(decodedToken.iat)) return next(new AppError('user recently changed password, please log in again', 401))

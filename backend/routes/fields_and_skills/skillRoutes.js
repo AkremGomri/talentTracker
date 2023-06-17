@@ -28,4 +28,5 @@ router
     .put(protect, skillController.updateSkill)
     .patch(protect, skillController.updateSkill)
 
+
 module.exports = router;

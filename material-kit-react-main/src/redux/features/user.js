@@ -21,7 +21,7 @@ export const addOneUser = createAction(
 );
 
 export const setUsers = createAction(
-    'users/add',
+    'users/set',
     (users) => ({
         payload: users,
     })
@@ -82,6 +82,7 @@ export default function userReducer(state = {selectedUser: {}, all: []}, action)
                     draftIds.push(user._id)
                     draft.all.push(user)
                 })
+                console.log("draft.all", draft.all);
                 break;
 
             case deleteManyUsersByName.toString():

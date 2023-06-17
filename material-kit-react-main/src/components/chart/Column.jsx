@@ -69,15 +69,15 @@ const BasicColumn = ({ dataColors, categories=[], data=[[]], names=[], title="y 
             }
         },
         yaxis: {
-            title: {
-                text: title
-            },
+            tickAmount: 5, // Set the number of ticks you want, in this case, 5 ticks
             labels: {
-                formatter: function (value) {
-                    return parseInt(value).toString();
-                }
-            } 
-        },
+              formatter: function (value) {
+                return parseInt(value).toString();
+              }
+            },
+            min: 0, // Set the minimum value for the y-axis
+            max: 5 // Set the maximum value for the y-axis
+          },
         grid: {
             borderColor: '#f1f1f1',
         },

@@ -248,7 +248,9 @@ export default function TakeTestModal({ open,  handleCloseModal, selectedTest={}
           console.log("result: ",response.result);
           action(prev => prev.map(elem => {
             if(elem._id === response.result._id ) 
-              if(response.result.type === "toBeValidated" && elem.AssignedToUsers[0].user._id === response.result.AssignedToUsers[0].user._id) return response.result;
+              if(response.result.type === "toBeValidated" ) 
+                if(elem.AssignedToUsers[0].user._id === response.result.AssignedToUsers[0].user._id) return response.result
+                else return elem;
               else return response.result; // type == "take test" which is not get back from the server
             return elem;
           }))

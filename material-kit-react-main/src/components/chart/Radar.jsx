@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ReactApexChart from "react-apexcharts";
+import { format } from 'date-fns';
 
 function getChartColorsArray(colors) {
     colors = JSON.parse(colors);
@@ -34,7 +35,6 @@ const SimpleRadar = ({dataColors, categories, names, data}) => {
             data: data
     }});
     var options = {
-        
         chart: {
             height: 350,
             type: 'radar',
@@ -45,6 +45,24 @@ const SimpleRadar = ({dataColors, categories, names, data}) => {
         colors: ["#f06548", "#4b38b3" , "#45CB85"],
         xaxis: {
             categories: categories
+        },
+        yaxis: {
+            tickAmount: 5, // Set the number of ticks you want, in this case, 5 ticks
+            labels: {
+                formatter: function (value) {
+                    if (Number.isInteger(value)) {
+                        value = value.toFixed(0); // Format as integer
+                    } else {
+                        value = value.toFixed(3); // Format with 3 decimal places
+                    }
+                    return value;
+                }
+            },
+            min: 0, // Set the minimum value for the y-axis
+            max: 5 // Set the maximum value for the y-axis
+        },
+        stroke: {
+            width: 2 // Set the width of the lines linking the points
         }
     };
   return (

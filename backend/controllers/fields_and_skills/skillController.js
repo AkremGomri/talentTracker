@@ -122,9 +122,3 @@ exports.deleteAllSkillsAsDataBaseAdmin = catchAsync(async (req, res, next) => {
     });
 }); //verified
 
-// this is not a middleware
-exports.deleteSkills = async function (ids){
-    const result = await Skill.deleteMany({ _id: { $in: ids } });
-    return result;
-}
-

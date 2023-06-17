@@ -8,6 +8,7 @@ const multer = require('multer');
 router
     .post('/signUp', authController.signup)
     .post('/login', authController.login)
+    .get('/verifyEmail/:token', authController.verifyEmail)
 
 /*              Me                */
 router
@@ -64,7 +65,7 @@ router.use('/testWithRole', protect, userCtrl.testWithRole)
 const upload = multer({ dest: 'uploads/' });
 
 router
-    .put('/upload-excel', upload.single('file'), userCtrl.ExcelSaveUsers);
+    .post('/upload-excel', upload.single('file'), userCtrl.ExcelSaveUsers);
 //************************************//
 
 module.exports=router;

@@ -97,11 +97,12 @@ exports.takeTest = catchAsync(async (req, res, next) => {
             me.skills.push({ ...answear });
         }
     });
-    
+
+    // me.history.push({ _id: test._id, TakenDate: Date.now(), answears, myCurrentSkills: me.skills });
     realTest.AssignedToUsers[index] = { ...realTest.AssignedToUsers[index]._doc, status: "completed"};
     test.AssignedToUsers = realTest.AssignedToUsers;
 
-    me.passwordConfirm = me.password
+    me.passwordConfirm = me.password;
     await Promise.all([me.save(), realTest.save()]);
 
     return res.status(200).json({ message: "Test submitted successfully",result: test })
@@ -150,6 +151,7 @@ exports.validateTest = catchAsync(async (req, res, next) => {
         return user;
     });
     
+    myEmployee.history.push({ _id: test._id, ValidatedDate: Date.now(), answears, myCurrentSkills: myEmployee.skills });
     myEmployee.passwordConfirm = myEmployee.password;
 
     await Promise.all([myEmployee.save(), realTest.save()]);    

@@ -19,14 +19,14 @@ const send = async (method, url, data = []) => {
     return response.data;
 };
 
-const post = async (url, data) => {
+const post = async (url, data, ContentType = 'application/json;charset=UTF-8') => {
 
     const options = {
         url: `${process.env.REACT_APP_API_URL}${url}`,
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json;charset=UTF-8',
+          'Content-Type': ContentType,
           'Authorization': `Bearer ${await localforage.getItem('token')}`
         },
         data
