@@ -21,7 +21,6 @@
     "joi": "^17.8.3",
     "joi-password": "^4.0.0",
     "jsonwebtoken": "^9.0.0",
-    "jwt": "^0.2.0",
     "lodash": "^4.17.21",
     "logger": "^0.0.1",
     "mongoose": "^6.9.2",
