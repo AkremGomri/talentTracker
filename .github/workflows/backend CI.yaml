@@ -28,6 +28,6 @@ jobs:
             yarn pack
             node 
             yarn add jest
-            jest --testPathPattern=role.test.js --detectOpenHandles
+            yarn testini
             #yarn test
 

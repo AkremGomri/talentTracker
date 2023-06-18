@@ -8,6 +8,7 @@
   "scripts": {
     "build": "babel src -d dist",
     "start": "nodemon server.js",
+    "testini": "jest --testPathPattern=role.test.js --detectOpenHandles",
     "test": "jest --runInBand user.test.js role.test.js --coverage",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
     "start:dev": "set NODE_ENV=development&& nodemon server.js",
