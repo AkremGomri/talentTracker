@@ -7,12 +7,10 @@ const constants = require('../utils/constants/users_abilities');
 let token;
 
 describe('One Role CRUD API', () => {
-      afterAll((done) => {
-        mongoose.connection.close()
-          .then(() => {
-            done();
-          })
-          .catch((err) => done(err));
+    afterAll(async () => {
+        // Perform any necessary cleanup tasks after running the tests
+        // For example, you can close the MongoDB connection here
+        await mongoose.connection.close();
       });
     const roleName = "testRoleAllPowerful";
     const rolePermissions = Object.values(constants.permissions).map((table, index) => {
