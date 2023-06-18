@@ -7,6 +7,15 @@ const constants = require('../utils/constants/users_abilities');
 let token;
 
 describe('One Role CRUD API', () => {
+    // beforeAll(async () => {
+    //     // Perform any setup tasks before running the tests
+    //     // For example, you can establish a connection to the database here
+    //     await mongoose.connect("mongodb+srv://Akrem:v2r3d6ixEVyMQDb5@talenttracker.ye5awzk.mongodb.net/test?retryWrites=true&w=majority", {
+    //       useNewUrlParser: true,
+    //       useUnifiedTopology: true,
+    //     });
+    //   });
+      
     afterAll(async () => {
         // Perform any necessary cleanup tasks after running the tests
         // For example, you can close the MongoDB connection here

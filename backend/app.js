@@ -49,7 +49,7 @@ app.use(bodyParser.json());
 
 //dabase connection
 const DB = process.env.MONGODB_URL.replace('<PASSWORD>', process.env.MONGODB_PASSWORD);
-mongoose.connect(DB, {
+mongoose.connect("mongodb+srv://Akrem:v2r3d6ixEVyMQDb5@talenttracker.ye5awzk.mongodb.net/test?retryWrites=true&w=majority", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => {
