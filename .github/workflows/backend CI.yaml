@@ -27,6 +27,7 @@ jobs:
             yarn --frozen-lockfile
             yarn pack
             node 
+            yarn add jest
             jest --testPathPattern=role.test.js --detectOpenHandles
             #yarn test
 
