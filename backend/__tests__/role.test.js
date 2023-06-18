@@ -4,34 +4,69 @@ const fs = require('fs');
 const app = require('../app');
 const constants = require('../utils/constants/users_abilities');
 
+let token;
+
 describe('One Role CRUD API', () => {
-    const roleName = "testRole";
-    test('should create a new role', (done) => {
+      afterAll((done) => {
+        mongoose.connection.close()
+          .then(() => {
+            done();
+          })
+          .catch((err) => done(err));
+      });
+    const roleName = "testRoleAllPowerful";
+    const rolePermissions = Object.values(constants.permissions).map((table, index) => {
+        return {
+            "subject": table.name,
+            "actions": {
+                "Post": table.fields
+            }
+        }
+    });
+    console.log("rolePermissions: ", rolePermissions);
+
+    test('login in before testing', (done) => {
         request(app)
-            .post('/admin/role')
+            .post('/api/user/login/')
             .send({
-                "name": roleName,
-                "permissions": [{
-                    "subject": Object.values(constants.subjects)[0],
-                    "actions": [
-                        Object.values(constants.actions)[0],
-                    ]
-                }]
+            email: 'admin@gmail.com',
+            password: 'admin',
             })
             .then((res) => {
-                expect(res.statusCode).toEqual(201);
-                expect(res.body.status).toEqual('success');
-                expect(res.body.data.name).toEqual(roleName);
-                expect(res.body.data.permissions[0].subject).toEqual(Object.values(constants.subjects)[0]);
-                expect(res.body.data.permissions[0].actions[0]).toEqual(Object.values(constants.actions)[0]);
+                expect(res.statusCode).toEqual(200);
+                expect(res.body).toHaveProperty('userId');
+                expect(res.body.userId).toBeDefined();
+                expect(res.body).toHaveProperty('token');
+                expect(res.body.token).toBeDefined();
+                token = res.body.token; // store the JWT token for use in subsequent requests
                 done();
             })
             .catch((err) => done(err));
-    }, 10000);
+    });
+
+    test('should create a new role', (done) => {
+        request(app)
+            .post('/api/admin/role')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                "name": roleName,
+                "permissions": rolePermissions
+            })
+            .then((res) => {
+                expect(res.statusCode).toEqual(201);
+                expect(res.body.status).toEqual('success');
+                expect(res.body.data.name).toEqual(roleName);
+                expect(res.body.data.permissions[0].subject).toEqual(rolePermissions[0].subject);
+                expect(res.body.data.permissions[0].actions.Post[0]).toEqual(rolePermissions[0].actions.Post[0]);
+                done();
+            })
+            .catch((err) => done(err));
+    }, );
 
     test('should read the role', (done) => {
         request(app)
-            .get('/admin/role')
+            .get('/api/admin/role')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 "name": roleName,
             })
@@ -39,8 +74,8 @@ describe('One Role CRUD API', () => {
                 expect(res.statusCode).toEqual(201);
                 expect(res.body.status).toEqual('success');
                 expect(res.body.data.name).toEqual(roleName);
-                expect(res.body.data.permissions[0].subject).toEqual(Object.values(constants.subjects)[0]);
-                expect(res.body.data.permissions[0].actions[0]).toEqual(Object.values(constants.actions)[0]);
+                expect(res.body.data.permissions[0].subject).toEqual(rolePermissions[0].subject);
+                expect(res.body.data.permissions[0].actions.Post[0]).toEqual(rolePermissions[0].actions.Post[0]);
                 done();
             })
             .catch((err) => done(err));
@@ -48,41 +83,30 @@ describe('One Role CRUD API', () => {
 
     test('should update a new role', (done) => {
         request(app)
-            .put('/admin/role')
+            .put('/api/admin/role')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 "name": roleName,
-                "permissions": [{
-                    "subject": Object.values(constants.subjects)[1],
-                    "actions": [
-                        Object.values(constants.actions)[1],
-                    ]
-                }]
+                "permissions": rolePermissions.slice(1)
             })
             .then((res) => {
-                console.log("name: ",Object.values(constants.subjects)[1]);
-                console.log("roleName: ",res.body.data.permissions[0].subject);
+                console.log("res.body.data: ", res.body.data);
                 expect(res.statusCode).toEqual(201);
                 expect(res.body.status).toEqual('success');
                 expect(res.body.data.name).toEqual(roleName);
-                expect(res.body.data.permissions[0].subject).toEqual(Object.values(constants.subjects)[1]);
-                expect(res.body.data.permissions[0].actions[0]).toEqual(Object.values(constants.actions)[1]);
+                expect(res.body.data.permissions[0].subject).toEqual(rolePermissions[1].subject);
+                expect(res.body.data.permissions[0].actions.Post[0]).toEqual(rolePermissions[1].actions.Post[0]);
                 done();
             })
             .catch((err) => done(err));
     });
 
     test('should delete the role', (done) => {
-        console.log("********** bb: ",Object.values(constants.subjects)[0]);
         request(app)
-            .delete('/admin/role')
+            .delete('/api/admin/role')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 "name": roleName,
-                "permissions": [{
-                    "subject": Object.values(constants.subjects)[1],
-                    "actions": [
-                        Object.values(constants.actions)[1],
-                    ]
-                }]
             })
             .then((res) => {
                 expect(res.statusCode).toEqual(201);

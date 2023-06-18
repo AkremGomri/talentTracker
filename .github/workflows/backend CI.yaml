@@ -21,9 +21,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
       - run: |
             cd backend
-            yarn install --frozen-lockfile
-            yarn run build --if-present
+            yarn --frozen-lockfile
+            yarn pack
+            node 
+            jest --testPathPattern=role.test.js --detectOpenHandles
             # yarn test
 

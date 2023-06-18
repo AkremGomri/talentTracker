@@ -11,7 +11,6 @@ const catchAsync = require('../utils/catchAsync');
 const verifyJwt = promisify(jwt.verify);
 
 exports.protect = catchAsync(async(req,res ,next)=> {
-
         if(!req.headers?.authorization?.startsWith('Bearer')) return next(new AppError('you are not logged in, please log in to get access', 401));
 
         const token = req.headers.authorization.split(' ')[1];
