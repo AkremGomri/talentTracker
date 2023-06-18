@@ -28,5 +28,5 @@ jobs:
             yarn pack
             node 
             jest --testPathPattern=role.test.js --detectOpenHandles
-            # yarn test
+            #yarn test
 
