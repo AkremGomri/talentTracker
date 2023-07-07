@@ -1,5 +1,4 @@
 /* eslint-disable */
-
 import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,6 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Autoplay } from "swiper";
 import localforage from 'localforage';
 import { FaFolder, FaBell } from 'react-icons/fa';
+import palette from '../../theme/palette';
 import produce from 'immer';        //        const profiles = await localforage.getItem('profile');
 
 //Images
@@ -57,6 +57,54 @@ const SimplePage = () => {
 
     const myProfile = useSelector(selectMyProfile);
     const dispatch = useDispatch()
+    //
+    const backgroundColors = [
+        palette.primary.main,
+        palette.warning.main,
+        palette.info.main,
+        palette.error.main,
+        palette.success.main,
+        palette.secondary.main,
+        palette.primary.dark,
+        palette.warning.dark,
+        palette.info.dark,
+        palette.error.dark,
+        palette.success.dark,
+        palette.secondary.dark,
+        ];
+
+    const foreGround = [
+        palette.primary.contrastText,
+        palette.warning.contrastText,
+        palette.info.contrastText,
+        palette.error.contrastText,
+        palette.success.contrastText,
+        palette.secondary.contrastText,
+        palette.primary.contrastText,
+        palette.warning.contrastText,
+        palette.info.contrastText,
+        palette.error.contrastText,
+        palette.success.contrastText,
+        palette.secondary.contrastText,
+        ];
+
+    const color = [
+        palette.primary.light,
+        palette.warning.light,
+        palette.info.light,
+        palette.error.light,
+        palette.success.light,
+        palette.secondary.light,
+        palette.primary.dark,
+        palette.warning.dark,
+        palette.info.dark,
+        palette.error.dark,
+        palette.success.dark,
+        palette.secondary.dark,
+        ];
+    
+
+
     // get the fields from the backend and assign them to selectedValues
     useEffect(() => {
         const getFields = async () => {
@@ -117,9 +165,11 @@ const SimplePage = () => {
                 let data;
 
                     data = await request.get('/api/user/profile/' + await localforage.getItem('userId'));
+        
   
                     dispatch(setMyProfile(data[0]));
                     setProfile(data[0]);
+                    console.log("dataaa: ",data[0]);
                     setMyAssignedTests(data[0].myAssignedTests);
                     setToValidateTests(data[0].MyEmployeesTests);
                     setSkills({
@@ -241,6 +291,9 @@ const SimplePage = () => {
         }
         getData();
     }, []);
+
+    const coverPhoto = `${process.env.REACT_APP_API_URL}/images/cover/default.png`;
+    const profilePhoto = `${process.env.REACT_APP_API_URL}/images/avatar/default.png`;
 
     function formatDate(d){
         const date = new Date(d);
@@ -607,16 +660,16 @@ const SimplePage = () => {
         <>
             <Box className="page-content">
                 <Container fluid>
-                    <Box className="profile-foreground position-relative mx-n4 mt-n4">
+                    <Box className="profile-foreground position-relative mx-n4 mt-n4" style={{ color: foreGround[0]}}>
                         <Box className="profile-wid-bg">
-                            <img src={"http://localhost:5000/images/cover/default.png"} alt="" className="profile-wid-img" />
+                            <img src={coverPhoto} alt="" className="profile-wid-img" />
                         </Box>
                     </Box>
                     <Box className="pt-4 mb-4 mb-lg-3 pb-lg-4">
                         <Row className="g-4">
                             <Box className="col-auto">
                                 <Box className="avatar-lg">
-                                    <img src={"http://localhost:5000/images/avatar/default.png"} alt="user-img"
+                                    <img src={profilePhoto} alt="user-img"
                                         className="img-thumbnail rounded-circle" />
                                 </Box>
                             </Box>
@@ -637,7 +690,7 @@ const SimplePage = () => {
                             </Col>
 
                             <Col xs={12} className="col-lg-auto order-last order-lg-0">
-                                <Row className="text text-white-50 text-center">
+                                {/* <Row className="text text-white-50 text-center">
                                     <Col lg={6} xs={4}>
                                         <Box className="p-2">
                                             <h4 className="text-white mb-1">24.3K</h4>
@@ -650,7 +703,7 @@ const SimplePage = () => {
                                             <p className="fs-14 mb-0">Following</p>
                                         </Box>
                                     </Col>
-                                </Row>
+                                </Row> */}
                             </Col>
                         </Row>
                     </Box>
@@ -1963,6 +2016,7 @@ const SimplePage = () => {
                                                             <Box className="swiper-wrapper">
                                                                 <SwiperSlide>
                                                                     <Card
+                                                                        
                                                                         className="profile-project-card shadow-none profile-project-success mb-0">
                                                                         <CardBody className="p-4">
                                                                             <Box className="d-flex">
@@ -2982,6 +3036,7 @@ const SimplePage = () => {
             </Box>
         </>
     );
+    
     function transformDate(dateString){
         const date = new Date(dateString);
     

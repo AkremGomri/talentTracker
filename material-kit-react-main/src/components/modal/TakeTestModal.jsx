@@ -31,7 +31,7 @@ import MyDialog from "../dialog/MyDialog";
 
 /* ***** */
 export default function TakeTestModal({ open,  handleCloseModal, selectedTest={}, initialSkills=[], type="take test", action=null }) {
-
+  console.log("selectedTest: ",selectedTest);
   const [ currentPage, setCurrentPage ] = useState('page-1');
 
   const [ testsSkills, setTestsSkills] = useState([]);

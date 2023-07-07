@@ -95,18 +95,18 @@ export default function AddCategory({ open, setOpen}) {
             </Typography>
 
             <Typography variant="h6" gutterBottom >
-              Add the category name: { categoryName }
+              Add the category name: 
             </Typography>
 
             <TextField required id="Name label" label="Name" sx={{ width: "100%" }} onChange={(e) => setCategoryName(e.target.value)} />
             { error.type === 'categoryName' && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.message}</Box>}
 
             <Typography variant="h6" gutterBottom sx={{ mt: "20px" }} >
-              Add the category description: { categoryDiscription }
+              Add the category description:
             </Typography>
           
 
-            <TextField required id="Discription label" label="Discription" sx={{ width: "100%" }} onChange={(e) => setCategoryDiscription(e.target.value)} />
+            <TextField id="Discription label" label="Discription" sx={{ width: "100%" }} onChange={(e) => setCategoryDiscription(e.target.value)} />
             {/* { error.categoryDiscription && <Box style={{ color: "orange", marginLeft: "20px"}}>{error.categoryDiscription}</Box>} */}
 
 

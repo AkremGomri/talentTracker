@@ -366,7 +366,7 @@ export default function CreateTestModal({ open, handleClose, onCreateUser, setDi
 
                   <TextField
                     id="duration"
-                    label="Duration (in minutes)"
+                    label="Duration (in days)"
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
@@ -583,6 +583,7 @@ export default function CreateTestModal({ open, handleClose, onCreateUser, setDi
       }
     
       async function sendRequest(){
+        console.log("selectedSkills: ",selectedSkills);
         const data = {
           name,
           description,

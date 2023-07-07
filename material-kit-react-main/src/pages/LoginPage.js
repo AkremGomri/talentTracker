@@ -56,7 +56,7 @@ export default function LoginPage() {
   return (
     <>
       <Helmet>
-        <title> Login | Minimal UI </title>
+        <title> Dashboard | Talent Tracker </title>
       </Helmet>
 
       <StyledRoot>

@@ -44,7 +44,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'nbUsers', label: 'Number Of Users', alignRight: false },
   { id: 'lastUpdated', label: 'Last Updated', alignRight: false },
-  { id: 'permissions', label: 'Permissions', alignRight: false },
+  { id: 'roles', label: 'Roles', alignRight: false },
   { id: '' },
 ];
 
@@ -207,16 +207,16 @@ export default function PermissionsPage() {
   return (
     <>
       <Helmet>
-        <title> Akrem GOMRI | Minimal UI </title>
+        <title> Dashboard | Talent Tracker </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Permissions
+            Roles
           </Typography>
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenAddRoleModal}>
-            New Permission
+            New Role
           </Button>
         </Stack>
 
@@ -237,7 +237,7 @@ export default function PermissionsPage() {
                 />
                 <TableBody>
                   {filteredRoles.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((role) => {
-                    const { _id: id, name, permissions, updatedAt, nbUsers } = role;
+                    const { _id: id, name, roles, updatedAt, nbUsers } = role;
                     const selectedRole = selected.indexOf(name) !== -1;
 
                     return (

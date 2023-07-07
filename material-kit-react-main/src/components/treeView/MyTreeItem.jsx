@@ -13,15 +13,18 @@ import axios from "axios";
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import StarIcon from '@mui/icons-material/Star';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import { useTheme, alpha } from '@mui/material/styles';
 
 const MyTreeItem = ({ id, name, expanded, handleToggle, secret, canModify, children, onToggle }) => {
 
+  const theme = useTheme();
+  
   if (!children) {
     return (
       <Box sx={{ position: "relative", my: ["10px"] }}>
         <Box sx={{ display: "flex", flexDirection: "row" }}>
           <TreeItem
-            icon={<StarIcon sx={{ color: "yellow" }} />}
+            // icon={<StarIcon sx={{ color: theme.palette.primary.main }} />}
             style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             nodeId={id}
             onClick={onToggle}

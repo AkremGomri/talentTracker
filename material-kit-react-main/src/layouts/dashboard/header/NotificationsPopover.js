@@ -79,8 +79,9 @@ const NOTIFICATIONS = [
 export default function NotificationsPopover() {
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
 
-  const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
-
+  // const totalUnRead = notifications.filter((item) => item.isUnRead === true).length; //before
+  const totalUnRead = 0;
+  
   const [open, setOpen] = useState(null);
 
   const handleOpen = (event) => {
@@ -150,9 +151,9 @@ export default function NotificationsPopover() {
               </ListSubheader>
             }
           >
-            {notifications.slice(0, 2).map((notification) => (
+            {/* {notifications.slice(0, 2).map((notification) => (
               <NotificationItem key={notification.id} notification={notification} />
-            ))}
+            ))} */}
           </List>
 
           <List
@@ -163,9 +164,9 @@ export default function NotificationsPopover() {
               </ListSubheader>
             }
           >
-            {notifications.slice(2, 5).map((notification) => (
+            {/* {notifications.slice(2, 5).map((notification) => (
               <NotificationItem key={notification.id} notification={notification} />
-            ))}
+            ))} */}
           </List>
         </Scrollbar>
 

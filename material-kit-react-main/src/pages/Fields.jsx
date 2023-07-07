@@ -110,7 +110,7 @@ export default function FieldsPage() {
   return (
     <>
       <Helmet>
-        <title> Akrem GOMRI | Minimal UI </title>
+        <title> Akrem GOMRI | Talent Tracker </title>
       </Helmet>
 
       <Container>

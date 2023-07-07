@@ -7,6 +7,9 @@ import classnames from "classnames";
 import Flatpickr from "react-flatpickr";
 import localforage from 'localforage';
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { setMyProfile } from '../../redux/features/myProfile';
+
 import produce from 'immer';        //        const profiles = await localforage.getItem('profile');
 
 import request from '../../services/request';
@@ -22,6 +25,8 @@ const ProfileSettings = () => {
     const [ profileImage, setProfileImage ] = useState({});
     const [ coverImage, setCoverImage ] = useState({});
 
+    const dispatch = useDispatch();
+    
     useEffect(() => {
         async function getData(){
             // Retrieve the profile data from LocalForage
@@ -47,6 +52,9 @@ const ProfileSettings = () => {
         }
         getData();
     }, []);
+
+    const coverPhoto = `${process.env.REACT_APP_API_URL}/images/cover/default.png`;
+    const profilePhoto = `${process.env.REACT_APP_API_URL}/images/avatar/default.png`;
 
     function handleUpdateProfil(){
         async function updateProfile(){
@@ -84,7 +92,7 @@ const ProfileSettings = () => {
                 <Container fluid>
                     <div className="position-relative mx-n4 mt-n4">
                         <div className="profile-wid-bg profile-setting-img">
-                            <img src={"http://localhost:5000/images/cover/default.png"} className="profile-wid-img" alt="" />
+                            <img src={coverPhoto} className="profile-wid-img" alt="" />
                             <div className="overlay-content">
                                 <div className="text-end p-3">
                                     <div className="p-0 ms-auto rounded-circle profile-photo-edit">
@@ -111,7 +119,7 @@ const ProfileSettings = () => {
                                 <CardBody className="p-4">
                                     <div className="text-center">
                                         <div className="profile-user position-relative d-inline-block mx-auto  mb-4">
-                                            <img src={"http://localhost:5000/images/avatar/default.png"}
+                                            <img src={profilePhoto}
                                                 className="rounded-circle avatar-xl img-thumbnail user-profile-image"
                                                 alt="user-profile" />
                                             <div className="avatar-xs p-0 rounded-circle profile-photo-edit">

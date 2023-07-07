@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
+import { useSelector } from 'react-redux';
 // mocks_
+import { selectMyProfile } from '../../../redux/utils/myProfile';
 import account from '../../../_mock/account';
 
 // ----------------------------------------------------------------------
@@ -22,18 +25,28 @@ const MENU_OPTIONS = [
   },
 ];
 
+const coverPhoto = `${process.env.REACT_APP_API_URL}/images/cover/default.png`;
+const profilePhoto = `${process.env.REACT_APP_API_URL}/images/avatar/default.png`;
+
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
+
+  const navigate = useNavigate();
+
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
 
   const handleClose = () => {
+    navigate('/login', { replace: true });
     setOpen(null);
   };
+
+  const myProfile = useSelector(selectMyProfile);
+  
 
   return (
     <>
@@ -54,7 +67,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar src={profilePhoto} alt="photoURL" />
       </IconButton>
 
       <Popover
@@ -78,10 +91,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {myProfile?.fullName}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {myProfile?.email}
           </Typography>
         </Box>
 

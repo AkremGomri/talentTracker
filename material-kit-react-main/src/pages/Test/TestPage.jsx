@@ -233,7 +233,7 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> Akrem GOMRI | Minimal UI </title>
+        <title> Akrem GOMRI | Talent Tracker </title>
       </Helmet>
 
       <Container>

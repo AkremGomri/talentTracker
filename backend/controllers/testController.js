@@ -16,7 +16,9 @@ exports.getAllTests = catchAsync(async (req, res, next) => {
         path: 'skills',
         populate: {
             path: 'childrenItems',
-        }
+        },
+        strictPopulate: false
+
     });
     return res.status(200).json({tests});
 });

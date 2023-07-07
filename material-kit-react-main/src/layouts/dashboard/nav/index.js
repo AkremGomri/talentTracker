@@ -7,6 +7,7 @@ import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/mater
 
 import localforage from 'localforage';
 // mock
+import { useDispatch } from 'react-redux';
 import account from '../../../_mock/account';
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
@@ -14,9 +15,12 @@ import useResponsive from '../../../hooks/useResponsive';
 import Logo from '../../../components/logo';
 import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
+
 //
 import { navSections, navPermission, navFields } from './config';
 import { permissions, actions } from '../../../utils/constants/permissions';
+import request from '../../../services/request';
+import { setMyProfile } from '../../../redux/features/myProfile';
 // ----------------------------------------------------------------------
 
 const NAV_WIDTH = 280;
@@ -41,11 +45,14 @@ export default function Nav({ openNav, onCloseNav }) {
 
   const [navConfig, setNavConfig] = useState([...navSections]);
   const isDesktop = useResponsive('up', 'lg');
+  const [profile, setProfile] = useState({});
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     localforage.getItem('myRole').then((myRole) => {
       myRole.permissions?.forEach((permission) => {
-        if (permission.subject === permissions.Role.name && !navConfig.some(el => el.title === 'permissions')) {
+        if (permission.subject === permissions.Role.name && !navConfig.some(el => el.title === 'roles')) {
           // navPermission.permissions = permission.actions;
           setNavConfig([navPermission, ...navConfig]);
         } 
@@ -62,6 +69,27 @@ export default function Nav({ openNav, onCloseNav }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, navConfig]); // navConfig shouldn't be there, but it's a workaround for now.
 
+  useEffect(() => {
+    async function getData(){
+        // Retrieve the profile data from LocalForage
+        try{
+            // const profiles = await localforage.getItem('profile');
+            const data = await request.get(`/api/user/profile/${await localforage.getItem('userId')}`);
+            console.log("data: ",data);
+            dispatch(setMyProfile(data[0]))
+            setProfile(data[0]);
+          } catch(e) {
+              console.log("error: ",e);
+            }
+            
+            // Fetch the profile data from the backend
+          }
+          getData();
+        }, []);
+
+  const coverPhoto = `${process.env.REACT_APP_API_URL}/images/cover/default.png`;
+  const profilePhoto = `${process.env.REACT_APP_API_URL}/images/avatar/default.png`;
+
   const renderContent = (
     <Scrollbar
       sx={{
@@ -76,15 +104,15 @@ export default function Nav({ openNav, onCloseNav }) {
       <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none">
           <StyledAccount>
-            <Avatar src={account.photoURL} alt="photoURL" />
+            <Avatar src={profilePhoto} alt="photoURL" />
 
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {account.displayName}
+                {profile?.firstName? `${profile?.fullName}` : `${profile?.email}`}
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {account.role}
+                {profile.role?.name}
               </Typography>
             </Box>
           </StyledAccount>
@@ -97,7 +125,7 @@ export default function Nav({ openNav, onCloseNav }) {
 
       <Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
         <Stack alignItems="center" spacing={3} sx={{ pt: 5, borderRadius: 2, position: 'relative' }}>
-          <Box
+          {/* <Box
             component="img"
             src="/assets/illustrations/illustration_avatar.png"
             sx={{ width: 100, position: 'absolute', top: -50 }}
@@ -111,15 +139,16 @@ export default function Nav({ openNav, onCloseNav }) {
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               From only $69
             </Typography>
-          </Box>
+          </Box> */}
 
-          <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
+          {/* <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
             Upgrade to Pro
-          </Button>
+          </Button> */}
         </Stack>
       </Box>
     </Scrollbar>
   );
+
 
   return (
     <Box

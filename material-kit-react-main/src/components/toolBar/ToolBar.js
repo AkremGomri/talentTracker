@@ -24,7 +24,7 @@ import AddItem from '../modal/AddItem';
 const StyledButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
   borderColor: theme.palette.text.primary,
-  backgroundColor: theme.palette.text.secondary,
+  backgroundColor: theme.palette.INDIGO[200],
   textTransform: 'capitalize',
   '&:hover': {
     backgroundColor: alpha(theme.palette.text.secondary, theme.palette.action.hoverOpacity),
@@ -107,7 +107,7 @@ export default function ToolBar(props) {
         /> */}
 
       <StyledButton onClick={handleExpandClick}>
-        <Iconify icon="ic:baseline-add" /> {expanded.length ? 'Close all' : 'Open all'}
+        <Iconify icon="pepicons-pencil:expand" /> {expanded.length ? 'Close all' : 'Open all'}
       </StyledButton>
 
       <StyledButton onClick={() => handleOpenAddCategory(true)}>
@@ -119,19 +119,19 @@ export default function ToolBar(props) {
       </StyledButton>
 
       <StyledButton>
-        <Iconify icon="ic:baseline-add" /> view item
+        <Iconify icon="carbon:view" /> view item
       </StyledButton>
 
       <StyledButton>
-        <Iconify icon="ic:baseline-add" /> edit item
+        <Iconify icon="material-symbols:edit-outline" /> edit item
       </StyledButton>
 
       <StyledButton sx={{ bgColor: 'red' }} onClick={() => setOpenDeleteDialog(true)}>
-        <Iconify icon="ic:baseline-add" /> delete item
+        <Iconify icon="ic:baseline-minus" /> delete item
       </StyledButton>
 
       <StyledButton>
-        <Iconify icon="ic:baseline-add" /> import items
+        <Iconify icon="solar:import-linear" /> import items
       </StyledButton>
 
       <Tooltip title="Filter list">

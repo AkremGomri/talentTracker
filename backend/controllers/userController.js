@@ -320,8 +320,6 @@ exports.updateMySkills = catchAsync(async (req, res, next) => {
   //     date: Date.now()
   //   }
   // });
-  console.log("user: ",user);
-
   
   await user.save();
 
@@ -330,7 +328,7 @@ exports.updateMySkills = catchAsync(async (req, res, next) => {
 
 exports.getProfil = catchAsync(async(req, res, next) => {
   const filter = (req.params.id || req.body._id)? { "_id": req.params.id || req.body._id } : req.body.email? { "email": req.body.email } : {};
-
+  console.log("filter2: ", filter);
   let myAssignedTests = await Test.find({ "assignedTo": { $in: req.auth.userId }, "status": { $ne: "completed" } })
     .populate({
       path: 'creator',
@@ -343,7 +341,8 @@ exports.getProfil = catchAsync(async(req, res, next) => {
       path: 'skills',
       populate: {
           path: 'childrenItems',
-      }
+      },
+      strictPopulate: false
     });
 
     myAssignedTests = myAssignedTests?.filter(test => test.AssignedToUsers = test.AssignedToUsers?.find( a => a.user?._id.toString() === req.auth.userId))
@@ -364,13 +363,17 @@ exports.getProfil = catchAsync(async(req, res, next) => {
       path: 'skills',
       populate: {
         path: 'childrenItems',
-      }
+      },
+      strictPopulate: false
     });
 
+    console.log("req.user.manages: ",req.user.manages);
     // console.log("MyEmployeesTests: ",MyEmployeesTests);
 
     MyEmployeesTests = MyEmployeesTests.flatMap(test => {
       const filteredUsers = test.AssignedToUsers.filter(a => {
+        console.log("a.user?._id.toString(): ",a.user?._id.toString());
+        console.log("req.user.manages: ",req.user.manages);
         if (req.user.manages.includes(a.user?._id.toString())) {
           return true;
         }
@@ -389,13 +392,16 @@ exports.getProfil = catchAsync(async(req, res, next) => {
         return [];
       }
     });
+    console.log("MyEmployeesTests: ",MyEmployeesTests);
 
-    console.log("MyEmployeesTests2: ",MyEmployeesTests);
+
+    console.log("filter: ",filter);
 
   let user = await User.find(filter).select('-password -deleted -__v').populate({
     path: 'jobTitle role',
     select: "name description",
-    deleted: { $ne: true }
+    deleted: { $ne: true },
+    options: { strictPopulate: false }
     })
     // .populate({
     //   path: 'skills.skill',
@@ -406,7 +412,7 @@ exports.getProfil = catchAsync(async(req, res, next) => {
     //   }
     // })
   
-    // console.log("user[0].fullName: ",user[0].fullName);
+    if(!user[0]) return next(new AppError('User not found', 404));
 
   user[0] = {
     ...user[0]._doc,
@@ -415,7 +421,6 @@ exports.getProfil = catchAsync(async(req, res, next) => {
   }
   user[0].fullName = `${user[0].name?.first} ${user[0].name?.last}`
 
-  if(!user) return next(new AppError('User not found', 404));
   return res.status(200).json(user);
 });
 

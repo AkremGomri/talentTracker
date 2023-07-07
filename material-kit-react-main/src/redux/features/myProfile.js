@@ -32,6 +32,7 @@ export default function myProfileReducer(state = {selectedRole: {}, all: []}, ac
                 break;
 
             case setMyProfile.toString():
+                console.log('setMyProfile', action.payload);
                 draft.myProfile = action.payload;
                 break;
 

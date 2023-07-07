@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build and test backend application:
 
     runs-on: ubuntu-latest
     env:
@@ -15,7 +15,7 @@ jobs:
       MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x, 20.x]
+        node-version: [14.x, 16.x, 20.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -33,3 +33,8 @@ jobs:
             yarn testini
             #yarn test
 
+  build and test frontend application:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
